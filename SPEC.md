@@ -105,7 +105,10 @@ After the first sign-in (accepting the invite), a new student goes through four 
 opens; the menu is hidden until they finish, and progress is saved after every tap so they can stop
 and carry on later, on any device:
 
-1. **You**: what Road to 9 does in three lines; optional first name. Also "Already have a progress
+1. **You**: what Road to 9 does in three lines; optional first name; a required tick: "I agree to the
+   Terms of use and have read the Privacy note. If I'm under 18, a parent or carer knows I'm using Road
+   to 9." The version and time are saved (`settings.terms`). Raising `TERMS_V` in the app asks everyone
+   to agree again before they carry on. Also "Already have a progress
    file?" to import one and skip the rest (used to move the first student's data across).
 2. **Subjects**: tick the subjects you take (at least one).
 3. **Rate topics**: one page per subject. Every topic gets one of: very strong, strong, OK, weak,

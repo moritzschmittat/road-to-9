@@ -438,6 +438,8 @@ body{margin:0}
 .foot button{border:0;background:none;color:var(--muted);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
 body.signedout #mainnav,body.signedout #hdrmeta,body.signedout #netpill{display:none}
 body.onboarding #mainnav,body.onboarding #hdrmeta{visibility:hidden}
+.obterms{display:flex;gap:10px;align-items:flex-start;margin:18px 0 4px;font-size:14px;line-height:1.45}
+.obterms input{width:20px;height:20px;margin-top:1px;flex:none;accent-color:var(--accent)}
 .ob{max-width:860px;margin:10px auto 0;display:flex;flex-direction:column;gap:14px}
 .ob h1{font-family:var(--f-display,inherit);font-size:36px;line-height:1.1;margin:0}
 .ob h1 span{color:var(--accent)}
@@ -2027,7 +2029,7 @@ function renderLogin(msg){
       <button class="btn primary" type="submit">Email me a sign-in link</button></form>
     <div id="lmsg" class="small" role="status"></div>
     <p class="small muted">Road to 9 is invite only. Use the email address your invite was sent to. No password needed: we email you a link each time you sign in on a new device.</p>
-    <p class="small muted">Road to 9 helps you plan; it can’t promise any grade. By signing in you agree to the <a href="terms.html">Terms of use</a> and <a href="privacy.html">Privacy note</a>.</p>
+    <p class="small muted">Road to 9 helps you plan; it can’t promise any grade. You’ll be asked to agree to the <a href="terms.html">Terms of use</a> when you first sign in. See also the <a href="privacy.html">Privacy note</a>.</p>
   </section>`;
   $('#loginform').onsubmit = async ev => {
     ev.preventDefault(); const email = $('#lemail').value.trim(); const m = $('#lmsg');
@@ -2072,6 +2074,11 @@ function startApp(user){
   render(); connect();
 }
 /* ---------- onboarding: welcome → subjects → rate every topic → study time ---------- */
+// Terms of use version. Change it when terms.html changes in a way that matters: everyone is asked to agree again.
+const TERMS_V = '2026-11-13';
+const termsOK = () => !!(S.settings.terms && S.settings.terms.v === TERMS_V);
+function acceptTerms(){ S.settings.terms = {v: TERMS_V, at: new Date().toISOString()}; }
+const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
 const OB_STEPS = [['welcome','You'],['subjects','Subjects'],['rate','Rate topics'],['time','Study time']];
 const OB_LEVELS = [
   [1,'Very strong','I could answer exam questions on it now'],
@@ -2096,9 +2103,10 @@ function renderOnboarding(){
       <p class="lead">We do the planning, you do the learning. Three quick steps and your first session is ready.</p>
       <ol class="obhow"><li><b>Pick your subjects.</b></li><li><b>Rate every topic</b> from very strong to very weak. Be honest: the weakest come first.</li><li><b>Open Road to 9 each day</b> and do what it says. It plans revising, and brings topics back just before you’d forget them.</li></ol>
       <label class="small muted" for="obname">Your first name (optional)<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name"></label>
-      <div class="obnav"><span></span><button class="btn primary" id="obnext">Let’s start</button></div>
+      ${TERMS_TICK}
+      <div class="obnav"><span></span><button class="btn primary" id="obnext">Let’s start</button></div><div id="obmsg" class="small" role="status"></div>
       <details class="obimport"><summary class="small">Already have a progress file from an earlier planner?</summary>
-        <p class="small muted">Load it and skip these steps. Everything in it (subjects, ratings, sessions, journal) comes across.</p>
+        <p class="small muted">Tick the box above first, then load it to skip these steps. Everything in it (subjects, ratings, sessions, journal) comes across.</p>
         <label class="btn small" for="obfile" style="cursor:pointer">Choose file</label><input id="obfile" type="file" accept=".json,application/json" hidden>
         <div id="obimpmsg" class="small" role="status"></div></details>`;
   } else if (step==='subjects'){
@@ -2139,7 +2147,9 @@ function renderOnboarding(){
     if (step==='rate' && (ob.i||0) > 0) return go('rate', ob.i - 1);
     go(OB_STEPS[Math.max(0, idx-1)][0], step==='time' ? CURRICULUM.length-1 : 0); };
   $('#obnext').onclick = () => {
-    if (step==='welcome'){ s.name = ($('#obname').value||'').trim().slice(0,30); return go('subjects'); }
+    if (step==='welcome'){
+      if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to agree to the Terms of use first.'; return; }
+      acceptTerms(); s.name = ($('#obname').value||'').trim().slice(0,30); return go('subjects'); }
     if (step==='subjects'){
       const pick = [...document.querySelectorAll('[data-obsubj]')].filter(x => x.checked).map(x => x.dataset.obsubj);
       if (!pick.length){ $('#obmsg').textContent = 'Tick at least one subject.'; return; }
@@ -2155,9 +2165,12 @@ function renderOnboarding(){
     s.onboarded = true; s.ob = {step:'done', i:0}; s.startedOn = todayStr(); location.hash = '#next'; save();
   };
   const f = $('#obfile'); if (f) f.onchange = async () => {
-    const file = f.files && f.files[0]; if (!file) return; const res = checkImport(await file.text()); const m = $('#obimpmsg');
+    const file = f.files && f.files[0]; if (!file) return; const m = $('#obimpmsg');
+    if (!$('#obterms').checked){ m.textContent = '⚠ Tick the box to agree to the Terms of use first, then choose the file again.'; f.value = ''; return; }
+    const res = checkImport(await file.text());
     if (res.err){ m.textContent = '⚠ ' + res.err; return; }
     const d = normalise(res.d); delete d.app; delete d.exportedAt; d.settings.onboarded = true; d.settings.ob = {step:'done', i:0};
+    d.settings.terms = {v: TERMS_V, at: new Date().toISOString()};
     if (!d.settings.subjects.length) d.settings.subjects = ALL_SUBJECTS.map(q => q.id);
     S = d; current = null; location.hash = '#next'; save();
   };
@@ -2169,7 +2182,15 @@ function renderOnboarding(){
 const _render = render;
 render = function(){ if (!USER){ return; } applySubjects();
   if (!S.settings.onboarded){ renderOnboarding(); return; }
+  if (!termsOK()){ renderTermsGate(); return; }
   document.body.classList.remove('onboarding'); _render(); };
+function renderTermsGate(){
+  document.body.classList.add('onboarding');
+  $('#view').innerHTML = `<div class="ob"><h1>${S.settings.terms ? 'We’ve updated our terms' : 'One quick thing'}</h1>
+    <p class="lead">Please agree to the Terms of use before you carry on. Your planner is exactly as you left it.</p>
+    ${TERMS_TICK}<div class="obnav"><span></span><button class="btn primary" id="obnext">Continue</button></div><div id="obmsg" class="small" role="status"></div></div>`;
+  $('#obnext').onclick = () => { if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box first.'; return; } acceptTerms(); save(); render(); };
+}
 window.addEventListener('hashchange', () => { if (USER) render(); });
 (async function boot(){
   if (!window.supabase || SB_URL.startsWith('%%')){ renderLogin('⚠ The site isn’t connected to its database yet.'); return; }
