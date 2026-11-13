@@ -331,6 +331,8 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .jba .jbt{color:var(--ink);margin-right:4px}
 .jba .rag{width:10px;height:10px;margin-right:-1px}
 .jba .arr{opacity:.7;margin:0 2px}
+.jlink{all:unset;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px;text-decoration-thickness:2px}
+.jlink:hover,.jlink:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
 .jcard hr{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .jcard .jtext{margin:0}
 .jcard .linkbtn{justify-self:start}
@@ -1399,7 +1401,8 @@ function journalHTML(){
     const ids = (l.c||[]).filter(id => CARD[id]);
     const sids = l.t==='paper' ? [l.s].filter(x => SUBJ[x]) : [...new Set(ids.map(id => CARD[id].sid))];
     const len = l.t==='paper' ? 'Past paper · 45 min' : sessLabel(n).k;
-    const conf = ids.map((id, i) => `<div class="jba">${ids.length > 1 ? `<span class="jbt">${esc(CARD[id].n)}</span>` : ''}${jLv(jBefore(l, id))}<span class="arr" aria-label="then">→</span>${jLv(l.r && l.r[i])}</div>`).join('');
+    const tl = id => { const sp = studyPlan(id); return sp ? `<button class="jlink" data-jstudy="${id}" title="Study again: ${esc(sp.label)}">${esc(CARD[id].n)}</button>` : esc(CARD[id].n); };
+    const conf = ids.map((id, i) => `<div class="jba">${ids.length > 1 ? `<span class="jbt">${tl(id)}</span>` : ''}${jLv(jBefore(l, id))}<span class="arr" aria-label="then">→</span>${jLv(l.r && l.r[i])}</div>`).join('');
     const note = l.at && S.notes[l.at];
     const editing = l.at && journalEdit===l.at;
     const body = editing
@@ -1407,7 +1410,7 @@ function journalHTML(){
       : note ? `<p class="jtext">${esc(note)}</p>` : '';
     return `<article class="jcard">
       <div class="jsubj">${sids.map(x => `<span>${icon(x,16)}${esc(SUBJ[x].name)}</span>`).join('')}</div>
-      ${l.t==='paper' ? '<div class="jmod">Exam practice</div>' : ids.length===1 ? `<div class="jmod">${esc(CARD[ids[0]].n)}</div>` : ''}
+      ${l.t==='paper' ? '<div class="jmod">Exam practice</div>' : ids.length===1 ? `<div class="jmod">${tl(ids[0])}</div>` : ''}
       <div class="jlen">${esc(len)}</div>
       ${conf ? `<div class="jconf">${conf}</div>` : ''}
       ${body || l.at ? '<hr>' : ''}${body}
@@ -1420,6 +1423,7 @@ function journalHTML(){
 }
 function bindJournal(){
   const rerender = () => { const el = document.getElementById('journal'); if (el){ el.outerHTML = journalHTML(); bindJournal(); } };
+  document.querySelectorAll('#journal [data-jstudy]').forEach(b => b.onclick = () => studyNow(b.dataset.jstudy));
   [['jwprev', -1], ['jwnext', 1], ['jwnow', 0]].forEach(([id, d]) => { const b = document.getElementById(id); if (b) b.onclick = () => { journalWeek = d ? Math.min(0, journalWeek + d) : 0; journalEdit = null; rerender(); }; });
   document.querySelectorAll('[data-jedit]').forEach(b => b.onclick = () => { journalEdit = b.dataset.jedit; rerender(); const t = document.querySelector('#journal .jedit'); if (t) t.focus(); });
   document.querySelectorAll('[data-jcancel]').forEach(b => b.onclick = () => { journalEdit = null; rerender(); });
