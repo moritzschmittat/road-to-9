@@ -2208,22 +2208,11 @@ function renderPlan(){
   const hist = S.log.slice(-8).reverse();
   $('#view').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0 4px"><h1 style="font-size:28px;margin:0">Settings</h1><button class="btn primary" id="saveplan">Save settings</button></div>
     <p class="muted" style="margin:0">Change these whenever life changes. The next session updates straight away.</p>
-    <div class="acctgrid">
     <section class="panel"><h2>You</h2>
       <label class="small muted" for="uname">First name or nickname (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
       <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions you're asked each morning about the day before. Leave a box empty to skip it.</p>
       ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div></section>
-    <section class="panel"><h2>Account</h2>
-      <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
-      <div class="row"><button class="btn" id="signout">Sign out</button><a class="btn ghost" href="terms.html" style="text-decoration:none">Terms</a><a class="btn ghost" href="privacy.html" style="text-decoration:none">Privacy</a></div>
-      <details id="deldetails" ${DELETE_CONFIRMED ? 'open' : ''}><summary class="small">Delete my account</summary>
-        ${DELETE_CONFIRMED ? `<p class="small" style="margin:8px 0">✓ Email confirmed. This deletes your account and everything you've saved, straight away and for good. Export your progress first if you want a copy. Type DELETE to finish.</p>
-        <div class="row"><input id="delconf" placeholder="DELETE" style="max-width:140px" autocomplete="off"><button class="btn danger" id="delacct">Delete everything</button></div>`
-        : `<p class="small" style="margin:8px 0">Deleting removes your account and everything you've saved, for good. To make sure it's really you, we first email you a confirmation link. Export your progress first if you want a copy.</p>
-        <div class="row"><button class="btn danger" id="delreq">Email me a confirmation link</button></div>`}
-        <div id="delmsg" class="small" role="status"></div></details></section>
-    </div>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
       <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
@@ -2253,7 +2242,15 @@ function renderPlan(){
         <label class="btn" for="impfile" style="cursor:pointer">Import from file</label><input id="impfile" type="file" accept=".json,application/json" hidden>
         <button class="btn ghost" id="imppaste">Paste instead</button></div>
       <div id="bkmsg" class="small" role="status"></div>
-      <div id="bkextra"></div></section>`;
+      <div id="bkextra"></div></section>
+    <section class="panel"><h2>Account</h2>
+      <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
+      <details id="deldetails" ${DELETE_CONFIRMED ? 'open' : ''}><summary class="small">Delete my account</summary>
+        ${DELETE_CONFIRMED ? `<p class="small" style="margin:8px 0">✓ Email confirmed. This deletes your account and everything you've saved, straight away and for good. Export your progress first if you want a copy. Type DELETE to finish.</p>
+        <div class="row"><input id="delconf" placeholder="DELETE" style="max-width:140px" autocomplete="off"><button class="btn danger" id="delacct">Delete everything</button></div>`
+        : `<p class="small" style="margin:8px 0">Deleting removes your account and everything you've saved, for good. To make sure it's really you, we first email you a confirmation link. Export your progress first if you want a copy.</p>
+        <div class="row"><button class="btn danger" id="delreq">Email me a confirmation link</button></div>`}
+        <div id="delmsg" class="small" role="status"></div></details></section>`;
   document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { s.periods.splice(+b.dataset.del,1); save(); });
   const bindRm = root => root.querySelectorAll('[data-rmpaper]').forEach(b => b.onclick = () => b.closest('.paprow').remove());
   bindRm(document);
