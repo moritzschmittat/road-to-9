@@ -404,10 +404,10 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .hnext{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;display:grid;gap:4px;align-content:start}
 .hn-t{font-size:24px;letter-spacing:-.01em}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:6px}
-.tnum{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}
-.tnum b{font-family:var(--f-display);font-size:44px;font-weight:600;line-height:1}
-.tnum span{color:var(--muted);font-size:18px;font-weight:700}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:6px;container-type:inline-size;min-width:0}
+.tnum{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 6px;font-variant-numeric:tabular-nums}
+.tnum b{font-family:var(--f-display);font-size:clamp(18px,10.5cqi,38px);font-weight:600;line-height:1.1;white-space:nowrap}
+.tnum span{color:var(--muted);font-size:clamp(11px,5cqi,16px);font-weight:700;white-space:nowrap}
 .tbar{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
 .tbar i{display:block;height:100%;background:var(--accent)}
 .homegrid2{display:grid;gap:0 14px}
@@ -703,19 +703,23 @@ const SUBJ = {}; const CARD = {};
 ALL_SUBJECTS.forEach(s => { SUBJ[s.id]=s; s.cards.forEach((c,i) => { c.sid=s.id; c.i=i; CARD[c.id]=c; }); });
 
 /* ---------- default settings ---------- */
-/* exam papers per subject (Higher tier); dates are filled in from the timetable in Settings */
+/* exam papers per subject (Higher tier) with the summer 2027 dates from the boards' final timetables
+   (Pearson International GCSE and GCSE, AQA, OCR; checked 13 Nov 2026). Speaking tests are arranged by the school,
+   so they have no date. Students can change any date in Settings. */
 const DEFAULT_PAPERS = {
-  bio:['Paper 1','Paper 2'], chem:['Paper 1','Paper 2'],
-  cs:['Paper 1: Principles of computer science','Paper 2: Application of computational thinking'],
-  maths:['Paper 1H','Paper 2H'], fm:['Paper 1 (non-calculator)','Paper 2 (calculator)'],
-  phys:['Paper 3: Breadth in physics','Paper 4: Depth in physics'],
-  geog:['Paper 1: Living with the physical environment','Paper 2: Challenges in the human environment','Paper 3: Geographical applications'],
-  englit:['Paper 1: Poetry and modern prose','Paper 2: Modern drama and literary heritage'],
-  englang:['Paper 1'],
-  ger:['Paper 1: Listening','Paper 2: Reading and writing','Paper 3: Speaking'],
-  spa:['Paper 1: Listening','Paper 2: Reading and writing','Paper 3: Speaking']
+  bio:[['Paper 1','2027-05-11'],['Paper 2','2027-06-10']],
+  chem:[['Paper 1','2027-05-18'],['Paper 2','2027-06-15']],
+  cs:[['Paper 1: Principles of computer science','2027-05-10'],['Paper 2: Application of computational thinking','2027-05-19']],
+  maths:[['Paper 1H','2027-05-14'],['Paper 2H','2027-05-27']],
+  fm:[['Paper 1 (non-calculator)','2027-06-11'],['Paper 2 (calculator)','2027-06-17']],
+  phys:[['Paper 3: Breadth in physics','2027-05-25'],['Paper 4: Depth in physics','2027-06-18']],
+  geog:[['Paper 1: Living with the physical environment','2027-05-18'],['Paper 2: Challenges in the human environment','2027-05-26'],['Paper 3: Geographical applications','2027-06-10']],
+  englit:[['Paper 1: Poetry and modern prose','2027-05-12'],['Paper 2: Modern drama and literary heritage','2027-05-19']],
+  englang:[['Paper 1','2027-05-24']],
+  ger:[['Paper 1: Listening','2027-05-10'],['Paper 2: Reading and writing','2027-05-10'],['Paper 3: Speaking','']],
+  spa:[['Paper 1: Listening','2027-06-09'],['Paper 2: Reading and writing','2027-06-09'],['Paper 3: Speaking','']]
 };
-const defaultPapers = () => { const o = {}; ALL_SUBJECTS.forEach(s => o[s.id] = (DEFAULT_PAPERS[s.id]||['Paper 1']).map(n => ({n, mock:'', exam:''}))); return o; };
+const defaultPapers = () => { const o = {}; ALL_SUBJECTS.forEach(s => o[s.id] = (DEFAULT_PAPERS[s.id]||[['Paper 1','']]).map(([n, exam]) => ({n, mock:'', exam}))); return o; };
 function defaultSettings(){
   const exams = {}; ALL_SUBJECTS.forEach(s => exams[s.id] = '2027-05-10');
   return {
@@ -779,6 +783,8 @@ function normalise(x){
     let list = Array.isArray(xp[sb.id]) ? xp[sb.id].map(q => ({n:q.n||'Paper', mock:q.mock||'', exam:q.exam||''})) : dp[sb.id];
     // an older single "first exam" date that isn't the default becomes paper 1's exam date
     if (!xs.papers && xs.exams && xs.exams[sb.id] && xs.exams[sb.id] !== '2027-05-10' && list[0]) list[0].exam = xs.exams[sb.id];
+    // an empty exam date on a standard paper gets the board's date; dates the student typed are never changed
+    list.forEach((q, i) => { const d = dp[sb.id] && dp[sb.id][i]; if (!q.exam && d && d.exam && d.n===q.n) q.exam = d.exam; });
     s.settings.papers[sb.id] = list; });
   ALL_SUBJECTS.forEach(sb => s.settings.exams[sb.id] = examFirst(sb.id, s.settings));
   s.cards = x.cards || {}; s.pts = x.pts || {}; s.habits = x.habits || {}; s.hist = x.hist || {}; s.log = x.log || []; s.mt = x.mt || {}; s.notes = x.notes || {}; s.todo = x.todo || {}; s.rh = x.rh || {};
@@ -918,7 +924,8 @@ const doneOn = d => S.log.filter(l => l.d===d).reduce((a,l) => a + sessMins(l), 
 
 /* ---------- the scheduler ---------- */
 let skipped = new Set(); let skipDay = todayStr();
-function liveSubjects(today){ return CURRICULUM.filter(s => examLast(s.id) >= today); }   // a subject stays in the plan until its last paper
+// a subject is studied up to the day before its last paper, and not on the day of any of its papers
+function liveSubjects(today){ return CURRICULUM.filter(s => examLast(s.id) > today && !paperDates(s.id, null, 'exam').includes(today)); }
 
 function pickNext(mode){
   const today = todayStr();
@@ -1577,10 +1584,10 @@ function renderHome(){
     ${tile('Whole project', `${fmtShort(s.startedOn)} to ${fmtShort(end)}`, periodStats(s.startedOn, end))}
   </div>
   <div class="homegrid2">
-    <section class="panel"><div class="row" style="justify-content:space-between"><h2>${esc(parse(today).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'}))}, day by day</h2></div>${monthGrid(today)}</section>
+    <section class="panel"><div class="row" style="justify-content:space-between"><h2>${esc(parse(today).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'}))}</h2></div>${monthGrid(today)}</section>
     <section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Progress${tipHTML('What do these numbers mean?', `<p><b>${greenPts} of ${allPts}</b> spec points are strong or very strong.</p><p><b>Learning done</b> is the revision time already behind you compared with the time still to go, for the topics you’ve rated.</p><p><b>Confidence</b> averages your ratings over every spec point: very strong counts 100%, strong 50%, OK 25%, weak 12.5% and very weak 6.25%.</p>`)}</h2></div><div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}</div>`)(workOf(CURRICULUM.flatMap(x => x.cards), true))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(CURRICULUM.flatMap(x => x.cards)),'big')}</div></div></div>
       ${stackHTML(ptCounts(CURRICULUM.flatMap(x => x.cards)))}
-      <div class="legend">${(pc => [[1,'l1'],[1.5,'l15'],[2,'l2'],[2.5,'l25'],[3,'l3']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
+      <div class="legend">${(pc => [[3,'l3'],[2.5,'l25'],[2,'l2'],[1.5,'l15'],[1,'l1']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
       <div class="sprog">${CURRICULUM.map(sb => { const k = counts(sb); const wk = S.log.filter(l => l.d>=weekAgo && (l.s===sb.id || l.c.some(id => CARD[id] && CARD[id].sid===sb.id))).length;
         return `<a class="sp" href="#topics-${sb.id}"><span class="nm">${icon(sb.id,17)}${esc(sb.name)}</span>${stackHTML(ptCounts(sb.cards))}<span class="pp"><span>${workHTML(workOf(sb.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(sb.cards))}<small class="ppl">confident</small></span></span></a>`; }).join('')}</div></section>
   </div>
@@ -1926,7 +1933,7 @@ function stackHTML(k){
   const t = k.l3+k.l25+k.l2+k.l15+k.l1+k.x+k.later || 1;
   return `<div class="stack">${[['l3','var(--lv3)'],['l25','var(--lv25)'],['l2','var(--lv2)'],['l15','var(--lv15)'],['l1','var(--lv1)'],['x','var(--grey)'],['later','var(--line)']].map(([n,c]) => k[n] ? `<i style="width:${100*k[n]/t}%;background:${c}"></i>` : '').join('')}</div>`;
 }
-const LV = [1,1.5,2,2.5,3];
+const LV = [3,2.5,2,1.5,1];   // display order everywhere: very weak (red) on the left, very strong (green) on the right
 const LVNAME = {1:'Very strong',1.5:'Strong',2:'OK',2.5:'Weak',3:'Very weak'};
 const lvCls = v => v==null ? 'x' : String(v).replace('.','');
 let editPt = null;
@@ -2003,7 +2010,7 @@ function chunkHTML(c){
 function subjectsHTML(){
   if (!CURRICULUM.length) return '';
   return `<section class="panel subjpanel" id="subjects"><div class="subjhead"><h2>Subjects</h2>
-      <div class="legend">${[1,1.5,2,2.5,3].map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div></div>
+      <div class="legend">${LV.map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div></div>
       <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
         <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · ${k.x} to rate`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
 }
@@ -2017,7 +2024,7 @@ function renderTopics(sid){
     html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#topics">← Back to Study</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
       <p class="small muted" style="margin:4px 0 0">Exam board: ${esc(s.board)}${s.spec?` · <a href="${esc(s.spec)}" target="_blank" rel="noopener">Specification</a>`:''}</p></div>
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
-      <div class="key"><span class="eyebrow">Traffic light</span>${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
+      <div class="key">${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
       ${stackHTML(ptCounts(s.cards))}
       <p class="small muted">Click a coloured box to change how well you know a spec point. "Revise now" or "Refresh now" starts that topic straight away. "Later" means not taught yet. "Off" means it's not on your course.</p>
       <div class="board" data-sid="${s.id}" style="--codew:${Math.max(47, Math.ceil(Math.max(0, ...s.cards.flatMap(c => c.p.map(q => String(q.c||'').length))) * 6.8) + 4)}px">${secs.map(g => { const kk = counts({cards:g.cards});
@@ -2377,7 +2384,7 @@ function renderOnboarding(){
   if (step==='welcome'){
     body = `<h1>Welcome to Road to <span>9</span></h1>
       <p class="lead">We do the planning, you do the learning. Three quick steps and your first session is ready.</p>
-      <ol class="obhow"><li><b>Pick your subjects.</b></li><li><b>Rate every topic</b> from very strong to very weak. Be honest: the weakest come first.</li><li><b>Open Road to 9 each day</b> and do what it says. It plans revising, and brings topics back just before you’d forget them.</li></ol>
+      <ol class="obhow"><li><b>Pick your subjects.</b></li><li><b>Rate every topic</b> from very weak to very strong. Be honest: the weakest come first.</li><li><b>Open Road to 9 each day</b> and do what it says. It plans revising, and brings topics back just before you’d forget them.</li></ol>
       <label class="small muted" for="obname">First name or nickname (optional)<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name"></label>
       ${TERMS_TICK}
       <div class="obnav"><span></span><button class="btn primary" id="obnext">Let’s start</button></div><div id="obmsg" class="small" role="status"></div>
