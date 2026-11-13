@@ -486,7 +486,10 @@ body.signedout .top .brand{visibility:hidden}
 .subjpick input{width:18px;height:18px}
 .subjpick small{display:block;color:var(--muted)}
 .danger{border:1px solid var(--lv3);color:var(--lv3);background:transparent}
-.invlist{margin:4px 0 0;padding-left:18px}.invlist li{margin:2px 0;overflow-wrap:anywhere}
+.invlinks{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.invlinks li{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--revbg)}
+.invlinks li code{font-family:var(--f-mono);font-size:13px;overflow-wrap:anywhere}
+.invlinks li.used{opacity:.6}
 .acctgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 @media (max-width:700px){.acctgrid{grid-template-columns:1fr}}
 </style>
@@ -1954,7 +1957,7 @@ function renderPlan(){
     <p class="muted" style="margin:0">Change these whenever life changes. The next session updates straight away.</p>
     <div class="acctgrid">
     <section class="panel"><h2>You</h2>
-      <label class="small muted" for="uname">Your first name (shown only in invite emails you send to friends)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
+      <label class="small muted" for="uname">Your first name (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check (Duolingo, reading, bedtime)</label></section>
     <section class="panel"><h2>Account</h2>
       <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
@@ -1965,7 +1968,7 @@ function renderPlan(){
         <div id="delmsg" class="small" role="status"></div></details></section>
     </div>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
-      <p class="small muted" style="margin:0">Road to 9 is invite only. You can invite up to 3 friends who are revising for their GCSEs. They get one email from Road to 9 saying that ${esc(s.name || 'a friend')} invited them, and nothing else about you. Only invite people who’d want it.</p>
+      <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your first name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
     <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. Ask the person who invited you if one of your subjects or exam boards is missing.</p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div></section>
@@ -2022,6 +2025,8 @@ function renderPlan(){
 }
 
 function renderLogin(msg){
+  const join = new URLSearchParams(location.search).get('join');
+  if (join && !msg) return renderJoin(join);
   document.body.classList.add('signedout');
   $('#footacct').innerHTML = '';
   $('#view').innerHTML = `<section class="login">
@@ -2056,27 +2061,46 @@ async function callFn(name, body){
 }
 async function loadInvites(note){
   const box = $('#invbody'); if (!box) return;
-  if (!navigator.onLine){ box.textContent = 'Connect to the internet to invite friends.'; return; }
+  if (!navigator.onLine){ box.textContent = 'Connect to the internet to see your invite links.'; return; }
   const r = await callFn('invite', {action: 'status'});
   if (!$('#invbody')) return;
   if (r.error){ box.textContent = '⚠ ' + r.error; return; }
-  const list = r.invites.map(i => `<li><b>${esc(i.email)}</b> <span class="muted">· ${i.joined ? 'joined' : 'invite sent'}</span></li>`).join('');
-  const full = r.left !== null && r.left <= 0;
+  const url = c => `${location.origin}/?join=${c}`;
+  const left = r.links.filter(l => !l.used).length;
   box.classList.remove('muted');
-  box.innerHTML = `${list ? `<ul class="invlist">${list}</ul>` : ''}
-    ${full ? `<p class="small muted" style="margin:6px 0 0">You’ve used all 3 of your invites.</p>`
-      : `<div class="row" style="margin-top:6px"><input id="invemail" type="email" placeholder="friend@example.com" autocomplete="off" style="flex:1 1 220px;min-width:0" aria-label="Your friend’s email address"><button class="btn" id="invsend">Send invite</button></div>
-         <p class="small muted" style="margin:6px 0 0">${r.left === null ? 'No limit on your account.' : `${r.left} of 3 invites left.`}</p>`}
+  box.innerHTML = `<ul class="invlinks">${r.links.map(l => `<li class="${l.used ? 'used' : ''}"><code>${esc(url(l.code).replace(/^https?:\/\//, ''))}</code>${l.used ? '<span class="small muted">used ✓</span>'
+      : `<span class="row" style="gap:6px"><button class="btn small" data-copy="${esc(url(l.code))}">Copy</button>${navigator.share ? `<button class="btn small ghost" data-share="${esc(url(l.code))}">Share</button>` : ''}</span>`}</li>`).join('')}</ul>
+    <p class="small muted" style="margin:6px 0 0">${left ? `${left} of ${r.links.length} links left.` : 'You’ve used all your invite links.'}${r.admin ? ' <button class="linkbtn" id="invmore">Make another link</button>' : ''}</p>
     <div id="invmsg" class="small" role="status">${note ? esc(note) : ''}</div>`;
-  const send = $('#invsend'); if (!send) return;
-  send.onclick = async () => {
-    const email = ($('#invemail').value || '').trim(), m = $('#invmsg');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ m.textContent = 'Type your friend’s email address first.'; return; }
-    send.disabled = true; m.textContent = 'Sending…';
-    const x = await callFn('invite', {action: 'invite', email});
-    send.disabled = false;
+  box.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); $('#invmsg').textContent = '✓ Copied. Paste it into a message to your friend.'; }
+    catch(e){ $('#invmsg').textContent = 'Copy this link: ' + b.dataset.copy; } });
+  box.querySelectorAll('[data-share]').forEach(b => b.onclick = () => navigator.share({url: b.dataset.share}).catch(() => {}));
+  const more = $('#invmore'); if (more) more.onclick = async () => { const x = await callFn('invite', {action: 'more'}); loadInvites(x.error ? '⚠ ' + x.error : '✓ New link added.'); };
+}
+/* A friend opened an invite link: they ask for their own sign-in email. */
+async function renderJoin(code){
+  document.body.classList.add('signedout'); $('#footacct').innerHTML = '';
+  $('#view').innerHTML = `<section class="login"><h1>Road to <span>9</span></h1><p class="tag">We do the planning, you do the learning.</p><div id="joinbody" class="small muted">Checking your invite…</div></section>`;
+  const r = await callFn('invite', {action: 'peek', code});
+  const back = `<p class="small"><a href="./">Already on Road to 9? Sign in here</a></p>`;
+  if (r.error){ $('#joinbody').innerHTML = `<div class="note">⚠ ${esc(r.error)}</div>${back}`; return; }
+  $('#joinbody').classList.remove('muted');
+  $('#joinbody').innerHTML = `<p>${r.from ? `<b>${esc(r.from)}</b> has invited you` : 'You’ve been invited'} to Road to 9, a GCSE revision planner. It’s invite only, and free for students taking their GCSEs in 2027.</p>
+    <form id="joinform"><label class="small muted" for="jemail">Your email address</label>
+      <input id="jemail" type="email" required autocomplete="email" placeholder="you@example.com">
+      <label class="obterms"><input type="checkbox" id="j13"> <span>I’m 13 or over.</span></label>
+      <button class="btn primary" type="submit">Email me my sign-in link</button></form>
+    <div id="jmsg" class="small" role="status"></div>
+    <p class="small muted">We only use your email to send you sign-in links. If you’re under 18, check with a parent or carer before you join. See the <a href="terms.html">Terms of use</a> and <a href="privacy.html">Privacy note</a>.</p>${back}`;
+  $('#joinform').onsubmit = async ev => {
+    ev.preventDefault(); const m = $('#jmsg');
+    if (!$('#j13').checked){ m.textContent = 'Road to 9 is for students aged 13 and over.'; return; }
+    m.textContent = 'Sending…';
+    const x = await callFn('invite', {action: 'claim', code, email: $('#jemail').value.trim(), over13: true});
     if (x.error){ m.textContent = '⚠ ' + x.error; return; }
-    loadInvites(`✓ Invite sent to ${email}.`);
+    history.replaceState(null, '', location.pathname);
+    $('#joinbody').innerHTML = `<div class="note">✓ Done. Check your inbox for an email from Road to 9 and tap the button in it. You can close this tab.</div>`;
   };
 }
 function bindAccount(){
@@ -2106,14 +2130,15 @@ function startApp(user){
   lastSnap = clone(S);
   $('#footacct').innerHTML = `<button id="footsignout">Sign out</button>`; $('#footsignout').onclick = () => signOut();
   if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + '#next');
+  if (location.search) history.replaceState(null, '', location.pathname + location.hash);   // drop ?join= once signed in
   render(); connect();
 }
 /* ---------- onboarding: welcome → subjects → rate every topic → study time ---------- */
 // Terms of use version. Change it when terms.html changes in a way that matters: everyone is asked to agree again.
-const TERMS_V = '2026-11-13';
+const TERMS_V = '2026-11-13.2';
 const termsOK = () => !!(S.settings.terms && S.settings.terms.v === TERMS_V);
 function acceptTerms(){ S.settings.terms = {v: TERMS_V, at: new Date().toISOString()}; }
-const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
+const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I’m 13 or over, I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
 const OB_STEPS = [['welcome','You'],['subjects','Subjects'],['rate','Rate topics'],['time','Study time']];
 const OB_LEVELS = [
   [1,'Very strong','I could answer exam questions on it now'],

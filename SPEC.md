@@ -66,7 +66,7 @@ to-dos, rating history.
 The guiding rule: **as safe and honest as we possibly can.**
 
 - Invite only. The admin invites students from the admin page after a quick yes from the parent
-  (recorded). Every student can invite up to 3 friends from Settings (see 3e). No public sign-up,
+  (recorded). Every student has 3 one-use invite links to share themselves (see 3e). No public sign-up,
   no user directory, no search.
 - We store: email address (for sign-in), display name chosen by the user, and their planner data.
   Nothing else. No analytics, no ads, no tracking, no third-party scripts beyond the Supabase client.
@@ -131,16 +131,20 @@ saved, setup finished. Never ratings, sessions, journals or to-dos.
 
 ## 3e. Friend invites (built)
 
-- Every student who has joined can invite up to 3 friends (Settings → Invite friends). Admins have
-  no limit. An invite that fails (bad address, already a member) doesn't use one up.
-- Server function `invite` sends the email and records it in the `invites` table (inviter, email,
-  invitee). Students can read only their own invites (RLS); only the function can write.
-- The invite email shows the inviter's first name only (letters, spaces, hyphens, apostrophes; else
-  "A friend").
-- Parental agreement for friend invites comes from the invited student's own tick at onboarding
-  ("If I'm under 18, a parent or carer knows I'm using Road to 9"). Admin invites also record the
-  admin's confirmation.
-- The admin page shows who invited whom and how many invites each student has used.
+- Minimum age 13 (terms; "I'm 13 or over" on the invite page and in the first-sign-in tick).
+- Every student has 3 one-use invite links (Settings → Invite friends), made the first time they open
+  Settings. Admins can make more. Links look like `roadto9.com/?join=ABCDE-FGHJK` (50-bit random codes).
+- The student passes a link on themselves. No pre-written message, no reward. Road to 9 never emails a
+  friend on a student's say-so and never stores a friend's address before the friend gives it. Reason:
+  ICO guidance on "refer a friend" email (PECR) — the organisation that sends or instigates the email
+  needs the friend's consent and is advised not to ask for friends' details.
+- The friend opens the link, sees the inviter's first name, types their own email, confirms 13+, and
+  gets the invite email they asked for. The link is used up (reserved first, released if sending fails).
+- Server function `invite` (actions: peek, claim, status, more) and the `invites` table (code, inviter,
+  invitee, used_at). Students can't read the table directly; only the function can.
+- The admin page shows who joined through whose link and how many links each student has used.
+- Parental consent is not legally required at 13+ under the contract basis; every student still
+  confirms a parent or carer knows (under 18). See the DPIA.
 
 ## 4. Study groups (phase 2) and "Who can help" (phase 3)
 

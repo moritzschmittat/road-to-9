@@ -59,11 +59,11 @@ Deno.serve(async (req) => {
       if (error) return reply({ error: error.message }, 500);
       const byId = new Map((rows ?? []).map((r) => [r.user_id, r]));
       // Who invited whom (friend invites). Admin invites have no row here.
-      const { data: inv } = await svc.from("invites").select("inviter, invitee");
+      const { data: inv } = await svc.from("invites").select("inviter, invitee, used_at");
       const emailOf = new Map(users.map((u) => [u.id, u.email]));
       const invitedBy = new Map((inv ?? []).filter((i) => i.invitee).map((i) => [i.invitee, emailOf.get(i.inviter) ?? "a removed student"]));
       const sentBy = new Map<string, number>();
-      for (const i of inv ?? []) sentBy.set(i.inviter, (sentBy.get(i.inviter) ?? 0) + 1);
+      for (const i of inv ?? []) if (i.used_at) sentBy.set(i.inviter, (sentBy.get(i.inviter) ?? 0) + 1);
       return reply({
         me: user.id,
         users: users.map((u) => {
