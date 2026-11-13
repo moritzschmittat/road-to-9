@@ -345,7 +345,7 @@ details.howto[open] summary{margin-bottom:10px;color:var(--ink)}
 .qsmall span{font-family:var(--f-body);font-style:normal;font-size:12px;color:var(--muted);white-space:nowrap}
 @media (max-width:640px){ .qsmall-wrap{justify-items:start} .qsmall{text-align:left} .qsmall-wrap .chips{justify-content:flex-start!important} }
 /* rate-these-topics box: full width, red frame until everything is rated */
-.panel.setup{border:2px solid var(--lv3);margin:0 0 14px}
+.panel.setup{border:2px solid var(--lv3);margin:0 0 44px}
 /* clickable session details */
 details.sx{min-width:0;flex:1}
 details.sx summary{list-style:none;cursor:pointer}
@@ -1601,28 +1601,10 @@ function pointsHTML(c, opts){
   }).join('')+'</ul>';
 }
 
-function suggestedTimes(info){
-  if (!(info.kind==='weekend' || info.kind==='holiday') || !info.target) return '';
-  const [h,m] = (S.settings.weekendStart||'11:00').split(':').map(Number);
-  let t = h*60+m; const out=[];
-  for (let i=0;i<Math.round(info.target/45);i++){ out.push(pad(Math.floor(t/60))+':'+pad(t%60)); t += 55; if (i%2===1) t += 50; }
-  return `<span class="small muted">Suggested: ${out.join(' · ')}</span>`;
-}
-
 function renderNext(){
   const today = todayStr(); const info = dayInfo(today); const done = doneOn(today);
   const s = S.settings;
-  const pctDone = info.target ? Math.min(100, Math.round(100*done/info.target)) : 0;
-  const toMocks = s.mocks ? diff(today, s.mocks.from) : -1;
-  const firstExam = Object.values(s.exams).sort()[0];
-  const chips = [toMocks>0 ? `<span class="chip">Mocks in <b>${toMocks}</b> days</span>` : '',
-                 firstExam && diff(today, firstExam)>0 ? `<span class="chip">Exams in <b>${diff(today, firstExam)}</b> days</span>` : ''].join('');
-  // on a day with no study time the box below already says so: no date strip
-  let html = info.target===0 ? '' : `<section class="today">
-      <div><div class="eyebrow">${esc(fmtDay(today))} · ${esc(info.label)}</div>
-        ${info.target ? `<div class="timebar" aria-label="${fmtMin(done)} of ${fmtMin(info.target)} studied"><div class="tb"><i style="width:${pctDone}%"></i></div><span class="small"><b>${fmtMin(done)}</b> of ${fmtMin(info.target)} studied</span></div>` : '<span class="small muted">No study time planned today</span>'}
-        ${suggestedTimes(info)}</div>
-</section>`;
+  let html = '';
 
   html = (S.settings.routine ? checkinHTML() : '') + html + setupPanel();
   html += '<div class="cols"><div class="main">';
