@@ -2192,7 +2192,6 @@ function renderLogin(msg){
       <button class="btn primary" type="submit">Send me a sign-in link</button></form>
     <div id="lmsg" class="small" role="status"></div>
     <p class="small muted">No password: we email you a link each time you sign in on a new device.</p>
-    <p class="small muted"><a href="how.html">How it works</a> · <a href="terms.html">Terms of use</a> · <a href="privacy.html">Privacy note</a></p>
   </section>`;
   $('#loginform').onsubmit = async ev => {
     ev.preventDefault(); const email = $('#lemail').value.trim(); const m = $('#lmsg');
