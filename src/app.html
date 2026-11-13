@@ -252,6 +252,15 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .studybtn{margin-left:auto;background:var(--accent)!important;color:var(--accent-ink)!important;padding:6px 12px!important;font-size:13px!important;border-radius:10px!important}
 .bch-f{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .bch-f .ctrl{display:flex;gap:4px}
+.more{position:relative;margin-left:auto}
+.more summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:0 9px;font-weight:800;color:var(--muted);line-height:22px}
+.more summary::-webkit-details-marker{display:none}
+.more[open] summary{color:var(--ink);border-color:var(--muted)}
+.bch-f .moremenu{position:absolute;right:0;bottom:30px;z-index:20;flex-direction:column;gap:4px;background:#121e2c;border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45);min-width:170px}
+.bch-f .ctrl.moremenu button{text-align:left;border:0;padding:7px 10px;font-size:13px;white-space:nowrap}
+.bch-f .ctrl.moremenu button[aria-pressed="true"]::before{content:"✓ "}
+.panel.setup.parkp{border-color:var(--lv2)}
+.parklist{display:grid;gap:6px}.parklist summary{cursor:pointer;font-weight:700;display:flex;gap:8px;align-items:center;list-style:none}.parklist summary::-webkit-details-marker{display:none}.parklist summary::after{content:'▸';color:var(--muted);transition:transform .15s}.parklist details[open] summary::after{transform:rotate(90deg)}.parklist .row{margin-top:8px}
 .bch-f .ctrl button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700}
 .bch-f .ctrl button[aria-pressed="true"]{background:var(--sunk);color:var(--ink);border-color:var(--ink)}
 .histbtn{border:0;background:none;color:var(--accent);font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;margin-left:auto;margin-right:6px}
@@ -832,7 +841,14 @@ function baseState(c){
   // every topic gets a revise session first (weakest first); refreshers only start after it
   return {st:'new', lvl:c.r0, n:0};
 }
-const cs = id => S.cards[id] || baseState(CARD[id]);
+/* "Not taught yet" is parked only until the cut-off (the day after the Easter holiday): after that anything
+   still parked is planned as very weak, because it has to be learned before the exams either way. */
+function laterCut(){ const e = ((S && S.settings.periods) || []).find(p => /easter/i.test(p.name||'') && p.to); return e ? addDays(e.to, 1) : '2027-04-12'; }
+const cs = id => { const x = S.cards[id] || baseState(CARD[id]); return x.st==='later' && todayStr() >= laterCut() ? {st:'new', lvl:3, n:x.n||0} : x; };
+const parked = () => todayStr() >= laterCut() ? [] : CURRICULUM.flatMap(sb => sb.cards).filter(c => (S.cards[c.id]||{}).st==='later');
+// a parked or switched-off topic comes back: its own ratings if it has any, otherwise "to rate"
+function unpark(id){ const x = cs(id); const vals = CARD[id].p.map((_,j) => ptLvl(CARD[id],j)); const r = deriveR(vals);
+  current = null; S.cards[id] = Object.assign({}, x, {st: r==null ? 'unrated' : 'new'}); if (r!=null) setRating(id, r); else save(); }
 /* per spec point ratings (1 green, 2 amber, 3 red); falls back to the score from the spreadsheet */
 const pk = (cid,i) => cid+'#'+i;
 const ptLvl = (c,i) => { const v = S.pts[pk(c.id,i)]; return v!=null ? v : (c.p[i] ? c.p[i].s : null); };
@@ -1643,7 +1659,7 @@ function renderNext(){
   const s = S.settings;
   let html = '';
 
-  html = setupPanel() + html;
+  html = setupPanel() + parkedPanel() + html;
   html += '<div class="cols"><div class="main">';
   if (choosing) html += chooserHTML();
   if (!current){
@@ -1773,6 +1789,15 @@ function chooserHTML(){
       <button class="btn primary" id="chgo">Start</button></div>
     <p class="small muted" style="margin:0">Starts a revise session on that topic: 20 minutes if you rated it strong, otherwise 45. Rate it at the end as usual and its refreshers start the next day. Whatever was planned stays in today's list.</p></section>`;
 }
+function parkedPanel(){
+  const list = parked(); if (!list.length) return '';
+  const asked = S.settings.laterAsked; if (asked && diff(asked, todayStr()) < 14) return '';
+  const bySubj = CURRICULUM.map(sb => ({sb, cs: list.filter(c => c.sid===sb.id)})).filter(g => g.cs.length);
+  return `<section class="panel setup parkp"><h2>Covered any of these at school yet?</h2>
+    <p class="small muted" style="margin:0">Tap a topic once it’s been taught and it goes into your plan. Anything still here on ${esc(fmtShort(laterCut()))} is planned as very weak.</p>
+    <div class="parklist">${bySubj.map(g => `<details><summary>${icon(g.sb.id,15)}${esc(g.sb.name)} · ${g.cs.length}</summary><div class="row">${g.cs.map(c => `<button class="btn small" data-taught="${c.id}">${esc(c.n)}</button>`).join('')}</div></details>`).join('')}</div>
+    <div class="row"><button class="btn small ghost" id="parklater">Not yet, ask again in 2 weeks</button></div></section>`;
+}
 function setupPanel(){
   if (!S.settings.subjects.length) return `<section class="panel setup"><h2>Welcome${S.settings.name ? ', ' + esc(S.settings.name) : ''}! Choose your subjects</h2>
     <p class="small muted" style="margin:0">Pick the subjects you take in Settings, then rate the topics. After that the planner tells you what to do every day.</p>
@@ -1824,6 +1849,8 @@ function bindNext(){
   document.querySelectorAll('#view [data-addsess]').forEach(b => b.onclick = () => { const t = todayStr(); const keep = current;
     setOverride(t, Math.max(dayInfo(t).target, doneOn(t)) + 45); if (keep) { current = keep; render(); } });
   on('ovundo2', () => setOverride(todayStr(), null));
+  document.querySelectorAll('#view [data-taught]').forEach(b => b.onclick = () => unpark(b.dataset.taught));
+  on('parklater', () => { S.settings.laterAsked = todayStr(); save(); });
   on('skipday', () => { stopTimer(); const t = todayStr(), inf = dayInfo(t), dn = doneOn(t);
     if (inf.target > 0 && dn < inf.target) setOverride(t, dn);              // stop short of today's goal
     else { current = null; window.__anyway = false; render(); } });         // goal already met: just end the extra session
@@ -2007,7 +2034,7 @@ function chunkHTML(c){
         ${editPt===k ? `<div class="swatches" data-k="${k}">${LV.map(l => `<button class="lv-${lvCls(l)}" data-v="${l}" title="${LVNAME[l]}" aria-label="${LVNAME[l]}" aria-pressed="${v===l}"></button>`).join('')}<button class="clr" data-v="">Clear</button></div>` : ''}`; }).join('')}</div>
     <div class="bch-f"><span class="status">${esc(status)}</span>${studyBtn(c.id)}
       <button class="histbtn" data-hist="${c.id}" aria-expanded="${openHist.has(c.id)}">History</button>
-      <span class="ctrl" data-id="${c.id}"><button data-v="later" class="o" aria-pressed="${x.st==='later'}" title="Not taught yet">Later</button><button data-v="off" class="o" aria-pressed="${x.st==='off'}" title="Not on my course">Off</button></span></div>${openHist.has(c.id) ? historyHTML(c.id) : ''}</div>`;
+      <details class="more"><summary aria-label="More options for ${esc(c.n)}" title="More">⋯</summary><span class="ctrl moremenu" data-id="${c.id}">${todayStr() < laterCut() ? `<button data-v="later" aria-pressed="${x.st==='later'}">Not taught yet</button>` : ''}<button data-v="off" aria-pressed="${x.st==='off'}">Not on my course</button></span></details></div>${openHist.has(c.id) ? historyHTML(c.id) : ''}</div>`;
 }
 function subjectsHTML(){
   if (!CURRICULUM.length) return '';
@@ -2038,10 +2065,7 @@ function renderTopics(sid){
   document.querySelectorAll('#view .ctrl').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => {
     const v = b.dataset.v; const id = g.dataset.id; current = null;
     const x = cs(id);
-    if (x.st===v){ // toggle back on
-      const vals = CARD[id].p.map((_,j) => ptLvl(CARD[id],j)); const r = deriveR(vals);
-      S.cards[id] = Object.assign({}, x, {st: r==null ? 'unrated' : 'new'}); if (r!=null) setRating(id, r); else save(); return;
-    }
+    if (x.st===v){ unpark(id); return; }   // toggle back on
     setRating(id, v); }));
   document.querySelectorAll('#view [data-study]').forEach(b => b.onclick = () => studyNow(b.dataset.study));
   document.querySelectorAll('#view [data-hist]').forEach(b => b.onclick = () => { const id = b.dataset.hist; openHist.has(id) ? openHist.delete(id) : openHist.add(id); renderTopics(sid); });
