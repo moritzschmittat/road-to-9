@@ -25,7 +25,10 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return reply({ error: "Use POST." }, 405);
 
   const url = Deno.env.get("SUPABASE_URL")!;
-  const master = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  let master = "";
+  try { master = (Object.values(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}"))[0] as string) ?? ""; } catch { /* fall back */ }
+  if (!master) master = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!master) return reply({ error: "Server key missing." }, 500);
   const admins = (Deno.env.get("ADMIN_EMAILS") ?? "").toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
   const svc = createClient(url, master, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -55,6 +58,12 @@ Deno.serve(async (req) => {
         .select("user_id, name:doc->settings->>name, onboarded:doc->settings->>onboarded, updated_at");
       if (error) return reply({ error: error.message }, 500);
       const byId = new Map((rows ?? []).map((r) => [r.user_id, r]));
+      // Who invited whom (friend invites). Admin invites have no row here.
+      const { data: inv } = await svc.from("invites").select("inviter, invitee");
+      const emailOf = new Map(users.map((u) => [u.id, u.email]));
+      const invitedBy = new Map((inv ?? []).filter((i) => i.invitee).map((i) => [i.invitee, emailOf.get(i.inviter) ?? "a removed student"]));
+      const sentBy = new Map<string, number>();
+      for (const i of inv ?? []) sentBy.set(i.inviter, (sentBy.get(i.inviter) ?? 0) + 1);
       return reply({
         me: user.id,
         users: users.map((u) => {
@@ -70,6 +79,8 @@ Deno.serve(async (req) => {
             onboarded: r?.onboarded === "true",
             last_saved_at: r?.updated_at ?? null,
             admin: admins.includes((u.email ?? "").toLowerCase()),
+            invited_by: invitedBy.get(u.id) ?? null,
+            invites_sent: sentBy.get(u.id) ?? 0,
           };
         }),
       });

@@ -65,8 +65,9 @@ to-dos, rating history.
 
 The guiding rule: **as safe and honest as we possibly can.**
 
-- Invite only. Moritz invites each user from the Supabase dashboard, after a quick yes from the
-  student's parent. No public sign-up, no user directory, no search.
+- Invite only. The admin invites students from the admin page after a quick yes from the parent
+  (recorded). Every student can invite up to 3 friends from Settings (see 3e). No public sign-up,
+  no user directory, no search.
 - We store: email address (for sign-in), display name chosen by the user, and their planner data.
   Nothing else. No analytics, no ads, no tracking, no third-party scripts beyond the Supabase client.
 - No parent view inside the app. It is the students' space.
@@ -127,6 +128,19 @@ No password or key is in the page. Actions: invite (with a required "parent or c
 stored as `parent_ok_at` on the account), resend invite, remove (deletes account and planner data),
 list. The list shows account details only: email, first name, invited, parent OK, last sign-in, last
 saved, setup finished. Never ratings, sessions, journals or to-dos.
+
+## 3e. Friend invites (built)
+
+- Every student who has joined can invite up to 3 friends (Settings → Invite friends). Admins have
+  no limit. An invite that fails (bad address, already a member) doesn't use one up.
+- Server function `invite` sends the email and records it in the `invites` table (inviter, email,
+  invitee). Students can read only their own invites (RLS); only the function can write.
+- The invite email shows the inviter's first name only (letters, spaces, hyphens, apostrophes; else
+  "A friend").
+- Parental agreement for friend invites comes from the invited student's own tick at onboarding
+  ("If I'm under 18, a parent or carer knows I'm using Road to 9"). Admin invites also record the
+  admin's confirmation.
+- The admin page shows who invited whom and how many invites each student has used.
 
 ## 4. Study groups (phase 2) and "Who can help" (phase 3)
 

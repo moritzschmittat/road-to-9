@@ -159,7 +159,8 @@ function draw(){
       : u.joined ? '<span class="tag joined">joined</span>' : '<span class="tag pending">invite sent</span>';
     const meta = u.admin ? `admin · last sign-in ${when(u.last_sign_in_at)}` : [
       u.name ? esc(u.name) : null,
-      `invited ${when(u.invited_at)}`,
+      `invited ${when(u.invited_at)}${u.invited_by ? ' by ' + esc(u.invited_by) : ' by you'}`,
+      u.invites_sent ? `${u.invites_sent} of 3 friend invites used` : null,
       u.joined ? `last sign-in ${when(u.last_sign_in_at)}` : null,
       u.joined ? (u.onboarded ? `last active ${when(u.last_saved_at)}` : 'setup not finished') : null,
       u.parent_ok_at ? `parent OK ${when(u.parent_ok_at)}` : null

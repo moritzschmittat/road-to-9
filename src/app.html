@@ -486,6 +486,7 @@ body.signedout .top .brand{visibility:hidden}
 .subjpick input{width:18px;height:18px}
 .subjpick small{display:block;color:var(--muted)}
 .danger{border:1px solid var(--lv3);color:var(--lv3);background:transparent}
+.invlist{margin:4px 0 0;padding-left:18px}.invlist li{margin:2px 0;overflow-wrap:anywhere}
 .acctgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 @media (max-width:700px){.acctgrid{grid-template-columns:1fr}}
 </style>
@@ -1953,7 +1954,7 @@ function renderPlan(){
     <p class="muted" style="margin:0">Change these whenever life changes. The next session updates straight away.</p>
     <div class="acctgrid">
     <section class="panel"><h2>You</h2>
-      <label class="small muted" for="uname">Your first name (only you see it, unless you join a study group later)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
+      <label class="small muted" for="uname">Your first name (shown only in invite emails you send to friends)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check (Duolingo, reading, bedtime)</label></section>
     <section class="panel"><h2>Account</h2>
       <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
@@ -1963,6 +1964,9 @@ function renderPlan(){
         <div class="row"><input id="delconf" placeholder="DELETE" style="max-width:140px" autocomplete="off"><button class="btn danger" id="delacct">Delete everything</button></div>
         <div id="delmsg" class="small" role="status"></div></details></section>
     </div>
+    <section class="panel" id="invpanel"><h2>Invite friends</h2>
+      <p class="small muted" style="margin:0">Road to 9 is invite only. You can invite up to 3 friends who are revising for their GCSEs. They get one email from Road to 9 saying that ${esc(s.name || 'a friend')} invited them, and nothing else about you. Only invite people who’d want it.</p>
+      <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
     <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. Ask the person who invited you if one of your subjects or exam boards is missing.</p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div></section>
     <div class="plangrid"><div>
@@ -2008,7 +2012,7 @@ function renderPlan(){
     current = null; save(); setSync('Settings saved');
   };
   bindBackup();
-  bindAccount();
+  bindAccount(); loadInvites();
   const u = $('#undo'); if (u) u.onclick = () => {
     const l = S.log.pop(); if (!l) return;
     Object.entries(l.prev||{}).forEach(([id,v]) => { if (v) S.cards[id]=v; else delete S.cards[id]; });
@@ -2042,6 +2046,37 @@ function renderLogin(msg){
       return;
     }
     m.innerHTML = '✓ Check your inbox for an email from Road to 9 and tap the link in it. You can close this tab.';
+  };
+}
+async function callFn(name, body){
+  if (!sb || !sb.functions) return {error: 'Not available.'};
+  const {data, error} = await sb.functions.invoke(name, {body});
+  if (error){ let t = 'Something went wrong. Try again later.'; try { t = (await error.context.json()).error || t; } catch(e){} return {error: t}; }
+  return data;
+}
+async function loadInvites(note){
+  const box = $('#invbody'); if (!box) return;
+  if (!navigator.onLine){ box.textContent = 'Connect to the internet to invite friends.'; return; }
+  const r = await callFn('invite', {action: 'status'});
+  if (!$('#invbody')) return;
+  if (r.error){ box.textContent = '⚠ ' + r.error; return; }
+  const list = r.invites.map(i => `<li><b>${esc(i.email)}</b> <span class="muted">· ${i.joined ? 'joined' : 'invite sent'}</span></li>`).join('');
+  const full = r.left !== null && r.left <= 0;
+  box.classList.remove('muted');
+  box.innerHTML = `${list ? `<ul class="invlist">${list}</ul>` : ''}
+    ${full ? `<p class="small muted" style="margin:6px 0 0">You’ve used all 3 of your invites.</p>`
+      : `<div class="row" style="margin-top:6px"><input id="invemail" type="email" placeholder="friend@example.com" autocomplete="off" style="flex:1 1 220px;min-width:0" aria-label="Your friend’s email address"><button class="btn" id="invsend">Send invite</button></div>
+         <p class="small muted" style="margin:6px 0 0">${r.left === null ? 'No limit on your account.' : `${r.left} of 3 invites left.`}</p>`}
+    <div id="invmsg" class="small" role="status">${note ? esc(note) : ''}</div>`;
+  const send = $('#invsend'); if (!send) return;
+  send.onclick = async () => {
+    const email = ($('#invemail').value || '').trim(), m = $('#invmsg');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ m.textContent = 'Type your friend’s email address first.'; return; }
+    send.disabled = true; m.textContent = 'Sending…';
+    const x = await callFn('invite', {action: 'invite', email});
+    send.disabled = false;
+    if (x.error){ m.textContent = '⚠ ' + x.error; return; }
+    loadInvites(`✓ Invite sent to ${email}.`);
   };
 }
 function bindAccount(){
