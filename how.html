@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en-GB" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works · Road to 9</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#eef2f5;--surface:#fff;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6}
+@media (prefers-color-scheme:dark){:root{--bg:#0c1218;--surface:#141c24;--ink:#e6edf3;--muted:#9aa8b4;--line:#26323d;--accent:#b6f738}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Manrope,system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 16px 64px}
+h1{font-family:Sora,system-ui,sans-serif;font-size:40px;line-height:1.1;margin:0 0 6px}
+h1 span{color:var(--accent)}
+h2{font-family:Sora,system-ui,sans-serif;font-size:24px;margin:32px 0 6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:18px}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+ul{padding-left:20px}
+
+:root{--bg:#f3f6f9;--surface:#fff;--ink:#0a1a2b;--muted:#5a6b7c;--line:#dfe6ed;--accent:#0f3561;--lime:#b6f738}
+@media (prefers-color-scheme:dark){:root{--bg:#050c14;--surface:#0c1724;--ink:#eaf0f6;--muted:#97a8ba;--line:#1c2d40;--accent:#b6f738}}
+h1,h2{font-family:Sora,system-ui,sans-serif;font-weight:650;letter-spacing:-.02em}
+h1 span{color:var(--accent)}
+.card{border-radius:18px;box-shadow:0 1px 2px rgba(10,26,43,.04),0 10px 30px -12px rgba(10,26,43,.12)}
+.brandlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:Sora,system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.brandlink span{color:var(--ink)}.brandlink b{color:var(--accent)}
+.brandlink .mark{width:28px;height:28px}
+
+:root{--bg:#050c14;--surface:rgba(14,27,42,.78);--ink:#eaf0f6;--muted:#9cadbf;--line:rgba(255,255,255,.09);--accent:#b6f738;--accent-ink:#050c14;--sunk:rgba(255,255,255,.06);
+  --red:#ef6a6a;--red-soft:#3a1d20;--green:#7fdc6a;--green-soft:#16301c;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}
+html{background:#050c14}
+body{background:radial-gradient(1100px 560px at 50% -12%,rgba(182,247,56,.10),transparent 62%),radial-gradient(900px 700px at 0% 100%,rgba(31,90,150,.22),transparent 60%),#050c14;background-attachment:fixed;min-height:100vh}
+.card,.stat{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 30px 80px -40px rgba(0,0,0,.8)}
+.brandlink span{color:var(--ink)}.brandlink b,h1 span{color:var(--accent)}
+.brandlink .mark{filter:drop-shadow(0 0 10px rgba(182,247,56,.35))}
+input[type=email]{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.13)!important;color:var(--ink)}
+.btn{background:var(--accent)!important;color:#050c14!important}
+.btn[style*="--red"]{background:var(--red)!important;color:#fff!important}
+.ghost{color:var(--ink);border-color:rgba(255,255,255,.16)}
+.tag.you{background:rgba(255,255,255,.08)}
+
+.fc{width:100%;height:auto;margin:14px 0 4px}
+.fc .g{stroke:var(--line);stroke-width:1}
+.fc .ax{fill:var(--muted);font:12px Manrope,system-ui,sans-serif}
+.fc .none{fill:none;stroke:#7d8b99;stroke-width:2.5;stroke-dasharray:6 5}
+.fc .with{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round}
+.fc .dot{fill:var(--accent)}
+.fc .lab{font:600 13px Manrope,system-ui,sans-serif}
+.fc .none-l{fill:#9fb0c2}.fc .with-l{fill:var(--accent)}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:8px}
+.l1{background:#1e8a4c}.l15{background:#8cc84b}.l2{background:#f2cf1d}.l25{background:#f39a1e}.l3{background:#d63a3a}
+.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px}
+.steps li{counter-increment:s;padding:12px 14px 12px 52px;position:relative;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#050c14;font-weight:800;display:grid;place-items:center;font-size:13px}
+.src{font-size:14px;color:var(--muted)}
+.fcleg{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.fcleg .k{display:inline-block;width:22px;height:0;border-top:3px solid var(--accent);vertical-align:middle;margin-right:8px}
+.fcleg .k.none{border-top:2.5px dashed #7d8b99}
+</style>
+</head>
+<body>
+<main>
+  <p><a class="brandlink" href="./"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b></span></a></p>
+  <h1>How Road to 9 works</h1>
+  <p class="muted">The short version: you tell it what you know, it decides what to study next and brings
+  each topic back just before you'd forget it.</p>
+
+  <div class="card">
+    <ol class="steps">
+      <li><b>Rate every spec point</b> from very weak to very strong.</li>
+      <li><b>Revise each topic once</b>, weakest first.</li>
+      <li><b>Refresh it in short bursts</b> at growing gaps, so it sticks until the exam.</li>
+    </ol>
+  </div>
+
+  <h2>Why you forget, and how to stop it</h2>
+  <p>Memory fades fast after you learn something: much of it is gone within a day or two if you never come
+  back to it. This is called the <b>forgetting curve</b>, first measured by the psychologist Hermann
+  Ebbinghaus in the 1880s. Each time you pull a topic back out of your memory, it fades more slowly
+  afterwards. So a few short refreshers at growing gaps beat one long session of cramming.</p>
+  <p class="src" style="margin:16px 0 0">How much you remember of a topic, over a month</p>
+  <svg viewBox="0 0 720 280" role="img" aria-labelledby="fc-t fc-d" class="fc">
+<title id="fc-t">Forgetting curve with and without refreshers</title>
+<desc id="fc-d">Without refreshers, memory of a topic drops to about a quarter within two days and to almost nothing within a week. With short refreshers after 1 day, 3 days, 1 week, 2 weeks and 1 month, memory is topped back up each time and fades more slowly after every refresher.</desc>
+<line x1="48" x2="700" y1="240.0" y2="240.0" class="g"/><text x="40" y="244.0" class="ax" text-anchor="end">0%</text><line x1="48" x2="700" y1="127.0" y2="127.0" class="g"/><text x="40" y="131.0" class="ax" text-anchor="end">50%</text><line x1="48" x2="700" y1="14.0" y2="14.0" class="g"/><text x="40" y="18.0" class="ax" text-anchor="end">100%</text><text x="48.0" y="260" class="ax" text-anchor="start">Revise</text><text x="178.4" y="260" class="ax" text-anchor="middle">1 week</text><text x="308.8" y="260" class="ax" text-anchor="middle">2 weeks</text><text x="439.2" y="260" class="ax" text-anchor="middle">3 weeks</text><text x="606.9" y="260" class="ax" text-anchor="middle">1 month</text>
+<path d="M48.0,14.0 L52.7,53.5 L57.3,86.2 L62.0,113.1 L66.6,135.3 L71.3,153.6 L75.9,168.7 L80.6,181.2 L85.3,191.5 L89.9,200.0 L94.6,207.0 L99.2,212.7 L103.9,217.5 L108.5,221.4 L113.2,224.7 L117.9,227.4 L122.5,229.6 L127.2,231.4 L131.8,232.9 L136.5,234.1 L141.1,235.2 L145.8,236.0 L150.5,236.7 L155.1,237.3 L159.8,237.8 L164.4,238.2 L169.1,238.5 L173.7,238.7 L178.4,239.0 L183.1,239.1 L187.7,239.3 L192.4,239.4 L197.0,239.5 L201.7,239.6 L206.3,239.7 L211.0,239.7 L215.7,239.8 L220.3,239.8 L225.0,239.8 L229.6,239.9 L234.3,239.9 L238.9,239.9 L243.6,239.9 L248.3,239.9 L252.9,240.0 L257.6,240.0 L262.2,240.0 L266.9,240.0 L271.5,240.0 L276.2,240.0 L280.9,240.0 L285.5,240.0 L290.2,240.0 L294.8,240.0 L299.5,240.0 L304.1,240.0 L308.8,240.0 L313.5,240.0 L318.1,240.0 L322.8,240.0 L327.4,240.0 L332.1,240.0 L336.7,240.0 L341.4,240.0 L346.1,240.0 L350.7,240.0 L355.4,240.0 L360.0,240.0 L364.7,240.0 L369.3,240.0 L374.0,240.0 L378.7,240.0 L383.3,240.0 L388.0,240.0 L392.6,240.0 L397.3,240.0 L401.9,240.0 L406.6,240.0 L411.3,240.0 L415.9,240.0 L420.6,240.0 L425.2,240.0 L429.9,240.0 L434.5,240.0 L439.2,240.0 L443.9,240.0 L448.5,240.0 L453.2,240.0 L457.8,240.0 L462.5,240.0 L467.1,240.0 L471.8,240.0 L476.5,240.0 L481.1,240.0 L485.8,240.0 L490.4,240.0 L495.1,240.0 L499.7,240.0 L504.4,240.0 L509.1,240.0 L513.7,240.0 L518.4,240.0 L523.0,240.0 L527.7,240.0 L532.3,240.0 L537.0,240.0 L541.7,240.0 L546.3,240.0 L551.0,240.0 L555.6,240.0 L560.3,240.0 L564.9,240.0 L569.6,240.0 L574.3,240.0 L578.9,240.0 L583.6,240.0 L588.2,240.0 L592.9,240.0 L597.5,240.0 L602.2,240.0 L606.9,240.0 L611.5,240.0 L616.2,240.0 L620.8,240.0 L625.5,240.0 L630.1,240.0 L634.8,240.0 L639.5,240.0 L644.1,240.0 L648.8,240.0 L653.4,240.0 L658.1,240.0 L662.7,240.0 L667.4,240.0 L672.1,240.0 L676.7,240.0 L681.4,240.0 L686.0,240.0 L690.7,240.0 L695.3,240.0 L700.0,240.0" class="none"/>
+<path d="M48.0,14.0 L48.0,14.0 L52.7,53.5 L57.3,86.2 L62.0,113.1 L66.6,135.3 L66.6,14.0 L66.6,14.0 L71.3,31.4 L75.9,47.5 L80.6,62.3 L85.3,76.0 L89.9,88.6 L94.6,100.3 L99.2,111.0 L103.9,121.0 L103.9,14.0 L103.9,14.0 L108.5,21.4 L113.2,28.6 L117.9,35.5 L122.5,42.3 L127.2,48.7 L131.8,55.0 L136.5,61.1 L141.1,67.0 L145.8,72.7 L150.5,78.2 L155.1,83.5 L159.8,88.6 L164.4,93.6 L169.1,98.4 L173.7,103.0 L178.4,107.5 L178.4,14.0 L178.4,14.0 L183.1,17.1 L187.7,20.2 L192.4,23.2 L197.0,26.2 L201.7,29.2 L206.3,32.1 L211.0,35.0 L215.7,37.8 L220.3,40.6 L225.0,43.4 L229.6,46.1 L234.3,48.7 L238.9,51.4 L243.6,54.0 L248.3,56.6 L252.9,59.1 L257.6,61.6 L262.2,64.1 L266.9,66.5 L271.5,68.9 L276.2,71.3 L280.9,73.6 L285.5,75.9 L290.2,78.2 L294.8,80.4 L299.5,82.6 L304.1,84.8 L308.8,86.9 L308.8,14.0 L308.8,14.0 L313.5,15.3 L318.1,16.6 L322.8,17.9 L327.4,19.2 L332.1,20.5 L336.7,21.7 L341.4,23.0 L346.1,24.2 L350.7,25.5 L355.4,26.7 L360.0,28.0 L364.7,29.2 L369.3,30.4 L374.0,31.6 L378.7,32.8 L383.3,34.0 L388.0,35.2 L392.6,36.4 L397.3,37.6 L401.9,38.7 L406.6,39.9 L411.3,41.1 L415.9,42.2 L420.6,43.4 L425.2,44.5 L429.9,45.6 L434.5,46.7 L439.2,47.9 L443.9,49.0 L448.5,50.1 L453.2,51.2 L457.8,52.3 L462.5,53.3 L467.1,54.4 L471.8,55.5 L476.5,56.6 L481.1,57.6 L485.8,58.7 L490.4,59.7 L495.1,60.8 L499.7,61.8 L504.4,62.8 L509.1,63.9 L513.7,64.9 L518.4,65.9 L523.0,66.9 L527.7,67.9 L532.3,68.9 L537.0,69.9 L541.7,70.9 L546.3,71.8 L551.0,72.8 L555.6,73.8 L560.3,74.7 L564.9,75.7 L569.6,76.6 L574.3,77.6 L578.9,78.5 L583.6,79.5 L588.2,80.4 L592.9,81.3 L597.5,82.2 L602.2,83.1 L606.9,84.0 L606.9,14.0 L606.9,14.0 L611.5,14.5 L616.2,15.1 L620.8,15.6 L625.5,16.2 L630.1,16.7 L634.8,17.3 L639.5,17.8 L644.1,18.3 L648.8,18.9 L653.4,19.4 L658.1,19.9 L662.7,20.5 L667.4,21.0 L672.1,21.5 L676.7,22.0 L681.4,22.6 L686.0,23.1 L690.7,23.6 L695.3,24.1 L700.0,24.7" class="with"/>
+<circle cx="66.6" cy="14.0" r="4.5" class="dot"/><circle cx="103.9" cy="14.0" r="4.5" class="dot"/><circle cx="178.4" cy="14.0" r="4.5" class="dot"/><circle cx="308.8" cy="14.0" r="4.5" class="dot"/><circle cx="606.9" cy="14.0" r="4.5" class="dot"/>
+</svg>
+  <div class="fcleg"><span><i class="k with"></i>With refreshers (each dot is a 5 to 10 minute refresher)</span><span><i class="k none"></i>Revised once, never again</span></div>
+  <p class="src">An illustration of the idea, not a measurement of you.</p>
+
+  <h2>1. Rate what you know</h2>
+  <p>Each spec point gets one of five ratings. A topic's colour comes from its spec points, and one weak
+  point keeps the whole topic at OK or below.</p>
+  <table>
+    <tr><th>Rating</th><th>What it means</th></tr>
+    <tr><td><span class="sw l3"></span>Very weak</td><td>I don't really know it</td></tr>
+    <tr><td><span class="sw l25"></span>Weak</td><td>I've seen it but couldn't explain it</td></tr>
+    <tr><td><span class="sw l2"></span>OK</td><td>I know the basics</td></tr>
+    <tr><td><span class="sw l15"></span>Strong</td><td>I know it well, with small gaps</td></tr>
+    <tr><td><span class="sw l1"></span>Very strong</td><td>I could answer exam questions on it now</td></tr>
+  </table>
+  <p>Be honest: the weakest topics come first. "Not taught yet" keeps a topic out of the plan until
+  you've covered it at school.</p>
+
+  <h2>2. Revise each topic once</h2>
+  <ul>
+    <li>Every topic gets one revise session: <b>45 minutes</b>, or <b>20 minutes</b> if you rated it
+      strong or very strong.</li>
+    <li>Afterwards you rate it again. If it's still weak or very weak, you <b>revise it again</b> the next
+      day (30 minutes).</li>
+  </ul>
+
+  <h2>3. Refresh it before you forget</h2>
+  <p>Refreshers are short, 5 to 10 minutes: try to recall the topic first, then check. How many you get
+  depends on how well you know the topic after revising it.</p>
+  <table>
+    <tr><th>After revising, you rate it</th><th>Refreshers</th></tr>
+    <tr><td><span class="sw l2"></span>OK</td><td>10, 10, 5, 5 and 5 minutes, after 1 day, 3 days, 1 week, 2 weeks and 1 month</td></tr>
+    <tr><td><span class="sw l15"></span>Strong</td><td>3 × 5 minutes, spread evenly until the subject's first exam</td></tr>
+    <tr><td><span class="sw l1"></span>Very strong</td><td>2 × 5 minutes, spread evenly until the exam</td></tr>
+    <tr><td><span class="sw l25"></span>Weak or very weak</td><td>No refreshers yet: revise it again first</td></tr>
+  </table>
+  <p>At each refresher you rate the topic again. Strong or very strong moves it on to the next, longer gap.
+  OK repeats the same step. Weak, or OK twice in a row, sends it back to be revised again.</p>
+
+  <h2>4. How each day is planned</h2>
+  <ul>
+    <li>You set how long you can study each day (Settings), including holidays, days off and mock weeks.</li>
+    <li>Refreshers that are due come first, so nothing slips. Then revise sessions, balanced across your
+      subjects and weakest first.</li>
+    <li>Refreshers and revise sessions are mixed, which keeps your brain switching between topics.</li>
+    <li>Nothing is fixed: the plan is worked out again after every rating, so the week ahead is a forecast.</li>
+  </ul>
+
+  <h2>5. Mocks and exams</h2>
+  <ul>
+    <li>Refreshers that would fall after a mock or exam are pulled forward to just before it.</li>
+    <li>In the four weeks before a subject's first exam, that subject gets priority.</li>
+    <li>From 20 March, past papers join the plan.</li>
+  </ul>
+
+  <h2>6. Your two numbers</h2>
+  <ul>
+    <li><b>Learning done</b>: how much of the revising and refreshing is behind you, measured in time.</li>
+    <li><b>Confidence</b>: how strong your ratings are, from very weak to very strong.</li>
+  </ul>
+  <p>Learning done climbs steadily as you work. Confidence moves with your honest ratings, so it can
+  dip after a refresher shows a gap. That's the plan doing its job.</p>
+
+  <h2>The science</h2>
+  <p>Spreading study out over time (spacing) and testing yourself (retrieval practice) are the two study
+  methods with the strongest evidence. A large review of learning techniques rated them the most useful
+  of the ten it studied. Road to 9 is built on both.</p>
+  <ul class="src">
+    <li><a href="https://digitalpromise.org/2015/02/07/five-learning-strategies-that-work/">Five learning strategies that work</a>
+      (Digital Promise), summarising Dunlosky et al. (2013) and Cepeda et al. (2006)</li>
+  </ul>
+  <p class="muted" style="margin-top:32px"><a href="./">Back to Road to 9</a> · <a href="terms.html">Terms of use</a> · <a href="privacy.html">Privacy note</a></p>
+</main>
+</body>
+</html>
