@@ -294,6 +294,11 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .tl-chart svg{display:block;max-width:100%;font-family:var(--f-body)}
 .tl-tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:6px 9px;border-radius:7px;line-height:1.35;white-space:nowrap}
 .tl-ctrl{gap:8px}
+.tl-toggles{display:flex;gap:6px;flex-wrap:wrap}
+.tl-tog{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer}
+.tl-tog i{width:12px;height:3px;border-radius:2px;background:var(--c);opacity:.35}
+.tl-tog[aria-pressed="true"]{color:var(--ink);border-color:var(--c)}
+.tl-tog[aria-pressed="true"] i{opacity:1}
 .jbox{display:flex;flex-direction:column;gap:6px;margin:14px 0 4px}
 .jbox textarea,.jedit{width:100%;font:inherit;font-size:15px;line-height:1.45;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);resize:vertical;min-height:72px}
 .todobox{display:flex;flex-direction:column;gap:4px;margin-top:10px}
@@ -1364,45 +1369,43 @@ function bindJournal(){
 }
 
 /* ---------- progress timeline ---------- */
-let tlSubj = 'all', tlRange = 'month', tlMetric = 'conf';
-try { tlSubj = localStorage.getItem('gcse-tl-subj') || 'all'; tlRange = localStorage.getItem('gcse-tl-range') || 'month'; tlMetric = localStorage.getItem('gcse-tl-metric') || 'conf'; } catch(e){}
+let tlSubj = 'all', tlRange = 'month', tlShow = {conf:true, work:true};
+try { tlSubj = localStorage.getItem('gcse-tl-subj') || 'all'; tlRange = localStorage.getItem('gcse-tl-range') || 'month'; const sh = JSON.parse(localStorage.getItem('gcse-tl-show') || 'null'); if (sh && (sh.conf || sh.work)) tlShow = {conf:!!sh.conf, work:!!sh.work}; } catch(e){}
+const TL_LINES = [['conf','Confidence','var(--accent)'],['work','Learning done','#5aa9ff']];
 const tlEnd = () => { const t = todayStr(); if (tlRange!=='exam') return t; const e = tlSubj==='all' ? CURRICULUM.map(x => examFirst(x.id)).sort()[0] : examFirst(tlSubj); return e && e > t ? e : t; };
 const tlMock = () => { const m = tlSubj==='all' ? CURRICULUM.map(x => mockFirst(x.id)).filter(Boolean).sort()[0] : mockFirst(tlSubj); return m; };
-const tlKey = () => tlMetric==='work' ? 'w_' + tlSubj : tlSubj;
-const tlNow = () => { const cards = tlSubj==='all' ? CURRICULUM.flatMap(x => x.cards) : SUBJ[tlSubj].cards; return tlMetric==='work' ? workOf(cards, true).pct : progressOf(cards); };
-function timelineSeries(){
+const tlKey = metric => metric==='work' ? 'w_' + tlSubj : tlSubj;
+const tlNow = metric => { const cards = tlSubj==='all' ? CURRICULUM.flatMap(x => x.cards) : SUBJ[tlSubj].cards; return metric==='work' ? workOf(cards, true).pct : progressOf(cards); };
+function timelineSeries(metric){
   const today = todayStr(); const start = S.settings.startedOn;
   const from = tlRange==='week' ? addDays(today,-6) : tlRange==='month' ? addDays(today,-29) : start;
   const keys = Object.keys(S.hist||{}).sort();
   const pts = []; let last = null; let ki = 0;
-  const key = tlKey();
+  const key = tlKey(metric);
   while (ki < keys.length && keys[ki] < from){ const v0 = S.hist[keys[ki]][key]; if (v0!=null) last = v0; ki++; }
   const end = tlEnd();     // "To exams" runs the axis on to the first exam; days after today stay empty
   for (let d = from; d <= end; d = addDays(d,1)){
     if (d > today){ pts.push({d, v:null, future:true}); continue; }
     while (ki < keys.length && keys[ki] <= d){ const v = S.hist[keys[ki]][key]; if (v!=null) last = v; ki++; }
-    let v = d===today ? tlNow() : (d < start ? null : last);
+    let v = d===today ? tlNow(metric) : (d < start ? null : last);
     pts.push({d, v});
   }
   return pts;
 }
 function timelineHTML(){
   return `<section class="panel" id="tlpanel"><div class="row" style="justify-content:space-between;align-items:flex-end">
-      <div><h2 id="tltitle">${tlMetric==='work' ? 'Learning done' : 'Confidence'} over time</h2><span class="small muted" id="tldelta"></span></div>
-      <div class="row tl-ctrl"><div class="seg" role="group" aria-label="Measure">${[['conf','Confidence'],['work','Learning done']].map(([v,l]) => `<button data-tlm="${v}" aria-pressed="${tlMetric===v}">${l}</button>`).join('')}</div><select id="tlsubj" aria-label="Subject"><option value="all">Everything</option>${CURRICULUM.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
-        <div class="seg" role="group" aria-label="Time range">${[['week','Week'],['month','Month'],['all','Since start'],['exam','To exams']].map(([v,l]) => `<button data-tlr="${v}" aria-pressed="${tlRange===v}">${l}</button>`).join('')}</div></div></div>
-    <div class="tl-chart" id="tlchart"></div></section>`;
+      <div><h2>Progress over time${tipHTML('What do the lines show?', '<p><b>Confidence</b> averages your ratings over every spec point: very strong counts 100%, strong 50%, OK 25%, weak 12.5% and very weak 6.25%.</p><p><b>Learning done</b> is the revision time already behind you compared with the time still to go, for the topics you’ve rated.</p><p>Both lines build up day by day. Tap a name to show or hide its line.</p>')}</h2></div>
+      <div class="row tl-ctrl"><div class="tl-toggles" role="group" aria-label="Lines">${TL_LINES.map(([v,l,c]) => `<button class="tl-tog" data-tlm="${v}" aria-pressed="${tlShow[v]}" style="--c:${c}"><i></i>${l}</button>`).join('')}</div><select id="tlsubj" aria-label="Subject"><option value="all">Everything</option>${CURRICULUM.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div></div>
+    <div class="tl-chart" id="tlchart"></div>
+    <div class="row" style="justify-content:center;margin-top:10px"><div class="seg" role="group" aria-label="Time range">${[['week','Week'],['month','Month'],['all','Since start'],['exam','To exams']].map(([v,l]) => `<button data-tlr="${v}" aria-pressed="${tlRange===v}">${l}</button>`).join('')}</div></div></section>`;
 }
 function drawTimeline(){
   const host = document.getElementById('tlchart'); if (!host) return;
   const sel = document.getElementById('tlsubj'); if (sel) sel.value = tlSubj;
-  const pts = timelineSeries(); const W = Math.max(280, host.clientWidth), H = 220, m = {l:40, r:46, t:12, b:26};
+  const series = TL_LINES.map(([k,l,c]) => ({k, l, c, pts: timelineSeries(k)}));
+  const pts = series[0].pts; const W = Math.max(280, host.clientWidth), H = 220, m = {l:40, r:46, t:12, b:26};
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const x = i => m.l + (pts.length===1 ? iw/2 : iw * i/(pts.length-1)); const y = v => m.t + ih * (1 - v/100);
-  const vals = pts.map((p,i) => ({...p, i})).filter(p => p.v!=null);
-  const first = vals[0], lastP = vals[vals.length-1];
-  const dl = document.getElementById('tldelta');
-  if (dl && first && lastP){ const dv = lastP.v - first.v; dl.textContent = `${tlSubj==='all' ? 'All subjects' : SUBJ[tlSubj].name}: ${lastP.v}% now · ` + (vals.length < 2 ? 'the line builds up from today' : `${dv>=0?'+':''}${dv} points ${tlRange==='week'?'in the last 7 days':tlRange==='month'?'in the last 30 days':'since you started'}`); }
   const grid = [0,25,50,75,100].map(v => `<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`).join('');
   const ti = pts.findIndex(p => p.d===todayStr()); const lastI = pts.length-1;
   const toEx = tlRange==='exam';
@@ -1412,37 +1415,41 @@ function drawTimeline(){
   const mo = tlMock(); const mi = mo ? pts.findIndex(p => p.d===mo) : -1;
   const marks = !toEx ? '' : mk(ti, 'Today', true) + (mi > ti ? mk(mi, 'Mocks', false, Math.abs(x(mi) - x(ti)) < 60 ? 1 : 0) : '') + (lastI > ti ? mk(lastI, 'Exams', false) : '');
   const tlab = toEx && ti >= 0 ? `<text x="${x(ti)}" y="${H-6}" text-anchor="${ti===0 ? 'start' : x(ti) > W - 60 ? 'end' : 'middle'}" font-size="11" fill="var(--muted)">${esc(fmtShort(pts[ti].d))}</text>` : '';
-  let line = '', area = '';
-  if (vals.length){
-    line = vals.map((p,k) => `${k?'L':'M'}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
-    area = `${line} L${x(lastP.i).toFixed(1)},${y(0)} L${x(first.i).toFixed(1)},${y(0)} Z`;
-  }
+  const shown = series.filter(sr => tlShow[sr.k]);
+  // end labels: keep them apart when the two lines finish close together
+  const ends = shown.map(sr => { const vals = sr.pts.map((p,i) => ({...p, i})).filter(p => p.v!=null); return {sr, vals, last: vals[vals.length-1]}; }).filter(e => e.last);
+  if (ends.length===2){ const [a,b] = ends; const ya = y(a.last.v), yb = y(b.last.v); if (Math.abs(ya-yb) < 15){ const mid = (ya+yb)/2; const up = ya <= yb ? a : b; up.ly = mid - 8; (up===a ? b : a).ly = mid + 8; } }
+  const lines = ends.map(({sr, vals, last, ly}) => {
+    const line = vals.map((p,k) => `${k?'L':'M'}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+    const area = `${line} L${x(last.i).toFixed(1)},${y(0)} L${x(vals[0].i).toFixed(1)},${y(0)} Z`;
+    return `<path d="${area}" fill="${sr.c}" fill-opacity=".08"/><path d="${line}" fill="none" stroke="${sr.c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(last.i)}" cy="${y(last.v)}" r="5" fill="${sr.c}" stroke="var(--surface)" stroke-width="2"/>
+    <text x="${x(last.i)+9}" y="${(ly ?? y(last.v))+4}" font-size="13" font-weight="700" fill="${sr.c}">${last.v}%</text>`; }).join('');
   host.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Progress over time">
     ${grid}${lab}${tlab}${marks}
-    ${vals.length ? `<path d="${area}" fill="var(--accent)" fill-opacity=".10"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${x(lastP.i)}" cy="${y(lastP.v)}" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>
-    <text x="${x(lastP.i)+9}" y="${y(lastP.v)+4}" font-size="13" font-weight="700" fill="var(--ink)">${lastP.v}%</text>` : `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="13" fill="var(--muted)">Your line starts as soon as you rate something.</text>`}
+    ${ends.length ? lines : `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="13" fill="var(--muted)">${shown.length ? 'Your lines start as soon as you rate something.' : 'Tap Confidence or Learning done to show a line.'}</text>`}
     <line id="tlx" x1="0" x2="0" y1="${m.t}" y2="${H-m.b}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>
-    <circle id="tlpt" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>
+    ${shown.map(sr => `<circle class="tlpt" data-k="${sr.k}" r="5" fill="${sr.c}" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`).join('')}
     <rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="tlhit"/></svg>
-    <div class="tl-tip" id="tltip" hidden></div>
-    <p class="small muted" style="margin:6px 0 0">${tlMetric==='work' ? 'Learning done: time already behind you compared with the time still to go, from the topics you’ve rated. This line started on 4 November and builds up day by day.' : 'Every spec point counts: very strong 100%, strong 50%, OK 25%, weak 12.5%, very weak 6.25%. History builds up day by day.'}</p>`;
-  const hit = document.getElementById('tlhit'), tip = document.getElementById('tltip'), vx = document.getElementById('tlx'), dot = document.getElementById('tlpt');
+    <div class="tl-tip" id="tltip" hidden></div>`;
+  const hit = document.getElementById('tlhit'), tip = document.getElementById('tltip'), vx = document.getElementById('tlx');
+  const dots = [...host.querySelectorAll('.tlpt')];
   const move = ev => { const r = hit.getBoundingClientRect(); const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
     const i = Math.max(0, Math.min(pts.length-1, Math.round(pts.length===1 ? 0 : px/r.width*(pts.length-1)))); const p = pts[i];
     vx.setAttribute('x1', x(i)); vx.setAttribute('x2', x(i)); vx.setAttribute('visibility','visible');
-    if (p.v!=null){ dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(p.v)); dot.setAttribute('visibility','visible'); } else dot.setAttribute('visibility','hidden');
-    tip.hidden = false; tip.innerHTML = `<b>${esc(fmtDay(p.d))}</b><br>${p.future ? 'Still to come' : p.v==null ? 'Before you started' : p.v + '%'}`;
-    tip.style.left = Math.min(x(i) + 10, W - 150) + 'px'; tip.style.top = (p.v!=null ? y(p.v) - 50 : 20) + 'px'; };
+    let topV = null;
+    dots.forEach(dt => { const v = series.find(sr => sr.k===dt.dataset.k).pts[i].v; if (v!=null){ dt.setAttribute('cx', x(i)); dt.setAttribute('cy', y(v)); dt.setAttribute('visibility','visible'); topV = Math.max(topV ?? 0, v); } else dt.setAttribute('visibility','hidden'); });
+    tip.hidden = false;
+    tip.innerHTML = `<b>${esc(fmtDay(p.d))}</b>` + (p.future ? '<br>Still to come' : shown.map(sr => { const v = sr.pts[i].v; return `<br><span style="color:${sr.c}">●</span> ${sr.l}: ${v==null ? '–' : v + '%'}`; }).join(''));
+    tip.style.left = Math.min(x(i) + 10, W - 170) + 'px'; tip.style.top = Math.max(0, (topV!=null ? y(topV) - 64 : 20)) + 'px'; };
   hit.addEventListener('mousemove', move); hit.addEventListener('touchstart', move, {passive:true}); hit.addEventListener('touchmove', move, {passive:true});
-  hit.addEventListener('mouseleave', () => { tip.hidden = true; vx.setAttribute('visibility','hidden'); dot.setAttribute('visibility','hidden'); });
+  hit.addEventListener('mouseleave', () => { tip.hidden = true; vx.setAttribute('visibility','hidden'); dots.forEach(dt => dt.setAttribute('visibility','hidden')); });
 }
 function bindTimeline(){
   const sel = document.getElementById('tlsubj'); if (!sel) return;
   sel.onchange = () => { tlSubj = sel.value; try { localStorage.setItem('gcse-tl-subj', tlSubj); } catch(e){} drawTimeline(); };
-  document.querySelectorAll('[data-tlm]').forEach(b => b.onclick = () => { tlMetric = b.dataset.tlm; try { localStorage.setItem('gcse-tl-metric', tlMetric); } catch(e){}
-    document.querySelectorAll('[data-tlm]').forEach(x => x.setAttribute('aria-pressed', x.dataset.tlm===tlMetric));
-    const t = document.getElementById('tltitle'); if (t) t.textContent = (tlMetric==='work' ? 'Learning done' : 'Confidence') + ' over time'; drawTimeline(); });
+  document.querySelectorAll('[data-tlm]').forEach(b => b.onclick = () => { tlShow = Object.assign({}, tlShow, {[b.dataset.tlm]: !tlShow[b.dataset.tlm]}); try { localStorage.setItem('gcse-tl-show', JSON.stringify(tlShow)); } catch(e){}
+    b.setAttribute('aria-pressed', tlShow[b.dataset.tlm]); drawTimeline(); });
   document.querySelectorAll('[data-tlr]').forEach(b => b.onclick = () => { tlRange = b.dataset.tlr; try { localStorage.setItem('gcse-tl-range', tlRange); } catch(e){}
     document.querySelectorAll('[data-tlr]').forEach(x => x.setAttribute('aria-pressed', x.dataset.tlr===tlRange)); drawTimeline(); });
   drawTimeline();
