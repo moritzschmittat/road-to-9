@@ -1631,14 +1631,14 @@ function renderNext(){
         <p class="muted" style="margin:0">${info.skippedDay ? 'No problem. Anything that was due today moves to the front of the queue next time you study.' : restDay ? 'No revision planned today. Enjoy it.' : `You studied ${fmtMin(done)} today. Your brain stores it while you rest.`}</p></div>
         <div class="row">${info.skippedDay ? '<button class="btn small" id="ovundo2">Undo, I can study today</button>' : restDay
           ? `<span class="small muted">Skip it and study instead:</span><button class="btn primary small" data-ov="45">45 min</button><button class="btn small" data-ov="90">1h 30m</button><button class="btn small" data-ov="135">2h 15m</button>`
-          : `<span class="small muted">In the mood for more?</span>${quickNext() ? '<button class="btn primary" data-quick="1">Quick refresher · 5 min</button>' : ''}<button class="btn" data-extra="refresh">Refresh · about 20 min</button><button class="btn" data-extra="revise">Revise · 20 to 45 min</button>`}<button class="btn ghost" data-choose="1">Let me choose a topic</button></div></section>`;
+          : `<span class="small muted">In the mood for more?</span>${quickNext() ? '<button class="btn primary" data-quick="1">Quick refresher · 5 min</button>' : ''}<button class="btn" data-extra="refresh">Refresh · about 20 min</button><button class="btn" data-extra="revise">Revise · 20 to 45 min</button>`}<button class="btn ghost" data-choose="1">Choose a different topic</button></div></section>`;
     } else {
       const plan = window.__anyway ? [] : restOfToday(Math.max(0, info.target - done));
       const n = mixDay(plan, startKind(today))[0] || pickNext();
       if (!n){
         html += `<section class="session"><div class="head"><div class="eyebrow">Nothing scheduled</div><h2 class="topic">Rate your topics to get started.</h2>
           <p class="muted" style="margin:0">Every rated topic you haven't mastered becomes a session. Pick a subject below and rate a few topics.</p></div>
-          <div class="row"><a class="btn primary" href="#subjects" style="text-decoration:none" onclick="event.preventDefault();document.getElementById('subjects').scrollIntoView({behavior:'smooth'})">Rate topics</a><button class="btn ghost" data-choose="1">Let me choose a topic</button></div></section>`;
+          <div class="row"><a class="btn primary" href="#subjects" style="text-decoration:none" onclick="event.preventDefault();document.getElementById('subjects').scrollIntoView({behavior:'smooth'})">Rate topics</a><button class="btn ghost" data-choose="1">Choose a different topic</button></div></section>`;
       } else {
         current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}};
         resetTimer();
@@ -1664,7 +1664,7 @@ function paperHTML(){
     <div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
       <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>
     <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>
-    <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Let me choose a topic</button>
+    <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Choose a different topic</button>
       <a class="btn ghost" style="text-decoration:none" href="#topics-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
 }
 
@@ -1699,7 +1699,7 @@ function sessionHTML(){
   let foot;
   if (cur.phase==='work'){
     foot = `<div class="row"><button class="btn primary" id="finish">Finish and rate</button>
-      <button class="btn ghost" data-choose="1">Let me choose a topic</button></div>`;
+      <button class="btn ghost" data-choose="1">Choose a different topic</button></div>`;
   } else {
     foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
       <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
