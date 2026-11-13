@@ -2339,7 +2339,7 @@ function renderOnboarding(){
     const rated = sb.cards.filter(c => chunkChoice(c.id)!=null).length;
     const secs = []; sb.cards.forEach(c => { let g = secs[secs.length-1]; if (!g || g.name!==c.sec){ g = {name:c.sec, cards:[]}; secs.push(g); } g.cards.push(c); });
     body = `<div class="obsubj">${iconTile(sb.id, 22)}<div><div class="eyebrow">Subject ${i+1} of ${subs.length}</div><h1>${esc(sb.name)}</h1><div class="small muted">${esc(sb.board)}</div></div></div>
-      <p class="lead">How well do you know each topic right now? Tap one colour per topic.</p>
+      <p class="lead">How well do you know each spec point right now? Skip anything you’re unsure about: you can rate or change everything later on the Subjects page.</p>
       <div class="oblegend">${[...OB_LEVELS].reverse().map(([v, n, d]) => `<div><i class="rag ${lvClass(v)}"></i><b>${n}</b><span>${d}</span></div>`).join('')}
         <div><i class="rag lv-x"></i><b>Not taught yet</b><span>We haven’t covered it at school</span></div></div>
       <div class="obprog"><div class="bar"><i style="width:${Math.round(100*rated/sb.cards.length)}%"></i></div><span class="small muted">${rated} of ${sb.cards.length} topics rated</span></div>
@@ -2376,10 +2376,7 @@ function renderOnboarding(){
       s.subjects = pick; return go('rate', 0);
     }
     if (step==='rate'){
-      const i = ob.i||0; const sb = CURRICULUM[i]; const left = sb.cards.filter(c => chunkChoice(c.id)==null).length;
-      if (left && !ob.warned){ $('#obmsg').innerHTML = `${left} topic${left===1?'':'s'} not rated yet. They won’t be planned until you rate them (you can do that later on the Subjects page). <button class="linkbtn" id="obanyway">Continue anyway</button>`;
-        $('#obanyway').onclick = () => { S.settings.ob.warned = true; $('#obnext').click(); }; return; }
-      S.settings.ob.warned = false;
+      const i = ob.i||0;
       return i+1 < CURRICULUM.length ? go('rate', i+1) : go('time');
     }
     s.onboarded = true; s.ob = {step:'done', i:0}; s.startedOn = todayStr(); location.hash = '#next'; save();
