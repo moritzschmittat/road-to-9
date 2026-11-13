@@ -556,6 +556,7 @@ body.signedout .top{background:transparent;-webkit-backdrop-filter:none;backdrop
 body.signedout{--mark-a:#1f5a96;--mark-b:#b6f738}
 .login h1.wm{font-family:var(--f-display);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase}
 .login .tag{text-align:center;font-size:16px}
+.invonly{align-self:center;margin:0;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--lime);border:1px solid rgba(182,247,56,.35);border-radius:999px;padding:5px 12px}
 .login input[type=email]{border-radius:14px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
 body.signedout .btn.primary{background:var(--lime);color:#050c14;box-shadow:0 10px 30px -12px rgba(182,247,56,.8)}
 body.signedout .note{border-left-color:var(--lime)}
@@ -2125,12 +2126,13 @@ function renderLogin(msg){
     <div class="hero"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><h1 class="wm">Road to <b>9</b></h1></div>
     <p class="tag">We do the planning, you do the learning.</p>
     ${msg ? `<div class="note">${msg}</div>` : ''}
+    <p class="invonly">Invite only · members sign in</p>
     <form id="loginform"><label class="small muted" for="lemail">Your email address</label>
       <input id="lemail" type="email" required autocomplete="email" placeholder="you@example.com">
-      <button class="btn primary" type="submit">Email me a sign-in link</button></form>
+      <button class="btn primary" type="submit">Send me a sign-in link</button></form>
     <div id="lmsg" class="small" role="status"></div>
-    <p class="small muted">Road to 9 is invite only. Use the email address your invite was sent to. No password needed: we email you a link each time you sign in on a new device.</p>
-    <p class="small muted">Road to 9 helps you plan; it can’t promise any grade. You’ll be asked to agree to the <a href="terms.html">Terms of use</a> when you first sign in. See also the <a href="privacy.html">Privacy note</a>.</p>
+    <p class="small muted">No password: we email you a link each time you sign in on a new device.</p>
+    <p class="small muted"><a href="terms.html">Terms of use</a> · <a href="privacy.html">Privacy note</a></p>
   </section>`;
   $('#loginform').onsubmit = async ev => {
     ev.preventDefault(); const email = $('#lemail').value.trim(); const m = $('#lmsg');
@@ -2138,7 +2140,7 @@ function renderLogin(msg){
     m.textContent = 'Sending…';
     const {error} = await sb.auth.signInWithOtp({email, options: {shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname}});
     if (error){
-      m.textContent = /signups not allowed|not found|not allowed/i.test(error.message || '') ? '⚠ That email hasn’t been invited. Ask the person who invited you which address they used.'
+      m.textContent = /signups not allowed|not found|not allowed/i.test(error.message || '') ? '⚠ That email isn’t a member. Use the address your invite was sent to.'
         : /rate|seconds/i.test(error.message || '') ? '⚠ Please wait a minute before asking for another link.' : '⚠ Couldn’t send the link: ' + error.message;
       return;
     }

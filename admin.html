@@ -115,8 +115,6 @@ input[type=email]{background:rgba(255,255,255,.05)!important;border-color:rgba(2
           <input type="email" id="inviteEmail" required autocomplete="off" placeholder="student@example.com" aria-label="Student's email address">
           <button class="btn" type="submit" id="inviteBtn">Send invite</button>
         </div>
-        <label class="check"><input type="checkbox" id="parentOk" required>
-          <span>A parent or carer has agreed to this student using Road to 9 (the date is recorded with the invite).</span></label>
       </form>
       <div id="inviteMsg"></div>
     </div>
@@ -185,7 +183,6 @@ function draw(){
       u.invites_sent ? `${u.invites_sent} of 3 invite links used` : null,
       u.joined ? `last sign-in ${when(u.last_sign_in_at)}` : null,
       u.joined ? (u.onboarded ? `last active ${when(u.last_saved_at)}` : 'setup not finished') : null,
-      u.parent_ok_at ? `parent OK ${when(u.parent_ok_at)}` : null
     ].filter(Boolean).join(' · ');
     const acts = u.id === ME ? '' : `${u.joined ? '' : `<button class="ghost" data-resend="${u.id}">Resend invite</button>`}<button class="ghost danger" data-remove="${u.id}">Remove</button>`;
     const conf = confirmId === u.id ? `<div class="confirm"><b>Remove ${esc(u.email)}?</b> This deletes their account and all their planner data straight away. It can't be undone.
@@ -212,11 +209,11 @@ $('inviteForm').addEventListener('submit', async e => {
   e.preventDefault();
   const email = $('inviteEmail').value.trim();
   $('inviteBtn').disabled = true;
-  const r = await call('invite', {email, parentOk: $('parentOk').checked});
+  const r = await call('invite', {email});
   $('inviteBtn').disabled = false;
   if (r.error) return msg('inviteMsg', r.error);
   msg('inviteMsg', `Invite sent to ${email}.`, true);
-  $('inviteEmail').value = ''; $('parentOk').checked = false;
+  $('inviteEmail').value = '';
   load();
 });
 

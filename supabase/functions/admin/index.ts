@@ -89,10 +89,8 @@ Deno.serve(async (req) => {
     case "invite": {
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!EMAIL.test(email)) return reply({ error: "That doesn't look like an email address." }, 400);
-      if (body.parentOk !== true) return reply({ error: "Confirm that a parent or carer has agreed." }, 400);
       const { error } = await svc.auth.admin.inviteUserByEmail(email, {
         redirectTo: SITE,
-        data: { parent_ok_at: new Date().toISOString() },
       });
       if (error) {
         const msg = /already been registered/i.test(error.message) ? "That email already has an account." : error.message;

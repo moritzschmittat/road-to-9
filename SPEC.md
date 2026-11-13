@@ -65,8 +65,8 @@ to-dos, rating history.
 
 The guiding rule: **as safe and honest as we possibly can.**
 
-- Invite only. The admin invites students from the admin page after a quick yes from the parent
-  (recorded). Every student has 3 one-use invite links to share themselves (see 3e). No public sign-up,
+- Invite only. The admin invites students from the admin page (no parental check: parental consent
+  isn't required at 13+; every student confirms a parent or carer knows if they're under 18). Every student has 3 one-use invite links to share themselves (see 3e). No public sign-up,
   no user directory, no search.
 - We store: email address (for sign-in), display name chosen by the user, and their planner data.
   Nothing else. No analytics, no ads, no tracking, no third-party scripts beyond the Supabase client.
@@ -124,9 +124,8 @@ Then straight to Today with the first session ready.
 `admin.html` at roadto9.com/admin.html. The admin signs in with an email link like a student. All admin
 actions go through the Supabase Edge Function `admin` (`supabase/functions/admin`), which holds the
 master key on Supabase's side and only acts for emails listed in the function secret `ADMIN_EMAILS`.
-No password or key is in the page. Actions: invite (with a required "parent or carer has agreed" tick,
-stored as `parent_ok_at` on the account), resend invite, remove (deletes account and planner data),
-list. The list shows account details only: email, first name, invited, parent OK, last sign-in, last
+No password or key is in the page. Actions: invite, resend invite, remove (deletes account and planner data),
+list. The list shows account details only: email, first name, invited (and by whom), last sign-in, last
 saved, setup finished. Never ratings, sessions, journals or to-dos.
 
 ## 3e. Friend invites (built)
@@ -144,7 +143,7 @@ saved, setup finished. Never ratings, sessions, journals or to-dos.
   invitee, used_at). Students can't read the table directly; only the function can.
 - The admin page shows who joined through whose link and how many links each student has used.
 - Parental consent is not legally required at 13+ under the contract basis; every student still
-  confirms a parent or carer knows (under 18). See the DPIA.
+  confirms a parent or carer knows (under 18). Admin invites have no parental check either. See the DPIA.
 
 ## 3f. Backups (built)
 
