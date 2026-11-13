@@ -454,6 +454,9 @@ body.onboarding #mainnav,body.onboarding #hdrmeta{visibility:hidden}
 .obhow{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .obnav{display:flex;justify-content:space-between;gap:10px;margin-top:6px;position:sticky;bottom:0;padding:12px 0;background:linear-gradient(to top,var(--bg) 70%,transparent)}
 .obsubj{display:flex;gap:12px;align-items:center}
+.subjpick small.obmins{display:block;color:var(--accent);font-size:12px;margin-top:2px}
+.obnr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.obtotal{font-size:14px;color:var(--muted);font-weight:600}
 .oblegend{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:6px 16px;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .oblegend div{display:grid;grid-template-columns:14px auto;gap:0 8px;align-items:center}
 .oblegend span{grid-column:2;color:var(--muted)}
@@ -2298,6 +2301,8 @@ const TERMS_V = '2026-11-13.2';
 const termsOK = () => !!(S.settings.terms && S.settings.terms.v === TERMS_V);
 function acceptTerms(){ S.settings.terms = {v: TERMS_V, at: new Date().toISOString()}; }
 const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I’m 13 or over, I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
+// Rating speed for the time estimate: about 3 spec points a minute.
+const rateMins = sid => { const sb = ALL_SUBJECTS.find(x => x.id===sid); return sb ? Math.max(1, Math.ceil(sb.cards.reduce((a, c) => a + c.p.length, 0) / 3)) : 0; };
 const OB_STEPS = [['welcome','You'],['subjects','Subjects'],['rate','Rate topics'],['time','Study time']];
 const OB_LEVELS = [
   [1,'Very strong','I could answer exam questions on it now'],
@@ -2331,9 +2336,9 @@ function renderOnboarding(){
   } else if (step==='subjects'){
     body = `<h1>Which subjects do you take?</h1>
       <p class="lead">Tick each one. Check the exam board with your school if you’re not sure.</p>
-      <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-obsubj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div>
+      <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-obsubj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small><small class="obmins">About ${fmtMin(rateMins(x.id))} to rate</small></span></label>`).join('')}</div>
       <p class="small muted">Missing a subject or exam board? Tell the person who invited you; more are being added.</p>
-      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">Next</button></div><div id="obmsg" class="small" role="status"></div>`;
+      <div class="obnav"><button class="btn ghost" id="obback">Back</button><span class="obnr"><span class="obtotal" id="obtotal"></span><button class="btn primary" id="obnext">Next</button></span></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='rate'){
     const subs = CURRICULUM; const i = Math.min(ob.i||0, subs.length-1); const sb = subs[i];
     const rated = sb.cards.filter(c => chunkChoice(c.id)!=null).length;
@@ -2393,6 +2398,9 @@ function renderOnboarding(){
   };
   document.querySelectorAll('[data-obr]').forEach(b => b.onclick = () => { const v = b.dataset.v; rateChunk(b.dataset.obr, isNaN(+v) ? v : +v); });
   document.querySelectorAll('[data-obp]').forEach(b => b.onclick = () => applyPoint(b.dataset.obp, +b.dataset.v));
+  const tot = $('#obtotal'); if (tot){ const upd = () => { const ids = [...document.querySelectorAll('[data-obsubj]')].filter(x => x.checked).map(x => x.dataset.obsubj);
+      const m = ids.reduce((a, id) => a + rateMins(id), 0); tot.textContent = ids.length ? `About ${fmtMin(m)} to rate ${ids.length} subject${ids.length===1?'':'s'}` : ''; };
+    document.querySelectorAll('[data-obsubj]').forEach(x => x.addEventListener('change', upd)); upd(); }
   document.querySelectorAll('[data-obsec]').forEach(b => b.onclick = () => { b.dataset.obsec.split(',').forEach(id => { if (chunkChoice(id)==null) setRating(id, 'later'); }); });
   document.querySelectorAll('[data-obt]').forEach(b => b.onclick = () => { const m = +b.dataset.m;
     if (b.dataset.obt==='wd') [1,2,3,4,5].forEach(d => s.week[d] = m); else [0,6].forEach(d => s.week[d] = m); save(); });
