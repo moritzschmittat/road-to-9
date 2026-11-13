@@ -2384,7 +2384,7 @@ function renderOnboarding(){
       <h2>On a school day</h2>${chips('wd', [30,45,60,90,120], wd)}
       <h2>On a weekend day</h2>${chips('we', [60,90,120,180,240], we)}
       <p class="small muted">Exam dates are filled in from the 2027 timetables for your subjects. Check them in Settings once your school confirms.</p>
-      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">Show my first session</button></div>`;
+      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">Let’s get started</button></div>`;
   }
   $('#view').innerHTML = `<div class="ob">${steps}${body}</div>`;
   const go = (step, i) => { obSet({step, i: i||0}); window.scrollTo({top:0}); };
