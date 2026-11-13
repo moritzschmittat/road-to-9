@@ -237,6 +237,17 @@ $('refresh').onclick = load;
 (async () => {
   const cfg = await fetch('config.json', {cache: 'no-store'}).then(r => r.json());
   sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_key, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
+  const hp = new URLSearchParams(location.hash.slice(1));
+  if (hp.get('token_hash')){
+    show('login');
+    $('login').querySelector('.card').innerHTML = '<h2>Sign in</h2><p class="muted small">One more tap.</p><button class="btn" id="goon">Continue to admin</button><div id="gomsg"></div>';
+    $('goon').onclick = async () => {
+      const {error} = await sb.auth.verifyOtp({token_hash: hp.get('token_hash'), type: hp.get('type') || 'magiclink'});
+      if (error) return msg('gomsg', 'This link has already been used or has run out. Ask for a new one.');
+      location.replace(location.pathname);
+    };
+    return;
+  }
   const {data: {session}} = await sb.auth.getSession();
   if (location.hash.includes('access_token')) history.replaceState(null, '', location.pathname);
   if (!session){ show('login'); return; }

@@ -1,7 +1,7 @@
 <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;padding:8px;color:#13202b;line-height:1.5">
   <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;margin:0 0 14px">Road to 9</h2>
   <p>Here's your sign-in link. It works once and runs out after an hour.</p>
-  <p style="margin:22px 0"><a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#1f45d6;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:bold">Sign in to Road to 9</a></p>
+  <p style="margin:22px 0"><a href="{{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}{{ end }}#token_hash={{ .TokenHash }}&type=magiclink" style="display:inline-block;background:#1f45d6;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:bold">Sign in to Road to 9</a></p>
   <p style="font-size:13px;color:#566775">If you didn't ask to sign in, ignore this email. Nobody can get into your planner without this link.</p>
   <p style="font-size:12px;color:#566775;margin-top:22px">Road to 9 is run by Schmittat Ltd. Questions: hello@roadto9.com</p>
 </div>

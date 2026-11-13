@@ -2200,6 +2200,24 @@ async function loadInvites(note){
   box.querySelectorAll('[data-share]').forEach(b => b.onclick = () => navigator.share({url: b.dataset.share}).catch(() => {}));
   const more = $('#invmore'); if (more) more.onclick = async () => { const x = await callFn('invite', {action: 'more'}); loadInvites(x.error ? '⚠ ' + x.error : '✓ New link added.'); };
 }
+/* Arrived from an email link: one tap to continue (keeps link scanners from using it up). */
+function renderContinue(tokenHash, type){
+  document.body.classList.add('signedout'); $('#footacct').innerHTML = '';
+  const invite = type === 'invite';
+  $('#view').innerHTML = `<section class="login"><div class="hero">${document.querySelector('.brand .mark').outerHTML}<h1 class="wm">Road to <b>9</b></h1></div>
+    <p class="tag">${invite ? 'Welcome! Your invite is ready.' : 'One more tap and you’re in.'}</p>
+    <button class="btn primary" id="goon">${invite ? 'Accept invite and continue' : 'Continue to Road to 9'}</button>
+    <div id="gomsg" class="small" role="status"></div></section>`;
+  $('#goon').onclick = async () => {
+    const m = $('#gomsg'); $('#goon').disabled = true; m.textContent = 'Signing you in…';
+    const {data, error} = await sb.auth.verifyOtp({token_hash: tokenHash, type: invite ? 'invite' : 'magiclink'});
+    if (error || !data.session){ $('#goon').disabled = false;
+      m.innerHTML = '⚠ This link has already been used or has run out. <a href="./">Ask for a new link</a>.'; return; }
+    history.replaceState(null, '', location.pathname + location.search + (DELETE_CONFIRMED ? '#plan' : '#next'));
+    startApp(data.session.user);
+    sb.auth.onAuthStateChange((ev, session) => { if (ev === 'SIGNED_OUT' && USER){ USER = null; renderLogin(''); } });
+  };
+}
 /* A friend opened an invite link: they ask for their own sign-in email. */
 async function renderJoin(code){
   document.body.classList.add('signedout'); $('#footacct').innerHTML = '';
@@ -2383,6 +2401,10 @@ window.addEventListener('hashchange', () => { if (USER) render(); });
   if (!window.supabase || SB_URL.startsWith('%%')){ renderLogin('⚠ The site isn’t connected to its database yet.'); return; }
   sb = window.supabase.createClient(SB_URL, SB_KEY, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
   const errHash = /error_description=([^&]+)/.exec(location.hash);
+  // Email links carry a one-time token_hash. Mail scanners open links to check them, so nothing is
+  // used up until the person presses Continue.
+  const hp = new URLSearchParams(location.hash.slice(1));
+  if (hp.get('token_hash')){ renderContinue(hp.get('token_hash'), hp.get('type') || 'magiclink'); return; }
   const {data} = await sb.auth.getSession();
   if (data && data.session) startApp(data.session.user);
   else renderLogin(errHash ? '⚠ ' + decodeURIComponent(errHash[1].replace(/\+/g, ' ')) + '. Ask for a new link below.' : '');
