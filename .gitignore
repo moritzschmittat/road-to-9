@@ -1,0 +1,5 @@
+# personal data and local junk never go in the repository
+*progress*.json
+!data/*.json
+.DS_Store
+__pycache__/
