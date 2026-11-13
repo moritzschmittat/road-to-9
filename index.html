@@ -2346,7 +2346,7 @@ function renderOnboarding(){
       ${secs.map(g => `<section class="obsec"><div class="obsech"><h2>${esc(g.name)}</h2><button class="linkbtn" data-obsec="${esc(g.cards.map(c => c.id).join(','))}">Not taught yet: whole section</button></div>
         <ul class="obrows">${g.cards.map(c => { const v = chunkChoice(c.id); return `<li><div class="obt"><b>${esc(c.n)}</b><ul class="obpts ${v==='later'||v==='off' ? 'dim' : ''}">${c.p.map((q, j) => { const pv = ptLvl(c, j);
             return `<li><span class="code">${esc(q.c)}</span><span class="tx">${esc(q.t)}</span><span class="obpb" role="group" aria-label="Rate ${esc(q.c)}">${[...OB_LEVELS].reverse().map(([lv, n]) => `<button class="obp ${lvClass(lv)}" data-obp="${pk(c.id, j)}" data-v="${lv}" aria-pressed="${pv===lv}" title="${n}" aria-label="${esc(q.c)}: ${n}"></button>`).join('')}</span></li>`; }).join('')}</ul></div>
-          <div class="obbtns" role="group" aria-label="Rate all of ${esc(c.n)}"><span class="obball">Whole topic</span>${[...OB_LEVELS].reverse().map(([lv, n]) => `<button class="obb ${lvClass(lv)}" data-obr="${c.id}" data-v="${lv}" aria-pressed="${v===lv}" title="${n}" aria-label="${n}"></button>`).join('')}
+          <div class="obbtns" role="group" aria-label="${esc(c.n)}">
             <button class="obtx" data-obr="${c.id}" data-v="later" aria-pressed="${v==='later'}">Not taught yet</button>
             <button class="obtx" data-obr="${c.id}" data-v="off" aria-pressed="${v==='off'}" title="Not part of my course">Not on my course</button></div></li>`; }).join('')}</ul></section>`).join('')}
       <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">${i+1 < subs.length ? 'Next subject' : 'Next'}</button></div>

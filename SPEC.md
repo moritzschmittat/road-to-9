@@ -116,8 +116,7 @@ and carry on later, on any device:
    file?" to import one and skip the rest (used to move the first student's data across).
 2. **Subjects**: tick the subjects you take (at least one).
 3. **Rate topics**: one page per subject, showing every spec point. Each spec point can be rated on
-   its own (red to green, as in Casper's planner); the topic's rating follows from its points. A
-   "Whole topic" row rates all its points in one tap. Every topic gets one of: very strong, strong, OK, weak,
+   its own (red to green, as in Casper's planner); the topic's rating follows from its points. Every topic gets one of: very strong, strong, OK, weak,
    very weak (with a plain-English description of each), "not taught yet" or "not on my course".
    A whole section can be marked "not taught yet" at once. Unrated topics are allowed but flagged.
 4. **Study time**: minutes on a school day and on a weekend day. Everything else is in Settings.
