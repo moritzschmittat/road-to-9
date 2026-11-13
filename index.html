@@ -323,10 +323,14 @@ details.howto .q{display:inline-grid;place-items:center;width:22px;height:22px;b
 details.howto[open] summary{margin-bottom:10px;color:var(--ink)}
 .howlist{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px;color:var(--muted)}
 /* evening routine */
-.checkin{background:var(--surface);border:2px solid var(--accent);border-radius:var(--r);padding:16px 20px;display:grid;gap:10px;margin:6px 0 14px}
+.checkin{background:var(--surface);border:2px solid var(--accent);border-radius:var(--r);padding:16px 20px;display:grid;gap:10px;margin:18px 0 14px}
 .checkin h2{font-size:22px}
-.hq{display:grid;gap:8px}
-.hrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:16px;font-weight:600}
+.hgrid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px 22px;align-items:center}
+.hday{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;display:grid}
+.hday small{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none}
+.hqq{font-size:16px;font-weight:600}
+.hpair{display:flex;gap:6px}
+@media (max-width:520px){.hgrid{gap:10px 10px}.hbtn{padding:7px 11px}.hqq{font-size:14px}}
 .hbtn{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:8px 22px;font-weight:700}
 .hbtn.yes[aria-pressed="true"]{background:var(--lv1);border-color:var(--lv1);color:#fff}
 .hbtn.no[aria-pressed="true"]{background:var(--lv3);border-color:var(--lv3);color:#fff}
@@ -1185,21 +1189,22 @@ function setHabit(night, k, v){
   S.habits = Object.assign({}, S.habits, {[night]: h}); save();
 }
 function habitStreak(k){
-  let n = 0; for (let d = addDays(todayStr(),-1); ; d = addDays(d,-1)){ const h = S.habits[d]; if (h && h[k]===1) n++; else break; } return n;
+  const t = todayStr(); let n = 0; for (let d = (S.habits[t]||{})[k]===1 ? t : addDays(t,-1); ; d = addDays(d,-1)){ const h = S.habits[d]; if (h && h[k]===1) n++; else break; } return n;
 }
 function checkinHTML(){
-  const today = todayStr(); const night = addDays(today,-1); const h = S.habits[night] || {};
-  const nightName = parse(night).toLocaleDateString('en-GB',{weekday:'long',timeZone:'UTC'});
-  if (!habitAnswered(night)){
-    return `<section class="checkin"><div class="eyebrow">Good morning · daily routine check</div><h2>Yesterday (${esc(nightName)})</h2>
-      <div class="hq">${activeHabits().map(([k,q]) => `<div class="hrow"><span>${esc(q)}</span><span class="row">
-        <button class="hbtn yes" data-night="${night}" data-k="${k}" data-v="1" aria-pressed="${h[k]===1}">Yes</button>
-        <button class="hbtn no" data-night="${night}" data-k="${k}" data-v="0" aria-pressed="${h[k]===0}">No</button></span></div>`).join('')}</div></section>`;
-  }
-  return '';
+  // Yesterday and today side by side. Answers can be changed: tap another answer, or the same one again to clear it.
+  const hs = activeHabits(); if (!hs.length) return '';
+  const today = todayStr(); const days = [[addDays(today,-1),'Yesterday'],[today,'Today']];
+  const wd = d => parse(d).toLocaleDateString('en-GB',{weekday:'long',timeZone:'UTC'});
+  const pair = (d,k,q,l) => { const v = (S.habits[d]||{})[k];
+    return `<span class="hpair" role="group" aria-label="${esc(l)}: ${esc(q)}">${[1,0].map(x => `<button class="hbtn ${x?'yes':'no'}" data-night="${d}" data-k="${k}" data-v="${x}" aria-pressed="${v===x}">${x?'Yes':'No'}</button>`).join('')}</span>`; };
+  return `<section class="checkin"><h2>Daily routine check</h2>
+    <div class="hgrid"><span></span>${days.map(([d,l]) => `<span class="hday">${l}<small>${wd(d)}</small></span>`).join('')}
+    ${hs.map(([k,q]) => `<span class="hqq">${esc(q)}</span>${days.map(([d,l]) => pair(d,k,q,l)).join('')}`).join('')}</div>
+    <p class="small muted" style="margin:0">Got one wrong? Tap the other answer, or tap it again to clear it. Older days are under Stats.</p></section>`;
 }
 function routineHTML(){
-  const today = todayStr(); const nights = Array.from({length:14}, (_,i) => addDays(today, i-14));
+  const today = todayStr(); const nights = Array.from({length:14}, (_,i) => addDays(today, i-13));
   const lastWeek = nights.slice(-7);
   const hs = activeHabits();
   if (!hs.length) return `<section class="panel"><h2>Daily routine</h2><p class="small muted" style="margin:0">Add up to three yes/no questions in <a href="#plan">Settings</a>, for example about sleep or reading.</p></section>`;
@@ -1213,7 +1218,7 @@ function routineHTML(){
     <div class="legend"><span><i class="hc-k y"></i>Yes</span><span><i class="hc-k n"></i>No</span><span><i class="hc-k"></i>Not answered</span></div></section>`;
 }
 function bindHabits(){
-  document.querySelectorAll('#view [data-night]').forEach(b => b.onclick = () => setHabit(b.dataset.night, b.dataset.k, +b.dataset.v));
+  document.querySelectorAll('#view [data-night]').forEach(b => b.onclick = () => { const v = +b.dataset.v; setHabit(b.dataset.night, b.dataset.k, (S.habits[b.dataset.night]||{})[b.dataset.k]===v ? null : v); });
   document.querySelectorAll('#view [data-cyc]').forEach(b => b.onclick = () => {
     const v = (S.habits[b.dataset.cyc]||{})[b.dataset.k]; setHabit(b.dataset.cyc, b.dataset.k, v==null ? 1 : v===1 ? 0 : null); });
 }
@@ -1614,7 +1619,7 @@ function renderNext(){
   const s = S.settings;
   let html = '';
 
-  html = (S.settings.routine ? checkinHTML() : '') + html + setupPanel();
+  html = setupPanel() + html;
   html += '<div class="cols"><div class="main">';
   if (choosing) html += chooserHTML();
   if (!current){
@@ -1643,7 +1648,7 @@ function renderNext(){
   if (info.override && !info.skippedDay) html += `<div class="row small muted" style="margin:-4px 0 10px">${esc(info.baseLabel)} normally has ${info.baseTarget ? fmtMin(info.baseTarget) : 'no study time'}. <button class="btn small ghost" id="ovundo">Undo</button></div>`;
   if (current) html += sessionHTML();
   if (current && info.target>0 && !info.override && done < info.target) html += `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn small ghost" id="skipday">I can't study today</button></div>`;
-  html += '</div><div class="side">' + todayListHTML(info) + '</div></div>' + subjectsHTML() + weekHTML();
+  html += '</div><div class="side">' + todayListHTML(info) + '</div></div>' + subjectsHTML() + weekHTML() + (S.settings.routine ? checkinHTML() : '');
   $('#view').innerHTML = html;
   bindNext();
 }
