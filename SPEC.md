@@ -115,6 +115,16 @@ and carry on later, on any device:
 
 Then straight to Today with the first session ready.
 
+## 3d. Admin page (built)
+
+`admin.html` at roadto9.com/admin.html. The admin signs in with an email link like a student. All admin
+actions go through the Supabase Edge Function `admin` (`supabase/functions/admin`), which holds the
+master key on Supabase's side and only acts for emails listed in the function secret `ADMIN_EMAILS`.
+No password or key is in the page. Actions: invite (with a required "parent or carer has agreed" tick,
+stored as `parent_ok_at` on the account), resend invite, remove (deletes account and planner data),
+list. The list shows account details only: email, first name, invited, parent OK, last sign-in, last
+saved, setup finished. Never ratings, sessions, journals or to-dos.
+
 ## 4. Study groups (phase 2) and "Who can help" (phase 3)
 
 - Groups are joined by invite code only. Kids only. Leave at any time.

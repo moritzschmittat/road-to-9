@@ -18,6 +18,8 @@ the one-off setup.
 | `privacy.html` | The privacy note. |
 | `terms.html` | Terms of use (no guarantee of results, free for GCSE 2027, invite only). |
 | `supabase/001_init.sql` | Database setup (table, security rules, delete-account function). |
+| `admin.html` | Admin page: invite, resend, remove students (account details only). |
+| `supabase/functions/admin/` | Server function behind the admin page; holds the master key on Supabase's side. |
 
 ## Making a change
 

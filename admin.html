@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Road to 9</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,600&family=Manrope:wght@400;600;700;800&display=swap">
+<style>
+:root{--bg:#eef2f5;--surface:#fff;--sunk:#e4e9ee;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6;--accent-ink:#fff;
+  --red:#c73636;--red-soft:#fbe5e5;--green:#23925a;--green-soft:#ddf3e6;--amber:#9a6200;--amber-soft:#fdf0d6;--r:14px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1218;--surface:#141c24;--sunk:#1b252f;--ink:#e6edf3;--muted:#93a4b3;--line:#26333f;
+  --accent:#7d96ff;--accent-ink:#0c1218;--red:#ef6a6a;--red-soft:#3a1d20;--green:#49c27b;--green-soft:#163222;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0c1218;--surface:#141c24;--sunk:#1b252f;--ink:#e6edf3;--muted:#93a4b3;--line:#26333f;
+  --accent:#7d96ff;--accent-ink:#0c1218;--red:#ef6a6a;--red-soft:#3a1d20;--green:#49c27b;--green-soft:#163222;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:28px 16px 64px}
+h1{font-family:Newsreader,Georgia,serif;font-size:34px;line-height:1.1;margin:0}
+h1 span{color:var(--accent)}
+h2{font-family:Newsreader,Georgia,serif;font-size:22px;margin:0 0 10px}
+a{color:var(--accent)}
+button,input{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.muted{color:var(--muted)} .small{font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-top:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=email]{flex:1 1 240px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-weight:600;font-size:13px}
+.danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
+label.check{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14px}
+label.check input{width:18px;height:18px;margin-top:2px;flex:none}
+.msg{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:14px}
+.msg.ok{background:var(--green-soft)} .msg.err{background:var(--red-soft)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 16px;min-width:120px}
+.stat b{display:block;font-size:24px;font-family:Newsreader,Georgia,serif}
+.list{margin-top:6px}
+.user{display:grid;grid-template-columns:1fr auto;gap:6px 14px;padding:14px 0;border-top:1px solid var(--line)}
+.user:first-child{border-top:0}
+.who{font-weight:700;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:6px;vertical-align:1px}
+.tag.joined{background:var(--green-soft);color:var(--green)}
+.tag.pending{background:var(--amber-soft);color:var(--amber)}
+.tag.you{background:var(--sunk);color:var(--muted)}
+.acts{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+.confirm{grid-column:1/-1;background:var(--red-soft);border-radius:10px;padding:12px;font-size:14px}
+.confirm .row{margin-top:8px}
+@media (max-width:560px){.user{grid-template-columns:1fr}.acts{justify-content:flex-start}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>Road to <span>9</span> · admin</h1>
+    <div class="row small"><span id="whoami" class="muted"></span><button class="ghost" id="signout" hidden>Sign out</button></div>
+  </div>
+
+  <!-- signed out -->
+  <section id="login" hidden>
+    <div class="card">
+      <h2>Sign in</h2>
+      <p class="muted small" style="margin-top:0">Admin access only. You'll get a sign-in link by email.</p>
+      <form id="loginForm" class="row">
+        <input type="email" id="loginEmail" required autocomplete="email" placeholder="you@example.com" aria-label="Email address">
+        <button class="btn" type="submit">Email me a link</button>
+      </form>
+      <div id="loginMsg"></div>
+    </div>
+  </section>
+
+  <!-- signed in but not an admin -->
+  <section id="denied" hidden>
+    <div class="card"><h2>Not allowed</h2><p class="muted">This account isn't an admin. <a href="./">Back to Road to 9</a></p></div>
+  </section>
+
+  <!-- admin -->
+  <section id="panel" hidden>
+    <div class="card">
+      <h2>Invite a student</h2>
+      <form id="inviteForm">
+        <div class="row">
+          <input type="email" id="inviteEmail" required autocomplete="off" placeholder="student@example.com" aria-label="Student's email address">
+          <button class="btn" type="submit" id="inviteBtn">Send invite</button>
+        </div>
+        <label class="check"><input type="checkbox" id="parentOk" required>
+          <span>A parent or carer has agreed to this student using Road to 9 (the date is recorded with the invite).</span></label>
+      </form>
+      <div id="inviteMsg"></div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Students</h2><button class="ghost" id="refresh">Refresh</button></div>
+      <p class="muted small">Account details only. Ratings, sessions, journals and to-dos stay private to each student.</p>
+      <div id="listMsg"></div>
+      <div class="list" id="list"></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let sb, USERS = [], ME = null, confirmId = null;
+
+function show(which){ for (const id of ['login','denied','panel']) $(id).hidden = id !== which; }
+function msg(el, text, ok){ $(el).innerHTML = text ? `<div class="msg ${ok ? 'ok' : 'err'}">${esc(text)}</div>` : ''; }
+function when(iso){
+  if (!iso) return 'never';
+  const d = new Date(iso), days = Math.floor((Date.now() - d) / 864e5);
+  const date = d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'});
+  return days <= 0 ? 'today' : days === 1 ? 'yesterday' : days < 7 ? `${days} days ago` : date;
+}
+
+async function call(action, extra){
+  const {data, error} = await sb.functions.invoke('admin', {body: {action, ...extra}});
+  if (error){
+    let text = 'Something went wrong.', status = error.context?.status;
+    try { text = (await error.context.json()).error || text; } catch(e){}
+    return {error: text, status};
+  }
+  return data;
+}
+
+async function load(){
+  msg('listMsg', '');
+  const r = await call('list');
+  if (r.error){
+    if (r.status === 403){ show('denied'); return; }
+    if (r.status === 401){ show('login'); return; }
+    show('panel'); msg('listMsg', r.error); return;
+  }
+  ME = r.me; USERS = r.users; show('panel'); draw();
+}
+
+function draw(){
+  const students = USERS.filter(u => !u.admin);
+  const joined = students.filter(u => u.joined).length;
+  const set = students.filter(u => u.onboarded).length;
+  const week = students.filter(u => u.last_saved_at && Date.now() - new Date(u.last_saved_at) < 7 * 864e5).length;
+  $('stats').innerHTML = [['Invited', students.length], ['Joined', joined], ['Finished setup', set], ['Active this week', week]]
+    .map(([k, v]) => `<div class="stat"><b>${v}</b><span class="small muted">${k}</span></div>`).join('');
+  const sorted = [...USERS].sort((a, b) => (b.invited_at || '').localeCompare(a.invited_at || ''));
+  $('list').innerHTML = sorted.length ? sorted.map(u => {
+    const tag = u.id === ME ? '<span class="tag you">you · admin</span>'
+      : u.joined ? '<span class="tag joined">joined</span>' : '<span class="tag pending">invite sent</span>';
+    const meta = u.admin ? `admin · last sign-in ${when(u.last_sign_in_at)}` : [
+      u.name ? esc(u.name) : null,
+      `invited ${when(u.invited_at)}`,
+      u.joined ? `last sign-in ${when(u.last_sign_in_at)}` : null,
+      u.joined ? (u.onboarded ? `last active ${when(u.last_saved_at)}` : 'setup not finished') : null,
+      u.parent_ok_at ? `parent OK ${when(u.parent_ok_at)}` : null
+    ].filter(Boolean).join(' · ');
+    const acts = u.id === ME ? '' : `${u.joined ? '' : `<button class="ghost" data-resend="${u.id}">Resend invite</button>`}<button class="ghost danger" data-remove="${u.id}">Remove</button>`;
+    const conf = confirmId === u.id ? `<div class="confirm"><b>Remove ${esc(u.email)}?</b> This deletes their account and all their planner data straight away. It can't be undone.
+      <div class="row"><button class="btn" style="background:var(--red);color:#fff" data-yes="${u.id}">Yes, remove</button><button class="ghost" data-no="1">Cancel</button></div></div>` : '';
+    return `<div class="user"><div><div class="who">${esc(u.email)}${tag}</div><div class="meta">${meta}</div></div><div class="acts">${acts}</div>${conf}</div>`;
+  }).join('') : '<p class="muted">No one yet.</p>';
+}
+
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.resend){
+    t.disabled = true; const r = await call('resend', {id: t.dataset.resend}); t.disabled = false;
+    msg('listMsg', r.error || 'Invite sent again.', !r.error);
+  } else if (t.dataset.remove){ confirmId = t.dataset.remove; draw(); }
+  else if (t.dataset.no){ confirmId = null; draw(); }
+  else if (t.dataset.yes){
+    t.disabled = true; const u = USERS.find(x => x.id === t.dataset.yes);
+    const r = await call('remove', {id: t.dataset.yes}); confirmId = null;
+    if (r.error) { msg('listMsg', r.error); draw(); } else { await load(); msg('listMsg', `${u?.email || 'Student'} removed.`, true); }
+  }
+});
+
+$('inviteForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('inviteEmail').value.trim();
+  $('inviteBtn').disabled = true;
+  const r = await call('invite', {email, parentOk: $('parentOk').checked});
+  $('inviteBtn').disabled = false;
+  if (r.error) return msg('inviteMsg', r.error);
+  msg('inviteMsg', `Invite sent to ${email}.`, true);
+  $('inviteEmail').value = ''; $('parentOk').checked = false;
+  load();
+});
+
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('loginEmail').value.trim();
+  const {error} = await sb.auth.signInWithOtp({email, options: {shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname}});
+  msg('loginMsg', error ? 'That email can\'t sign in here.' : 'Check your inbox for the sign-in link.', !error);
+});
+$('signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+$('refresh').onclick = load;
+
+(async () => {
+  const cfg = await fetch('config.json', {cache: 'no-store'}).then(r => r.json());
+  sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_key, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
+  const {data: {session}} = await sb.auth.getSession();
+  if (location.hash.includes('access_token')) history.replaceState(null, '', location.pathname);
+  if (!session){ show('login'); return; }
+  $('whoami').textContent = session.user.email; $('signout').hidden = false;
+  load();
+})();
+</script>
+</body>
+</html>
