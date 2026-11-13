@@ -2298,11 +2298,10 @@ function renderLogin(msg){
     <p class="tag">We do the planning, you do the learning.</p>
     ${msg ? `<div class="note">${msg}</div>` : ''}
     <p class="invonly">Invite only · members sign in</p>
-    <form id="loginform"><label class="small muted" for="lemail">Your email address</label>
-      <input id="lemail" type="email" required autocomplete="email" placeholder="you@example.com">
+    <form id="loginform">
+      <input id="lemail" type="email" required autocomplete="email" placeholder="you@example.com" aria-label="Your email address">
       <button class="btn primary" type="submit">Send me a sign-in link</button></form>
     <div id="lmsg" class="small" role="status"></div>
-    <p class="small muted">No password: we email you a link each time you sign in on a new device.</p>
   </section>`;
   $('#loginform').onsubmit = async ev => {
     ev.preventDefault(); const email = $('#lemail').value.trim(); const m = $('#lmsg');
@@ -2369,8 +2368,8 @@ async function renderJoin(code){
   if (r.error){ $('#joinbody').innerHTML = `<div class="note">⚠ ${esc(r.error)}</div>${back}`; return; }
   $('#joinbody').classList.remove('muted');
   $('#joinbody').innerHTML = `<p>${r.from ? `<b>${esc(r.from)}</b> has invited you` : 'You’ve been invited'} to Road to 9, a GCSE revision planner. It’s invite only, and free for students taking their GCSEs in 2027.</p>
-    <form id="joinform"><label class="small muted" for="jemail">Your email address</label>
-      <input id="jemail" type="email" required autocomplete="email" placeholder="you@example.com">
+    <form id="joinform">
+      <input id="jemail" type="email" required autocomplete="email" placeholder="you@example.com" aria-label="Your email address">
       <label class="obterms"><input type="checkbox" id="j13"> <span>I’m 13 or over.</span></label>
       <button class="btn primary" type="submit">Email me my sign-in link</button></form>
     <div id="jmsg" class="small" role="status"></div>
