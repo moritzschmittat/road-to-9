@@ -1722,7 +1722,7 @@ function sessionHTML(){
   if (cur.phase==='work'){
     foot = `<div class="row"><button class="btn primary" id="finish">Finish and rate</button>
       <button class="btn ghost" data-choose="1">Choose a different topic</button>
-      ${(() => { const t = todayStr(), inf = dayInfo(t), dn = doneOn(t); return inf.target>0 && dn < inf.target ? `<button class="btn ghost" id="skipday">${dn ? 'Can’t study any more today' : 'Can’t study today'}</button>` : ''; })()}</div>`;
+      <button class="btn ghost" id="skipday">${doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today'}</button></div>`;
   } else {
     foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
       <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
@@ -1824,7 +1824,9 @@ function bindNext(){
   document.querySelectorAll('#view [data-addsess]').forEach(b => b.onclick = () => { const t = todayStr(); const keep = current;
     setOverride(t, Math.max(dayInfo(t).target, doneOn(t)) + 45); if (keep) { current = keep; render(); } });
   on('ovundo2', () => setOverride(todayStr(), null));
-  on('skipday', () => { stopTimer(); setOverride(todayStr(), doneOn(todayStr())); });
+  on('skipday', () => { stopTimer(); const t = todayStr(), inf = dayInfo(t), dn = doneOn(t);
+    if (inf.target > 0 && dn < inf.target) setOverride(t, dn);              // stop short of today's goal
+    else { current = null; window.__anyway = false; render(); } });         // goal already met: just end the extra session
   document.querySelectorAll('#view [data-ov]').forEach(b => b.onclick = () => setOverride(todayStr(), +b.dataset.ov));
   on('tgo', toggleTimer);
   on('finish', () => { current.phase='rate'; stopTimer(); render(); window.scrollTo({top:0,behavior:'smooth'}); });
