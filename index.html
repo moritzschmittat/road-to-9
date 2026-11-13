@@ -2122,8 +2122,8 @@ function renderPlan(){
     <section class="panel"><h2>You</h2>
       <label class="small muted" for="uname">First name or nickname (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
-      <p class="small muted" style="margin:2px 0 0">Up to three yes/no questions you're asked each morning about the day before. Leave a box empty to skip it.</p>
-      ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</section>
+      <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions you're asked each morning about the day before. Leave a box empty to skip it.</p>
+      ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div></section>
     <section class="panel"><h2>Account</h2>
       <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
       <div class="row"><button class="btn" id="signout">Sign out</button><a class="btn ghost" href="terms.html" style="text-decoration:none">Terms</a><a class="btn ghost" href="privacy.html" style="text-decoration:none">Privacy</a></div>
@@ -2170,6 +2170,7 @@ function renderPlan(){
   document.querySelectorAll('[data-addpaper]').forEach(b => b.onclick = () => { const rows = b.parentElement.querySelector('.paprows');
     rows.insertAdjacentHTML('beforeend', paperRow({n:'Paper ' + (rows.children.length+1), mock:'', exam:''})); bindRm(rows); rows.lastElementChild.querySelector('.pn').focus(); });
   $('#addp').onclick = () => { const t=todayStr(); s.periods.unshift({name:'New period', from:t, to:t, target:135}); save(); };
+  const ur = $('#uroutine'); if (ur) ur.onchange = () => { $('#uhabs').hidden = !ur.checked; if (ur.checked) $('#uhab-duo').focus(); };
   $('#saveplan').onclick = () => {
     s.name = ($('#uname').value || '').trim().slice(0, 30);
     s.routine = $('#uroutine').checked;
