@@ -2026,7 +2026,6 @@ function renderTopics(sid){
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
       <div class="key">${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
       ${stackHTML(ptCounts(s.cards))}
-      <p class="small muted">Click a coloured box to change how well you know a spec point. "Revise now" or "Refresh now" starts that topic straight away. "Later" means not taught yet. "Off" means it's not on your course.</p>
       <div class="board" data-sid="${s.id}" style="--codew:${Math.max(47, Math.ceil(Math.max(0, ...s.cards.flatMap(c => c.p.map(q => String(q.c||'').length))) * 6.8) + 4)}px">${secs.map(g => { const kk = counts({cards:g.cards});
         return `<section class="bcol"><header class="bcol-h"><div class="row" style="justify-content:space-between;align-items:baseline;flex-wrap:nowrap;gap:10px"><div class="bsec">${esc(g.name)}</div>${pctHTML(progressOf(g.cards))}</div><div class="small muted">${g.cards.length} chunk${g.cards.length>1?'s':''} · ${g.cards.reduce((a,c)=>a+c.p.length,0)} points${kk.x?` · ${kk.x} to rate`:''}</div>${stackHTML(ptCounts(g.cards))}</header>
           ${g.cards.map(chunkHTML).join('')}</section>`; }).join('')}</div>`;
