@@ -86,6 +86,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    case "totals": {
+      // Study time for everyone together. Totals only, never per student.
+      const { data, error } = await svc.rpc("study_totals");
+      if (error) return reply({ error: error.message }, 500);
+      return reply((data ?? [])[0] ?? { today_min: 0, week_min: 0, ever_min: 0, students: 0 });
+    }
+
     case "invite": {
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!EMAIL.test(email)) return reply({ error: "That doesn't look like an email address." }, 400);

@@ -121,6 +121,9 @@ main{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
     </div>
 
     <div class="stats" id="stats"></div>
+    <h2 style="margin:22px 0 0;font-size:18px">Study time, all students together</h2>
+    <p class="muted small" style="margin:4px 0 0">Totals only. Never shown per student.</p>
+    <div class="stats" id="totals"></div>
 
     <div class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Students</h2><button class="ghost" id="refresh">Refresh</button></div>
@@ -139,6 +142,7 @@ let sb, USERS = [], ME = null, confirmId = null;
 
 function show(which){ for (const id of ['login','denied','panel']) $(id).hidden = id !== which; }
 function msg(el, text, ok){ $(el).innerHTML = text ? `<div class="msg ${ok ? 'ok' : 'err'}">${esc(text)}</div>` : ''; }
+function hrs(m){ m = +m || 0; return m < 60 ? m + ' min' : (m/60 >= 100 ? Math.round(m/60).toLocaleString('en-GB') : (Math.round(m/6)/10)) + ' h'; }
 function when(iso){
   if (!iso) return 'never';
   const d = new Date(iso), days = Math.floor((Date.now() - d) / 864e5);
@@ -165,6 +169,9 @@ async function load(){
     show('panel'); msg('listMsg', r.error); return;
   }
   ME = r.me; USERS = r.users; show('panel'); draw();
+  const t = await call('totals');
+  if (!t.error) $('totals').innerHTML = [['Studied today', t.today_min], ['Last 7 days', t.week_min], ['Ever', t.ever_min]]
+    .map(([k, m]) => `<div class="stat"><b>${hrs(m)}</b><span class="small muted">${k}</span></div>`).join('') + `<div class="stat"><b>${t.students}</b><span class="small muted">Students who've studied</span></div>`;
 }
 
 function draw(){

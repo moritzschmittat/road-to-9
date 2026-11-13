@@ -73,7 +73,10 @@ The guiding rule: **as safe and honest as we possibly can.**
 - No parent view inside the app. It is the students' space.
 - The privacy note says plainly: *"The site owner can access stored data for maintenance only and
   does not look at individual accounts."*
-- "Delete my account" deletes the account and every piece of data, immediately and for real.
+- "Delete my account" first emails a confirmation link (the server refuses unless the student signed in
+  with an emailed link in the last 15 minutes), then deletes the account and every piece of data.
+- Study totals (today, last 7 days, ever; all students together, never per student) via `study_totals()`,
+  shown on the admin page; may be used in marketing.
 - Export and import buttons stay, so users always have their own copy.
 
 ## 3a. Terms and business (decided)

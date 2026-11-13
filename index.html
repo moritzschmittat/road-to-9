@@ -700,6 +700,8 @@ function defaultSettings(){
 
 /* ---------- state ---------- */
 let LS = 'roadto9:signedout';
+// Came back from the "confirm deletion" email link? (read before the address is tidied up)
+const DELETE_CONFIRMED = new URLSearchParams(location.search).get('delete') === 'confirm';
 var lastSnap = null;
 let S = null; // {v, updated, cards:{id:state}, settings, log:[]}
 function fresh(){ return {v:1, updated:0, cards:{}, pts:{}, habits:{}, hist:{}, settings:defaultSettings(), log:[]}; }
@@ -2079,9 +2081,11 @@ function renderPlan(){
     <section class="panel"><h2>Account</h2>
       <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
       <div class="row"><button class="btn" id="signout">Sign out</button><a class="btn ghost" href="terms.html" style="text-decoration:none">Terms</a><a class="btn ghost" href="privacy.html" style="text-decoration:none">Privacy</a></div>
-      <details><summary class="small">Delete my account</summary>
-        <p class="small" style="margin:8px 0">This deletes your account and everything you've saved, straight away and for good. Export your progress first if you want a copy. Type DELETE to confirm.</p>
-        <div class="row"><input id="delconf" placeholder="DELETE" style="max-width:140px" autocomplete="off"><button class="btn danger" id="delacct">Delete everything</button></div>
+      <details id="deldetails" ${DELETE_CONFIRMED ? 'open' : ''}><summary class="small">Delete my account</summary>
+        ${DELETE_CONFIRMED ? `<p class="small" style="margin:8px 0">✓ Email confirmed. This deletes your account and everything you've saved, straight away and for good. Export your progress first if you want a copy. Type DELETE to finish.</p>
+        <div class="row"><input id="delconf" placeholder="DELETE" style="max-width:140px" autocomplete="off"><button class="btn danger" id="delacct">Delete everything</button></div>`
+        : `<p class="small" style="margin:8px 0">Deleting removes your account and everything you've saved, for good. To make sure it's really you, we first email you a confirmation link. Export your progress first if you want a copy.</p>
+        <div class="row"><button class="btn danger" id="delreq">Email me a confirmation link</button></div>`}
         <div id="delmsg" class="small" role="status"></div></details></section>
     </div>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
@@ -2223,12 +2227,17 @@ async function renderJoin(code){
 }
 function bindAccount(){
   const so = $('#signout'); if (so) so.onclick = () => signOut();
+  const rq = $('#delreq'); if (rq) rq.onclick = async () => {
+    const m = $('#delmsg'); m.textContent = 'Sending…';
+    const {error} = await sb.auth.signInWithOtp({email: USER.email, options: {shouldCreateUser: false, emailRedirectTo: location.origin + '/?delete=confirm'}});
+    m.textContent = error ? '⚠ Couldn’t send the email: ' + error.message : '✓ Check your inbox. The link in the email brings you back here to finish. It works for 15 minutes.';
+  };
   const del = $('#delacct'); if (del) del.onclick = async () => {
     const m = $('#delmsg');
     if (($('#delconf').value || '').trim() !== 'DELETE'){ m.textContent = 'Type DELETE in the box first.'; return; }
     m.textContent = 'Deleting…';
     const {error} = await sb.rpc('delete_my_account');
-    if (error){ m.textContent = '⚠ Couldn’t delete: ' + error.message; return; }
+    if (error){ m.textContent = /confirm by email/i.test(error.message || '') ? '⚠ The confirmation has run out. Ask for a new email link.' : '⚠ Couldn’t delete: ' + error.message; return; }
     try { localStorage.removeItem(LS); } catch(e){}
     await sb.auth.signOut().catch(() => {});
     USER = null; renderLogin('✓ Your account and all your data have been deleted.');
@@ -2247,7 +2256,7 @@ function startApp(user){
   try { S = normalise(JSON.parse(localStorage.getItem(LS)||'null')); } catch(e){ S = fresh(); }
   lastSnap = clone(S);
   $('#footacct').innerHTML = `<button id="footsignout">Sign out</button>`; $('#footsignout').onclick = () => signOut();
-  if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + '#next');
+  if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + (DELETE_CONFIRMED ? '#plan' : '#next'));
   if (location.search) history.replaceState(null, '', location.pathname + location.hash);   // drop ?join= once signed in
   render(); connect();
 }
