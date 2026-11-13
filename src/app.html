@@ -2238,7 +2238,7 @@ function renderPlan(){
       <div><button class="btn small" id="addp">Add a period</button></div></section>
     </div></div>
     <section class="panel" id="papers"><div class="row" style="justify-content:space-between;align-items:flex-end"><h2>Exam and mock dates</h2><span class="small muted">Leave a date empty until you know it</span></div>
-      <p class="small muted" style="margin:0">One row per paper. Rename, add or remove papers to match your timetable, then press Save settings. Refreshers are pulled in before each subject's first mock and first exam, the subject gets priority in the four weeks before its first exam, and it stays in the plan until its last paper. Papers also show in the week calendar. Without an exam date a subject counts as 10 May.</p>
+      
       <div class="papgrid">${CURRICULUM.map(x => `<div class="papsub" data-sid="${x.id}"><div class="paph">${icon(x.id,16)}<b>${esc(x.name)}</b><span class="small muted">${esc(x.board)}</span></div>
         <div class="paprow paphead small muted"><span>Paper</span><span>Mock</span><span>Exam</span><span></span></div>
         <div class="paprows">${(s.papers[x.id]||[]).map(q => paperRow(q)).join('')}</div>
