@@ -346,6 +346,7 @@ details.howto[open] summary{margin-bottom:10px;color:var(--ink)}
 @media (max-width:640px){ .qsmall-wrap{justify-items:start} .qsmall{text-align:left} .qsmall-wrap .chips{justify-content:flex-start!important} }
 /* rate-these-topics box: full width, red frame until everything is rated */
 .panel.setup{border:2px solid var(--lv3);margin:0 0 44px}
+.subjpanel{margin-top:18px}.subjpanel .legend{margin:12px 0 10px}
 /* clickable session details */
 details.sx{min-width:0;flex:1}
 details.sx summary{list-style:none;cursor:pointer}
@@ -639,9 +640,8 @@ body.signedout #view{min-height:calc(100vh - 90px)}
     <div class="row" style="gap:14px"><a class="brand" href="#next" aria-label="Road to 9"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><span>Road to <b>9</b></span></a></div>
     <div class="hdrmeta" id="hdrmeta"></div>
     <nav aria-label="Views" id="mainnav">
-      <a href="#next" id="nav-next">Today</a>
+      <a href="#next" id="nav-next">Study</a>
       <a href="#home" id="nav-home">Stats</a>
-      <a href="#topics" id="nav-topics">Subjects</a>
       <a href="#plan" id="nav-plan">Settings</a>
     </nav>
     <div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div>
@@ -1580,9 +1580,12 @@ function headerMeta(){
 function render(){
   const hm = document.getElementById('hdrmeta'); if (hm) hm.innerHTML = headerMeta();
   const r = route();
-  ['home','next','topics','plan'].forEach(n => $('#nav-'+n).setAttribute('aria-current', r.startsWith(n) ? 'page' : 'false'));
+  // Study = today's session + the subjects list; a subject's own page sits under Study too
+  const tab = r.startsWith('topics-') ? 'next' : r;
+  ['home','next','plan'].forEach(n => $('#nav-'+n).setAttribute('aria-current', tab===n ? 'page' : 'false'));
   if (r==='home') renderHome();
-  else if (r.startsWith('topics')) renderTopics(r.split('-')[1]);
+  else if (r.startsWith('topics-') && SUBJ[r.split('-')[1]]) renderTopics(r.split('-')[1]);
+  else if (r.startsWith('topics')){ history.replaceState(null, '', location.pathname + location.search + '#next'); $('#nav-next').setAttribute('aria-current','page'); renderNext(); const el = document.getElementById('subjects'); if (el) el.scrollIntoView(); }
   else if (r==='plan') renderPlan();
   else renderNext();
   setSync(syncMsg);
@@ -1624,8 +1627,8 @@ function renderNext(){
       const n = mixDay(plan, startKind(today))[0] || pickNext();
       if (!n){
         html += `<section class="session"><div class="head"><div class="eyebrow">Nothing scheduled</div><h2 class="topic">Rate your topics to get started.</h2>
-          <p class="muted" style="margin:0">Every rated topic you haven't mastered becomes a session. Go to Subjects and rate one.</p></div>
-          <div class="row"><a class="btn primary" href="#topics" style="text-decoration:none">Rate topics</a><button class="btn ghost" data-choose="1">Let me choose a topic</button></div></section>`;
+          <p class="muted" style="margin:0">Every rated topic you haven't mastered becomes a session. Pick a subject below and rate a few topics.</p></div>
+          <div class="row"><a class="btn primary" href="#subjects" style="text-decoration:none" onclick="event.preventDefault();document.getElementById('subjects').scrollIntoView({behavior:'smooth'})">Rate topics</a><button class="btn ghost" data-choose="1">Let me choose a topic</button></div></section>`;
       } else {
         current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}};
         resetTimer();
@@ -1635,7 +1638,7 @@ function renderNext(){
   if (info.override && !info.skippedDay) html += `<div class="row small muted" style="margin:-4px 0 10px">${esc(info.baseLabel)} normally has ${info.baseTarget ? fmtMin(info.baseTarget) : 'no study time'}. <button class="btn small ghost" id="ovundo">Undo</button></div>`;
   if (current) html += sessionHTML();
   if (current && info.target>0 && !info.override && done < info.target) html += `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn small ghost" id="skipday">I can't study today</button></div>`;
-  html += '</div><div class="side">' + todayListHTML(info) + '</div></div>' + weekHTML();
+  html += '</div><div class="side">' + todayListHTML(info) + '</div></div>' + subjectsHTML() + weekHTML();
   $('#view').innerHTML = html;
   bindNext();
 }
@@ -1647,7 +1650,7 @@ function paperHTML(){
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
     <details class="howto"><summary><span class="q" aria-hidden="true">?</span>How to do a past-paper session</summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
       <li><div><b>Mark</b><span>Mark it with the mark scheme, honestly. Keep the papers in one folder so you can see your scores go up.</span></div></li>
-      <li><div><b>Feed it back</b><span>For each question where you dropped marks, find the topic in Subjects and set it to weak or very weak. It comes back in your next sessions.</span></div></li></ol></details>
+      <li><div><b>Feed it back</b><span>For each question where you dropped marks, find the topic under Subjects on the Study page and set it to weak or very weak. It comes back in your next sessions.</span></div></li></ol></details>
     <div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
       <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>
     <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>
@@ -1973,19 +1976,21 @@ function chunkHTML(c){
       <button class="histbtn" data-hist="${c.id}" aria-expanded="${openHist.has(c.id)}">History</button>
       <span class="ctrl" data-id="${c.id}"><button data-v="later" class="o" aria-pressed="${x.st==='later'}" title="Not taught yet">Later</button><button data-v="off" class="o" aria-pressed="${x.st==='off'}" title="Not on my course">Off</button></span></div>${openHist.has(c.id) ? historyHTML(c.id) : ''}</div>`;
 }
+function subjectsHTML(){
+  if (!CURRICULUM.length) return '';
+  return `<section class="panel subjpanel" id="subjects"><h2>Subjects</h2><p class="small muted" style="margin:0">Every spec point, grouped into 45-minute chunks. Open a subject to rate, re-rate or study a topic of your choice.</p>
+      <div class="legend">${[1,1.5,2,2.5,3].map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div>
+      <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
+        <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · ${k.x} to rate`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
+}
 function renderTopics(sid){
   let html='';
   const prevBoard = document.querySelector('.board'); const keepX = prevBoard && prevBoard.dataset.sid===sid ? prevBoard.scrollLeft : 0; const keepY = window.scrollY;
-  if (!sid || !SUBJ[sid]){
-    html += `<div class="row" style="justify-content:space-between;align-items:flex-end"><div><h1 style="font-size:28px;margin:6px 0 4px">Subjects</h1><p class="muted" style="margin:0 0 12px">Every spec point, grouped into 45-minute chunks. Open a subject to rate or re-rate.</p></div>
-      </div>
-      <div class="legend" style="margin-bottom:10px">${[1,1.5,2,2.5,3].map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div>
-      <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
-        <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · ${k.x} to rate`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div>`;
-  } else {
+  if (!sid || !SUBJ[sid]){ location.hash = '#topics'; return; }
+  {
     const s = SUBJ[sid]; const k = counts(s);
     const secs = []; s.cards.forEach(c => { let g = secs[secs.length-1]; if (!g || g.name!==c.sec){ g = {name:c.sec, cards:[]}; secs.push(g); } g.cards.push(c); });
-    html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#topics">← All subjects</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
+    html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#topics">← Back to Study</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
       <p class="small muted" style="margin:4px 0 0">Exam board: ${esc(s.board)}${s.spec?` · <a href="${esc(s.spec)}" target="_blank" rel="noopener">Specification</a>`:''}</p></div>
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
       <div class="key"><span class="eyebrow">Traffic light</span>${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
@@ -1997,7 +2002,7 @@ function renderTopics(sid){
   }
   $('#view').innerHTML = html;
   const bd = document.querySelector('.board'); if (bd && keepX) bd.scrollLeft = keepX;
-  if (sid) window.scrollTo(0, keepY);
+  window.scrollTo(0, prevBoard && prevBoard.dataset.sid===sid ? keepY : 0);   // same subject re-drawn: stay put; arriving from Study: start at the top
   document.querySelectorAll('#view .ctrl').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => {
     const v = b.dataset.v; const id = g.dataset.id; current = null;
     const x = cs(id);
@@ -2123,7 +2128,7 @@ function renderPlan(){
         <div id="msgmsg" class="small" role="status"></div></div></section>
     <div class="plangrid"><div>
     <section class="panel"><h2>Study time per day in term time</h2><p class="small muted" style="margin:0">In minutes. A revise session is 45 minutes (20 for topics you rated strong, 30 to revise a weak topic again); refreshers are 5 to 10 minutes each.</p><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"></label>`).join('')}</div>
-      <label class="small muted" for="wst">Weekend and holiday start time <input id="wst" type="time" value="${esc(s.weekendStart)}" style="max-width:140px;margin-top:4px"></label></section>
+      </section>
     <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><span></span></div>
       <p class="small muted" style="margin:0">From, to and minutes of study per day during the mock week. Put the date of each mock paper in the list below.</p></section>
     </div><div>
@@ -2157,7 +2162,6 @@ function renderPlan(){
     s.habitQ = Object.fromEntries(HABITS.map(([k]) => [k, (($('#uhab-' + k) || {}).value || '').trim().slice(0, 80)]));
     s.subjects = [...document.querySelectorAll('[data-subj]')].filter(x => x.checked).map(x => x.dataset.subj);
     order.forEach(d => s.week[d] = Math.max(0, +$('#wk'+d).value||0));
-    s.weekendStart = $('#wst').value || '11:00';
     s.mocks = {from:$('#mf').value, to:$('#mt').value, target:+$('#mn').value||0};
     s.periods = s.periods.map((p,i) => ({name:$('#pn'+i).value, from:$('#pf'+i).value, to:$('#pt'+i).value, target:+$('#pg'+i).value||0}));
     document.querySelectorAll('.papsub').forEach(box => { const sid = box.dataset.sid;
@@ -2370,7 +2374,7 @@ function renderOnboarding(){
     const rated = sb.cards.filter(c => chunkChoice(c.id)!=null).length;
     const secs = []; sb.cards.forEach(c => { let g = secs[secs.length-1]; if (!g || g.name!==c.sec){ g = {name:c.sec, cards:[]}; secs.push(g); } g.cards.push(c); });
     body = `<div class="obsubj">${iconTile(sb.id, 22)}<div><div class="eyebrow">Subject ${i+1} of ${subs.length}</div><h1>${esc(sb.name)}</h1><div class="small muted">${esc(sb.board)}</div></div></div>
-      <p class="lead">How well do you know each spec point right now? Skip anything you’re unsure about: you can rate or change everything later on the Subjects page.</p>
+      <p class="lead">How well do you know each spec point right now? Skip anything you’re unsure about: you can rate or change everything later on the Study page.</p>
       <div class="oblegend">${[...OB_LEVELS].reverse().map(([v, n, d]) => `<div><i class="rag ${lvClass(v)}"></i><b>${n}</b><span>${d}</span></div>`).join('')}
         <div><i class="rag lv-x"></i><b>Not taught yet</b><span>We haven’t covered it at school</span></div></div>
       <div class="obprog"><div class="bar"><i style="width:${Math.round(100*rated/sb.cards.length)}%"></i></div><span class="small muted">${rated} of ${sb.cards.length} topics rated</span></div>
