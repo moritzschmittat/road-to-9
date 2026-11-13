@@ -146,6 +146,15 @@ saved, setup finished. Never ratings, sessions, journals or to-dos.
 - Parental consent is not legally required at 13+ under the contract basis; every student still
   confirms a parent or carer knows (under 18). See the DPIA.
 
+## 3f. Backups (built)
+
+- Supabase Pro: one daily database backup, 7 days kept, restore in the dashboard only.
+- Our own: every night at 3am a Google Apps Script in Moritz's Drive calls the `backup` function
+  (secret header BACKUP_TOKEN) and saves `road-to-9-YYYY-MM-DD.r9b` in "Road to 9 backups"; 30 days kept.
+- The file is AES-256-GCM encrypted (key from BACKUP_KEY via PBKDF2), so Google and anyone with Drive
+  access see nothing. Contents: users (email, dates, metadata), every planner row, every invite.
+- Open with `tools/backup_decrypt.py`. Keys live in Moritz's password manager and in Supabase secrets.
+
 ## 4. Study groups (phase 2) and "Who can help" (phase 3)
 
 - Groups are joined by invite code only. Kids only. Leave at any time.

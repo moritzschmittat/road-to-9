@@ -3,3 +3,7 @@
 !data/*.json
 .DS_Store
 __pycache__/
+
+# backups never go in the repo
+*.r9b
+backup*.json
