@@ -244,6 +244,7 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .swatches button{width:36px;height:26px;border:0;border-radius:5px;font-family:var(--f-mono);font-weight:700;font-size:11px}
 .swatches button[aria-pressed="true"]{outline:2px solid var(--ink)}
 .swatches .clr{width:auto;padding:0 8px;background:var(--sunk);color:var(--muted);font-family:var(--f-body);font-size:12px}
+.studybtn{margin-left:auto;background:var(--accent)!important;color:var(--accent-ink)!important;padding:6px 12px!important;font-size:13px!important;border-radius:10px!important}
 .bch-f{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .bch-f .ctrl{display:flex;gap:4px}
 .bch-f .ctrl button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700}
@@ -1915,6 +1916,23 @@ const LV = [1,1.5,2,2.5,3];
 const LVNAME = {1:'Very strong',1.5:'Strong',2:'OK',2.5:'Weak',3:'Very weak'};
 const lvCls = v => v==null ? 'x' : String(v).replace('.','');
 let editPt = null;
+/* "Study now" on the Subjects page: session length follows the topic's state and rating. */
+function studyPlan(id){
+  const x = cs(id);
+  if (x.st==='review'){ const m = refMin(id); return {type:'review', mins:m, label:`Refresh now · ${m} min`}; }
+  if (x.st==='new' || x.st==='learning'){ const m = learnMin(id); return {type:'learn', mins:m, label:`${x.st==='learning' ? 'Revise again' : 'Revise now'} · ${m} min`}; }
+  return null;
+}
+function studyBtn(id){ const p = studyPlan(id); return p ? `<button class="btn small studybtn" data-study="${id}">${p.label}</button>` : ''; }
+function studyNow(id){
+  const p = studyPlan(id); if (!p) return;
+  if (current && current.type!=='paper') current.cards.forEach(k => skipped.delete(k));
+  current = p.type==='review' ? {type:'review', cards:[id], mins:p.mins, cm:{[id]:p.mins}, phase:'work', ratings:{}, pr:{}, chosen:true}
+                              : {type:'learn', cards:[id], mins:p.mins, phase:'work', ratings:{}, pr:{}, chosen:true};
+  choosing = false; resetTimer();
+  if (location.hash !== '#next') location.hash = '#next'; else render();
+  window.scrollTo({top:0});
+}
 function applyPoint(k, v){
   const [id] = k.split('#'); const c = CARD[id]; current = null;
   if (v==null) delete S.pts[k]; else S.pts[k] = v;
@@ -1964,7 +1982,7 @@ function chunkHTML(c){
       return `<div class="bpt"><span class="code">${esc(p.c)}</span><span class="tx">${esc(p.t)}</span>
         <button class="cell lv-${lvCls(v)}" data-k="${k}" aria-label="${esc(p.c)}: ${v==null?'not rated':LVNAME[v]}. Change rating" aria-expanded="${editPt===k}" title="${v==null?'Not rated':LVNAME[v]}"></button></div>
         ${editPt===k ? `<div class="swatches" data-k="${k}">${LV.map(l => `<button class="lv-${lvCls(l)}" data-v="${l}" title="${LVNAME[l]}" aria-label="${LVNAME[l]}" aria-pressed="${v===l}"></button>`).join('')}<button class="clr" data-v="">Clear</button></div>` : ''}`; }).join('')}</div>
-    <div class="bch-f"><span class="status">${esc(status)}</span>
+    <div class="bch-f"><span class="status">${esc(status)}</span>${studyBtn(c.id)}
       <button class="histbtn" data-hist="${c.id}" aria-expanded="${openHist.has(c.id)}">History</button>
       <span class="ctrl" data-id="${c.id}"><button data-v="later" class="o" aria-pressed="${x.st==='later'}" title="Not taught yet">Later</button><button data-v="off" class="o" aria-pressed="${x.st==='off'}" title="Not on my course">Off</button></span></div>${openHist.has(c.id) ? historyHTML(c.id) : ''}</div>`;
 }
@@ -1987,7 +2005,7 @@ function renderTopics(sid){
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
       <div class="key"><span class="eyebrow">Traffic light</span>${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
       ${stackHTML(ptCounts(s.cards))}
-      <p class="small muted">Click a coloured box to change how well you know a spec point (same colours as your spreadsheet). "Later" means not taught yet. "Off" means it's not on your course.</p>
+      <p class="small muted">Click a coloured box to change how well you know a spec point. "Revise now" or "Refresh now" starts that topic straight away. "Later" means not taught yet. "Off" means it's not on your course.</p>
       <div class="board" data-sid="${s.id}" style="--codew:${Math.max(47, Math.ceil(Math.max(0, ...s.cards.flatMap(c => c.p.map(q => String(q.c||'').length))) * 6.8) + 4)}px">${secs.map(g => { const kk = counts({cards:g.cards});
         return `<section class="bcol"><header class="bcol-h"><div class="row" style="justify-content:space-between;align-items:baseline;flex-wrap:nowrap;gap:10px"><div class="bsec">${esc(g.name)}</div>${pctHTML(progressOf(g.cards))}</div><div class="small muted">${g.cards.length} chunk${g.cards.length>1?'s':''} · ${g.cards.reduce((a,c)=>a+c.p.length,0)} points${kk.x?` · ${kk.x} to rate`:''}</div>${stackHTML(ptCounts(g.cards))}</header>
           ${g.cards.map(chunkHTML).join('')}</section>`; }).join('')}</div>`;
@@ -2003,6 +2021,7 @@ function renderTopics(sid){
       S.cards[id] = Object.assign({}, x, {st: r==null ? 'unrated' : 'new'}); if (r!=null) setRating(id, r); else save(); return;
     }
     setRating(id, v); }));
+  document.querySelectorAll('#view [data-study]').forEach(b => b.onclick = () => studyNow(b.dataset.study));
   document.querySelectorAll('#view [data-hist]').forEach(b => b.onclick = () => { const id = b.dataset.hist; openHist.has(id) ? openHist.delete(id) : openHist.add(id); renderTopics(sid); });
   document.querySelectorAll('#view .cell').forEach(b => b.onclick = () => { editPt = editPt===b.dataset.k ? null : b.dataset.k; renderTopics(sid); });
   document.querySelectorAll('#view .swatches').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => {
