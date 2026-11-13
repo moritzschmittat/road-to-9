@@ -2453,6 +2453,14 @@ function rateChunk(id, v){
   setRating(id, v);
 }
 function chunkChoice(id){ const x = cs(id); return x.st==='later' ? 'later' : x.st==='off' ? 'off' : x.st==='unrated' ? null : x.lvl; }
+function renderAdminHome(){
+  document.body.classList.add('onboarding');
+  $('#view').innerHTML = `<div class="ob"><h1>Road to <span style="color:var(--accent)">9</span> admin</h1>
+    <p class="lead">You’re signed in as <b>${esc(USER.email)}</b>. This account runs Road to 9, so it has no planner of its own.</p>
+    <div class="row"><a class="btn primary" href="admin.html" style="text-decoration:none">Open the admin page</a></div>
+    <p class="small muted" style="margin-top:18px"><button class="linkbtn" id="adplanner">Set up a planner for this account anyway</button></p></div>`;
+  $('#adplanner').onclick = () => { window.__adminPlanner = true; render(); };
+}
 function renderOnboarding(){
   document.body.classList.add('onboarding');
   const ob = S.settings.ob, s = S.settings, step = ob.step;
@@ -2547,7 +2555,14 @@ function renderOnboarding(){
 }
 const _render = render;
 render = function(){ if (!USER){ return; } applySubjects();
-  if (!S.settings.onboarded){ renderOnboarding(); return; }
+  if (!S.settings.onboarded){
+    // the admin account runs Road to 9 and has no planner: show a way to the admin page instead of the welcome steps
+    if (S.settings.ob.step==='welcome' && !window.__adminPlanner){
+      if (window.__isAdmin===undefined){ window.__isAdmin = null; callFn('invite', {action:'status'}).then(r => { window.__isAdmin = !!(r && r.admin); render(); }); }
+      if (window.__isAdmin===null){ document.body.classList.add('onboarding'); $('#view').innerHTML = ''; return; }
+      if (window.__isAdmin){ renderAdminHome(); return; }
+    }
+    renderOnboarding(); return; }
   if (!termsOK()){ renderTermsGate(); return; }
   document.body.classList.remove('onboarding'); _render(); };
 function renderTermsGate(){
