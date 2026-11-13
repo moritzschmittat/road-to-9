@@ -1664,7 +1664,7 @@ function paperHTML(){
     <div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
       <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>
     <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>
-    <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" id="swap">Something else</button><button class="btn ghost" data-choose="1">Let me choose a topic</button>
+    <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Let me choose a topic</button>
       <a class="btn ghost" style="text-decoration:none" href="#topics-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
 }
 
@@ -1699,9 +1699,7 @@ function sessionHTML(){
   let foot;
   if (cur.phase==='work'){
     foot = `<div class="row"><button class="btn primary" id="finish">Finish and rate</button>
-      <button class="btn ghost" id="swap">Something else</button>
-      <button class="btn ghost" data-choose="1">Let me choose a topic</button>
-      ${isLearn && st.st==='new' ? '<button class="btn ghost" id="later">Not taught yet</button>' : ''}</div>`;
+      <button class="btn ghost" data-choose="1">Let me choose a topic</button></div>`;
   } else {
     foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
       <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
