@@ -1977,10 +1977,8 @@ function renderTopics(sid){
   let html='';
   const prevBoard = document.querySelector('.board'); const keepX = prevBoard && prevBoard.dataset.sid===sid ? prevBoard.scrollLeft : 0; const keepY = window.scrollY;
   if (!sid || !SUBJ[sid]){
-    const all = CURRICULUM.flatMap(s => s.cards);
     html += `<div class="row" style="justify-content:space-between;align-items:flex-end"><div><h1 style="font-size:28px;margin:6px 0 4px">Subjects</h1><p class="muted" style="margin:0 0 12px">Every spec point, grouped into 45-minute chunks. Open a subject to rate or re-rate.</p></div>
-      <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.unr ? `<div class="small muted">from the ${w.n} rated chunks (${w.unr} not rated yet)</div>` : ''}</div>`)(workOf(all, true))}
-      <div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(all),'big')}<div class="small muted">very strong 100% · strong 50% · OK 25% · weak 12.5% · very weak 6.25%</div></div></div></div>
+      </div>
       <div class="legend" style="margin-bottom:10px">${[1,1.5,2,2.5,3].map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div>
       <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
         <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · ${k.x} to rate`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div>`;
