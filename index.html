@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -560,6 +560,30 @@ body.signedout{--mark-a:#1f5a96;--mark-b:#b6f738}
 body.signedout .btn.primary{background:var(--lime);color:#050c14;box-shadow:0 10px 30px -12px rgba(182,247,56,.8)}
 body.signedout .note{border-left-color:var(--lime)}
 body.signedout .foot a,body.signedout .foot{color:var(--muted)}
+
+/* ===== Dark everywhere (like the sign-in page) ===== */
+html[data-theme="dark"]{background:#050c14}
+html[data-theme="dark"] body{background:radial-gradient(1100px 560px at 50% -12%,rgba(182,247,56,.10),transparent 62%),radial-gradient(900px 700px at 0% 100%,rgba(31,90,150,.22),transparent 60%),#050c14;background-attachment:fixed;min-height:100vh}
+:root[data-theme="dark"]{--surface:rgba(14,27,42,.78);--revbg:rgba(255,255,255,.035);--sunk:rgba(255,255,255,.06);--line:rgba(255,255,255,.09);--muted:#9cadbf}
+:root[data-theme="dark"] .top{background:rgba(5,12,20,.72)}
+:root[data-theme="dark"] .panel,:root[data-theme="dark"] .ob{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+:root[data-theme="dark"] .ob{border-radius:26px;box-shadow:0 30px 80px -30px rgba(0,0,0,.8)}
+:root[data-theme="dark"] .obnav{background:linear-gradient(to top,rgba(12,24,38,.96) 70%,transparent)}
+:root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.13);color:var(--ink)}
+:root[data-theme="dark"] select option{background:#0c1724}
+:root[data-theme="dark"] .ob input:not([type]),:root[data-theme="dark"] .ob input[type=text],:root[data-theme="dark"] .ob input[type=email]{background:rgba(255,255,255,.05)}
+:root[data-theme="dark"] .brand b,:root[data-theme="dark"] .ob h1 span,:root[data-theme="dark"] .wm b{color:var(--lime)}
+:root[data-theme="dark"] .brand .mark{filter:drop-shadow(0 0 10px rgba(182,247,56,.35))}
+:root[data-theme="dark"] nav{background:rgba(255,255,255,.05)}
+:root[data-theme="dark"] nav a[aria-current="page"]{background:var(--lime);color:#050c14;box-shadow:0 6px 18px -8px rgba(182,247,56,.7)}
+:root[data-theme="dark"] .obsteps li.now span{background:var(--lime);border-color:var(--lime);color:#050c14}
+:root[data-theme="dark"] .obsteps li.done span{background:#1f5a96;border-color:#1f5a96;color:#fff}
+:root[data-theme="dark"] .btn.ghost{color:var(--ink);border-color:rgba(255,255,255,.16)}
+:root[data-theme="dark"] .btn:not(.primary):not(.ghost){background:rgba(255,255,255,.08);color:var(--ink)}
+:root[data-theme="dark"] a{color:var(--lime)}
+:root[data-theme="dark"] nav a{color:var(--muted)}
+:root[data-theme="dark"] nav a[aria-current="page"]{color:#050c14}
+:root[data-theme="dark"] .foot a{color:var(--muted)}
 </style>
 </head>
 <body>

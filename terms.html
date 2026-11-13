@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,6 +31,19 @@ h1 span{color:var(--accent)}
 .brandlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:Sora,system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:-.02em}
 .brandlink span{color:var(--ink)}.brandlink b{color:var(--accent)}
 .brandlink .mark{width:28px;height:28px}
+
+:root{--bg:#050c14;--surface:rgba(14,27,42,.78);--ink:#eaf0f6;--muted:#9cadbf;--line:rgba(255,255,255,.09);--accent:#b6f738;--accent-ink:#050c14;--sunk:rgba(255,255,255,.06);
+  --red:#ef6a6a;--red-soft:#3a1d20;--green:#7fdc6a;--green-soft:#16301c;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}
+html{background:#050c14}
+body{background:radial-gradient(1100px 560px at 50% -12%,rgba(182,247,56,.10),transparent 62%),radial-gradient(900px 700px at 0% 100%,rgba(31,90,150,.22),transparent 60%),#050c14;background-attachment:fixed;min-height:100vh}
+.card,.stat{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 30px 80px -40px rgba(0,0,0,.8)}
+.brandlink span{color:var(--ink)}.brandlink b,h1 span{color:var(--accent)}
+.brandlink .mark{filter:drop-shadow(0 0 10px rgba(182,247,56,.35))}
+input[type=email]{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.13)!important;color:var(--ink)}
+.btn{background:var(--accent)!important;color:#050c14!important}
+.btn[style*="--red"]{background:var(--red)!important;color:#fff!important}
+.ghost{color:var(--ink);border-color:rgba(255,255,255,.16)}
+.tag.you{background:rgba(255,255,255,.08)}
 </style>
 </head>
 <body>
