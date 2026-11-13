@@ -125,6 +125,12 @@ main{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
     <p class="muted small" style="margin:4px 0 0">Totals only. Never shown per student.</p>
     <div class="stats" id="totals"></div>
 
+    <div class="card" id="msgcard" hidden>
+      <h2 style="margin:0 0 6px">Messages</h2>
+      <p class="muted small" style="margin:0 0 6px">Missing subjects and other requests from students. Reply from your email to their address.</p>
+      <div id="msgs"></div>
+    </div>
+
     <div class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Students</h2><button class="ghost" id="refresh">Refresh</button></div>
       <p class="muted small">Account details only. Ratings, sessions, journals and to-dos stay private to each student.</p>
@@ -169,11 +175,21 @@ async function load(){
     show('panel'); msg('listMsg', r.error); return;
   }
   ME = r.me; USERS = r.users; show('panel'); draw();
+  loadMsgs();
   const t = await call('totals');
   if (!t.error) $('totals').innerHTML = [['Studied today', t.today_min], ['Last 7 days', t.week_min], ['Ever', t.ever_min]]
     .map(([k, m]) => `<div class="stat"><b>${hrs(m)}</b><span class="small muted">${k}</span></div>`).join('') + `<div class="stat"><b>${t.students}</b><span class="small muted">Students who've studied</span></div>`;
 }
 
+async function loadMsgs(){
+  const r = await call('messages'); if (r.error) return;
+  const open = r.messages.filter(m => !m.done_at).length;
+  $('msgcard').hidden = !r.messages.length;
+  $('msgs').innerHTML = r.messages.map(m => `<div class="user"><div><div class="who">${esc(m.body)}</div>
+    <div class="meta"><a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Road to 9')}">${esc(m.email)}</a> · ${when(m.created_at)}${m.done_at ? ' · done' : ''}</div></div>
+    <div class="acts"><button class="ghost" data-done="${m.id}" data-undo="${m.done_at ? 1 : ''}">${m.done_at ? 'Reopen' : 'Done'}</button></div></div>`).join('');
+  document.querySelector('#msgcard h2').textContent = open ? `Messages (${open} open)` : 'Messages';
+}
 function draw(){
   const students = USERS.filter(u => !u.admin);
   const joined = students.filter(u => u.joined).length;
@@ -201,6 +217,7 @@ function draw(){
 
 document.addEventListener('click', async e => {
   const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.done){ await call('done', {id: t.dataset.done, undo: !!t.dataset.undo}); return loadMsgs(); }
   if (t.dataset.resend){
     t.disabled = true; const r = await call('resend', {id: t.dataset.resend}); t.disabled = false;
     msg('listMsg', r.error || 'Invite sent again.', !r.error);

@@ -158,6 +158,13 @@ saved, setup finished. Never ratings, sessions, journals or to-dos.
   access see nothing. Contents: users (email, dates, metadata), every planner row, every invite.
 - Open with `tools/backup_decrypt.py`. Keys live in Moritz's password manager and in Supabase secrets.
 
+## 3g. Messages to Road to 9 (built)
+
+- "Missing a subject or exam board?" box in onboarding (subjects step) and Settings → Your subjects.
+- Server function `message` (signed-in students only, 5 a day) saves to the `messages` table and, if the
+  secret SMTP_PASS is set, emails hello@roadto9.com via SiteGround with the student's address as reply-to.
+- The admin page lists messages with a Done / Reopen button.
+
 ## 4. Study groups (phase 2) and "Who can help" (phase 3)
 
 - Groups are joined by invite code only. Kids only. Leave at any time.

@@ -15,6 +15,8 @@
 ## Parked
 - [ ] Nightly Drive backup: Moritz adds BACKUP_TOKEN / BACKUP_KEY and runs the Apps Script setup
       (calendar reminder Sat 14 Nov 10:00).
+- [ ] Email for student messages: Moritz adds Supabase secret SMTP_PASS (the hello@roadto9.com mailbox
+      password). Until then messages only show on the admin page.
 - [ ] Delete accounts unused for 12 months, with a warning email 2 weeks before (Moritz to confirm period).
 - [ ] Public study-time counter once there are about 10 students.
 - [ ] ICO fee check; processor terms (Supabase, GitHub, SiteGround, Google); solicitor review before charging.

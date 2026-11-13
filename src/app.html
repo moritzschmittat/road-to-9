@@ -454,6 +454,9 @@ body.onboarding #mainnav,body.onboarding #hdrmeta{visibility:hidden}
 .obhow{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .obnav{display:flex;justify-content:space-between;gap:10px;margin-top:6px;position:sticky;bottom:0;padding:12px 0;background:linear-gradient(to top,var(--bg) 70%,transparent)}
 .obsubj{display:flex;gap:12px;align-items:center}
+.missbox{display:grid;gap:6px;margin-top:12px;padding:12px 14px;border:1px dashed var(--line);border-radius:14px}
+.missbox .row{flex-wrap:nowrap;gap:8px}
+.missbox input{flex:1}
 .subjpick small.obmins{display:block;color:var(--accent);font-size:12px;margin-top:2px}
 .obnr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
 .obtotal{font-size:14px;color:var(--muted);font-weight:600;text-align:right;line-height:1.35}
@@ -2109,8 +2112,10 @@ function renderPlan(){
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
       <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
-    <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. Ask the person who invited you if one of your subjects or exam boards is missing.</p>
-      <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div></section>
+    <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. </p>
+      <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div><div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
+        <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
+        <div id="msgmsg" class="small" role="status"></div></div></section>
     <div class="plangrid"><div>
     <section class="panel"><h2>Study time per day in term time</h2><p class="small muted" style="margin:0">In minutes. A revise session is 45 minutes (20 for topics you rated strong, 30 to revise a weak topic again); refreshers are 5 to 10 minutes each.</p><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"></label>`).join('')}</div>
       <label class="small muted" for="wst">Weekend and holiday start time <input id="wst" type="time" value="${esc(s.weekendStart)}" style="max-width:140px;margin-top:4px"></label></section>
@@ -2154,7 +2159,7 @@ function renderPlan(){
     current = null; save(); setSync('Settings saved');
   };
   bindBackup();
-  bindAccount(); loadInvites();
+  bindAccount(); loadInvites(); bindMissing();
   const u = $('#undo'); if (u) u.onclick = () => {
     const l = S.log.pop(); if (!l) return;
     Object.entries(l.prev||{}).forEach(([id,v]) => { if (v) S.cards[id]=v; else delete S.cards[id]; });
@@ -2261,6 +2266,18 @@ async function renderJoin(code){
     $('#joinbody').innerHTML = `<div class="note">✓ Done. Check your inbox for an email from Road to 9 and tap the button in it. You can close this tab.</div>`;
   };
 }
+function bindMissing(){
+  const b = $('#msgsend'); if (!b) return;
+  b.onclick = async () => {
+    const t = ($('#msgtext').value || '').trim(), m = $('#msgmsg');
+    if (!t){ m.textContent = 'Type the subject and exam board first.'; return; }
+    b.disabled = true; m.textContent = 'Sending…';
+    const x = await callFn('message', {topic: 'subject', text: t});
+    b.disabled = false;
+    if (x.error){ m.textContent = '⚠ ' + x.error; return; }
+    $('#msgtext').value = ''; m.textContent = '✓ Sent. Thanks! We’ll add it as soon as we can.';
+  };
+}
 function bindAccount(){
   const so = $('#signout'); if (so) so.onclick = () => signOut();
   const rq = $('#delreq'); if (rq) rq.onclick = async () => {
@@ -2338,7 +2355,9 @@ function renderOnboarding(){
     body = `<h1>Which subjects do you take?</h1>
       <p class="lead">Tick each one. Check the exam board with your school if you’re not sure.</p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-obsubj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small><small class="obmins">About ${fmtMin(rateMins(x.id))} to rate</small></span></label>`).join('')}</div>
-      <p class="small muted">Missing a subject or exam board? Tell the person who invited you; more are being added.</p>
+      <div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
+        <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
+        <div id="msgmsg" class="small" role="status"></div></div>
       <div class="obnav"><button class="btn ghost" id="obback">Back</button><span class="obnr"><span class="obtotal" id="obtotal"></span><button class="btn primary" id="obnext">Next</button></span></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='rate'){
     const subs = CURRICULUM; const i = Math.min(ob.i||0, subs.length-1); const sb = subs[i];
@@ -2399,6 +2418,7 @@ function renderOnboarding(){
   };
   document.querySelectorAll('[data-obr]').forEach(b => b.onclick = () => { const v = b.dataset.v; rateChunk(b.dataset.obr, isNaN(+v) ? v : +v); });
   document.querySelectorAll('[data-obp]').forEach(b => b.onclick = () => applyPoint(b.dataset.obp, +b.dataset.v));
+  bindMissing();
   const tot = $('#obtotal'); if (tot){ const upd = () => { const ids = [...document.querySelectorAll('[data-obsubj]')].filter(x => x.checked).map(x => x.dataset.obsubj);
       const m = ids.reduce((a, id) => a + rateMins(id), 0); tot.innerHTML = ids.length ? `About ${fmtMin(m)} to rate ${ids.length} subject${ids.length===1?'':'s'}<small>You don’t have to rate everything to get started.</small>` : ''; };
     document.querySelectorAll('[data-obsubj]').forEach(x => x.addEventListener('change', upd)); upd(); }

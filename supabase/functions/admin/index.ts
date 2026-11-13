@@ -93,6 +93,18 @@ Deno.serve(async (req) => {
       return reply((data ?? [])[0] ?? { today_min: 0, week_min: 0, ever_min: 0, students: 0 });
     }
 
+    case "messages": {
+      const { data, error } = await svc.from("messages").select("id, email, topic, body, created_at, done_at").order("created_at", { ascending: false }).limit(200);
+      if (error) return reply({ error: error.message }, 500);
+      return reply({ messages: data ?? [] });
+    }
+
+    case "done": {
+      const { error } = await svc.from("messages").update({ done_at: body.undo ? null : new Date().toISOString() }).eq("id", Number(body.id));
+      if (error) return reply({ error: error.message }, 400);
+      return reply({ ok: true });
+    }
+
     case "invite": {
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!EMAIL.test(email)) return reply({ error: "That doesn't look like an email address." }, 400);
