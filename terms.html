@@ -9,24 +9,33 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,600&family=Manrope:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;600;800&display=swap">
 <style>
 :root{--bg:#eef2f5;--surface:#fff;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6}
-@media (prefers-color-scheme:dark){:root{--bg:#0c1218;--surface:#141c24;--ink:#e6edf3;--muted:#9aa8b4;--line:#26323d;--accent:#8ea6ff}}
+@media (prefers-color-scheme:dark){:root{--bg:#0c1218;--surface:#141c24;--ink:#e6edf3;--muted:#9aa8b4;--line:#26323d;--accent:#b6f738}}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Manrope,system-ui,sans-serif}
 main{max-width:720px;margin:0 auto;padding:32px 16px 64px}
-h1{font-family:Newsreader,Georgia,serif;font-size:40px;line-height:1.1;margin:0 0 6px}
+h1{font-family:Sora,system-ui,sans-serif;font-size:40px;line-height:1.1;margin:0 0 6px}
 h1 span{color:var(--accent)}
-h2{font-family:Newsreader,Georgia,serif;font-size:24px;margin:32px 0 6px}
+h2{font-family:Sora,system-ui,sans-serif;font-size:24px;margin:32px 0 6px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:18px}
 a{color:var(--accent)}
 .muted{color:var(--muted)}
 ul{padding-left:20px}
+
+:root{--bg:#f3f6f9;--surface:#fff;--ink:#0a1a2b;--muted:#5a6b7c;--line:#dfe6ed;--accent:#0f3561;--lime:#b6f738}
+@media (prefers-color-scheme:dark){:root{--bg:#050c14;--surface:#0c1724;--ink:#eaf0f6;--muted:#97a8ba;--line:#1c2d40;--accent:#b6f738}}
+h1,h2{font-family:Sora,system-ui,sans-serif;font-weight:650;letter-spacing:-.02em}
+h1 span{color:var(--accent)}
+.card{border-radius:18px;box-shadow:0 1px 2px rgba(10,26,43,.04),0 10px 30px -12px rgba(10,26,43,.12)}
+.brandlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:Sora,system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.brandlink span{color:var(--ink)}.brandlink b{color:var(--accent)}
+.brandlink .mark{width:28px;height:28px}
 </style>
 </head>
 <body>
 <main>
-  <p><a href="./">← Back to Road to 9</a></p>
+  <p><a class="brandlink" href="./"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b></span></a></p>
   <h1>Terms of use</h1>
   <p class="muted">In plain English. Last updated 13 November 2026.</p>
 

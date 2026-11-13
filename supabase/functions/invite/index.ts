@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
   const firstName = async (uid: string) => {
     const { data } = await svc.from("progress").select("name:doc->settings->>name").eq("user_id", uid).maybeSingle();
-    return String(data?.name ?? "").replace(/[^\p{L}\p{M}' -]/gu, "").trim().slice(0, 30);
+    return String(data?.name ?? "").replace(/[^\p{L}\p{M}\p{N}' ._-]/gu, "").trim().slice(0, 30);
   };
   const findCode = async (raw: unknown) => {
     const code = String(raw ?? "").trim().toUpperCase();

@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* Layout: one narrow column, one "next session" card that owns the screen; everything else is quiet and secondary. */
 :root{
@@ -492,13 +492,81 @@ body.signedout .top .brand{visibility:hidden}
 .invlinks li.used{opacity:.6}
 .acctgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 @media (max-width:700px){.acctgrid{grid-template-columns:1fr}}
+
+/* ===== Road to 9 look (logo colours: deep navy + lime) ===== */
+:root{
+  --navy:#0b2c4f; --navy-2:#123d6b; --lime:#b6f738; --lime-2:#a3e626; --night:#050c14;
+  --mark-a:#123d6b; --mark-b:#a8ea2c;
+  --bg:#f3f6f9; --surface:#ffffff; --sunk:#eaeff4; --revbg:#f7f9fb; --ink:#0a1a2b; --muted:#5a6b7c; --line:#dfe6ed;
+  --accent:#0f3561; --accent-ink:#ffffff; --accent-soft:#e4edf7;
+  --f-display:"Sora","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --r:18px; --shadow:0 1px 2px rgba(10,26,43,.04),0 10px 30px -12px rgba(10,26,43,.12);
+  --ring:0 0 0 4px rgba(163,230,38,.35);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --mark-a:#1f5a96; --mark-b:#b6f738;
+  --bg:#050c14; --surface:#0c1724; --sunk:#132233; --revbg:#0e1a28; --ink:#eaf0f6; --muted:#97a8ba; --line:#1c2d40;
+  --accent:#b6f738; --accent-ink:#06111d; --accent-soft:#1c2a10; --shadow:0 1px 0 rgba(255,255,255,.03),0 12px 32px -14px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --mark-a:#1f5a96; --mark-b:#b6f738;
+  --bg:#050c14; --surface:#0c1724; --sunk:#132233; --revbg:#0e1a28; --ink:#eaf0f6; --muted:#97a8ba; --line:#1c2d40;
+  --accent:#b6f738; --accent-ink:#06111d; --accent-soft:#1c2a10; --shadow:0 1px 0 rgba(255,255,255,.03),0 12px 32px -14px rgba(0,0,0,.6); color-scheme:dark}
+h1,h2,h3{font-family:var(--f-display);font-weight:650;letter-spacing:-.02em}
+.top{background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px)}
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.02em;font-style:normal}
+.brand .mark{width:30px;height:30px}
+.brand b,.wm b{color:var(--accent);font-style:normal}
+.brand span{color:inherit;font-style:normal}
+nav{background:var(--sunk);border:1px solid var(--line)}
+nav a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.panel{border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px}
+.btn{border-radius:12px;padding:12px 20px;transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+.btn.primary{background:linear-gradient(180deg,var(--navy-2),var(--navy));color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 8px 20px -10px rgba(11,44,79,.7)}
+.btn.primary:hover{transform:translateY(-1px)}
+:root[data-theme="dark"] .btn.primary{background:var(--lime);color:var(--night);box-shadow:0 8px 24px -12px rgba(182,247,56,.7)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{background:var(--lime);color:var(--night);box-shadow:0 8px 24px -12px rgba(182,247,56,.7)}}
+.btn.ghost{border-radius:12px}
+input,select{border-radius:12px;padding:10px 12px;transition:border-color .12s ease,box-shadow .12s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--navy-2);box-shadow:var(--ring)}
+input[type=checkbox],input[type=radio]{accent-color:var(--navy-2)}
+:root[data-theme="dark"] input[type=checkbox]{accent-color:var(--lime)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) input[type=checkbox]{accent-color:var(--lime)}}
+
+/* onboarding: one calm card */
+.ob{background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:clamp(20px,4vw,40px);margin-top:18px}
+.ob h1{font-size:clamp(28px,4.5vw,40px);letter-spacing:-.025em}
+.ob h1 span{color:var(--accent);font-style:normal}
+.ob label.small{display:block;font-weight:600;color:var(--muted)}
+.ob input:not([type]),.ob input[type=text],.ob input[type=email]{margin-top:6px;font-size:16px;padding:13px 14px;background:var(--revbg)}
+.obterms{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--revbg)}
+.obsteps span{width:26px;height:26px}
+.obsteps li.now span{background:var(--navy);border-color:var(--navy);color:var(--lime)}
+.obsteps li.done span{background:var(--lime);border-color:var(--lime);color:var(--night)}
+.obnav{background:linear-gradient(to top,var(--surface) 70%,transparent)}
+.obhow li::marker{font-weight:700;color:var(--accent)}
+.obsec,.oblegend,.subjpick label{border-radius:14px}
+
+/* signed out: dark, like the logo */
+body.signedout{--bg:#050c14;--surface:rgba(16,30,46,.72);--revbg:rgba(255,255,255,.04);--sunk:#132233;--ink:#eef3f8;--muted:#9fb0c2;--line:rgba(255,255,255,.1);--accent:#b6f738;
+  background:radial-gradient(900px 520px at 50% -8%,rgba(182,247,56,.16),transparent 62%),radial-gradient(800px 600px at 15% 110%,rgba(31,90,150,.35),transparent 60%),#050c14;min-height:100vh;color-scheme:dark}
+body.signedout .top{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+.login{max-width:440px;margin:6vh auto 0;padding:clamp(22px,5vw,36px);background:var(--surface);border:1px solid var(--line);border-radius:26px;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 30px 80px -30px rgba(0,0,0,.8)}
+.hero{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;margin-bottom:6px}
+.hero .mark{width:84px;height:84px;filter:drop-shadow(0 0 22px rgba(182,247,56,.45))}
+body.signedout{--mark-a:#1f5a96;--mark-b:#b6f738}
+.login h1.wm{font-family:var(--f-display);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase}
+.login .tag{text-align:center;font-size:16px}
+.login input[type=email]{border-radius:14px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
+body.signedout .btn.primary{background:var(--lime);color:#050c14;box-shadow:0 10px 30px -12px rgba(182,247,56,.8)}
+body.signedout .note{border-left-color:var(--lime)}
+body.signedout .foot a,body.signedout .foot{color:var(--muted)}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header class="top">
-    <div class="row" style="gap:14px"><div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div><div class="brand">Road to <span>9</span></div></div>
+    <div class="row" style="gap:14px"><div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div><a class="brand" href="#next" aria-label="Road to 9"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><span>Road to <b>9</b></span></a></div>
     <div class="hdrmeta" id="hdrmeta"></div>
     <nav aria-label="Views" id="mainnav">
       <a href="#next" id="nav-next">Today</a>
@@ -1957,7 +2025,7 @@ function renderPlan(){
     <p class="muted" style="margin:0">Change these whenever life changes. The next session updates straight away.</p>
     <div class="acctgrid">
     <section class="panel"><h2>You</h2>
-      <label class="small muted" for="uname">Your first name (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
+      <label class="small muted" for="uname">First name or nickname (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check (Duolingo, reading, bedtime)</label></section>
     <section class="panel"><h2>Account</h2>
       <p class="small" style="margin:0">Signed in as <b>${esc(USER ? USER.email : '')}</b></p>
@@ -1968,7 +2036,7 @@ function renderPlan(){
         <div id="delmsg" class="small" role="status"></div></details></section>
     </div>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
-      <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your first name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
+      <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
     <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. Ask the person who invited you if one of your subjects or exam boards is missing.</p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div></section>
@@ -2030,7 +2098,7 @@ function renderLogin(msg){
   document.body.classList.add('signedout');
   $('#footacct').innerHTML = '';
   $('#view').innerHTML = `<section class="login">
-    <h1>Road to <span>9</span></h1>
+    <div class="hero"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><h1 class="wm">Road to <b>9</b></h1></div>
     <p class="tag">We do the planning, you do the learning.</p>
     ${msg ? `<div class="note">${msg}</div>` : ''}
     <form id="loginform"><label class="small muted" for="lemail">Your email address</label>
@@ -2081,7 +2149,7 @@ async function loadInvites(note){
 /* A friend opened an invite link: they ask for their own sign-in email. */
 async function renderJoin(code){
   document.body.classList.add('signedout'); $('#footacct').innerHTML = '';
-  $('#view').innerHTML = `<section class="login"><h1>Road to <span>9</span></h1><p class="tag">We do the planning, you do the learning.</p><div id="joinbody" class="small muted">Checking your invite…</div></section>`;
+  $('#view').innerHTML = `<section class="login"><div class="hero"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><h1 class="wm">Road to <b>9</b></h1></div><p class="tag">We do the planning, you do the learning.</p><div id="joinbody" class="small muted">Checking your invite…</div></section>`;
   const r = await callFn('invite', {action: 'peek', code});
   const back = `<p class="small"><a href="./">Already on Road to 9? Sign in here</a></p>`;
   if (r.error){ $('#joinbody').innerHTML = `<div class="note">⚠ ${esc(r.error)}</div>${back}`; return; }
@@ -2162,7 +2230,7 @@ function renderOnboarding(){
     body = `<h1>Welcome to Road to <span>9</span></h1>
       <p class="lead">We do the planning, you do the learning. Three quick steps and your first session is ready.</p>
       <ol class="obhow"><li><b>Pick your subjects.</b></li><li><b>Rate every topic</b> from very strong to very weak. Be honest: the weakest come first.</li><li><b>Open Road to 9 each day</b> and do what it says. It plans revising, and brings topics back just before you’d forget them.</li></ol>
-      <label class="small muted" for="obname">Your first name (optional)<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name"></label>
+      <label class="small muted" for="obname">First name or nickname (optional)<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name"></label>
       ${TERMS_TICK}
       <div class="obnav"><span></span><button class="btn primary" id="obnext">Let’s start</button></div><div id="obmsg" class="small" role="status"></div>
       <details class="obimport"><summary class="small">Already have a progress file from an earlier planner?</summary>

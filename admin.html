@@ -9,20 +9,20 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,600&family=Manrope:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap">
 <style>
 :root{--bg:#eef2f5;--surface:#fff;--sunk:#e4e9ee;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6;--accent-ink:#fff;
   --red:#c73636;--red-soft:#fbe5e5;--green:#23925a;--green-soft:#ddf3e6;--amber:#9a6200;--amber-soft:#fdf0d6;--r:14px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1218;--surface:#141c24;--sunk:#1b252f;--ink:#e6edf3;--muted:#93a4b3;--line:#26333f;
-  --accent:#7d96ff;--accent-ink:#0c1218;--red:#ef6a6a;--red-soft:#3a1d20;--green:#49c27b;--green-soft:#163222;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}}
+  --accent:#b6f738;--accent-ink:#06111d;--red:#ef6a6a;--red-soft:#3a1d20;--green:#49c27b;--green-soft:#163222;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0c1218;--surface:#141c24;--sunk:#1b252f;--ink:#e6edf3;--muted:#93a4b3;--line:#26333f;
-  --accent:#7d96ff;--accent-ink:#0c1218;--red:#ef6a6a;--red-soft:#3a1d20;--green:#49c27b;--green-soft:#163222;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}
+  --accent:#b6f738;--accent-ink:#06111d;--red:#ef6a6a;--red-soft:#3a1d20;--green:#49c27b;--green-soft:#163222;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,system-ui,sans-serif}
 main{max-width:920px;margin:0 auto;padding:28px 16px 64px}
-h1{font-family:Newsreader,Georgia,serif;font-size:34px;line-height:1.1;margin:0}
+h1{font-family:Sora,system-ui,sans-serif;font-size:34px;line-height:1.1;margin:0}
 h1 span{color:var(--accent)}
-h2{font-family:Newsreader,Georgia,serif;font-size:22px;margin:0 0 10px}
+h2{font-family:Sora,system-ui,sans-serif;font-size:22px;margin:0 0 10px}
 a{color:var(--accent)}
 button,input{font:inherit}
 button{cursor:pointer}
@@ -31,8 +31,8 @@ button{cursor:pointer}
 .muted{color:var(--muted)} .small{font-size:13px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-top:16px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-input[type=email]{flex:1 1 240px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
-.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;background:var(--accent);color:var(--accent-ink)}
+input[type=email]{flex:1 1 240px;min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;background:linear-gradient(180deg,#123d6b,#0b2c4f);color:#fff}
 .btn:disabled{opacity:.5;cursor:default}
 .ghost{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-weight:600;font-size:13px}
 .danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
@@ -42,7 +42,7 @@ label.check input{width:18px;height:18px;margin-top:2px;flex:none}
 .msg.ok{background:var(--green-soft)} .msg.err{background:var(--red-soft)}
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 16px;min-width:120px}
-.stat b{display:block;font-size:24px;font-family:Newsreader,Georgia,serif}
+.stat b{display:block;font-size:24px;font-family:Sora,system-ui,sans-serif}
 .list{margin-top:6px}
 .user{display:grid;grid-template-columns:1fr auto;gap:6px 14px;padding:14px 0;border-top:1px solid var(--line)}
 .user:first-child{border-top:0}
@@ -57,12 +57,21 @@ label.check input{width:18px;height:18px;margin-top:2px;flex:none}
 .confirm .row{margin-top:8px}
 @media (max-width:560px){.user{grid-template-columns:1fr}.acts{justify-content:flex-start}}
 [hidden]{display:none!important}
+
+:root{--bg:#f3f6f9;--surface:#fff;--ink:#0a1a2b;--muted:#5a6b7c;--line:#dfe6ed;--accent:#0f3561;--lime:#b6f738}
+@media (prefers-color-scheme:dark){:root{--bg:#050c14;--surface:#0c1724;--ink:#eaf0f6;--muted:#97a8ba;--line:#1c2d40;--accent:#b6f738}}
+h1,h2{font-family:Sora,system-ui,sans-serif;font-weight:650;letter-spacing:-.02em}
+h1 span{color:var(--accent)}
+.card{border-radius:18px;box-shadow:0 1px 2px rgba(10,26,43,.04),0 10px 30px -12px rgba(10,26,43,.12)}
+.brandlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:Sora,system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.brandlink span{color:var(--ink)}.brandlink b{color:var(--accent)}
+.brandlink .mark{width:28px;height:28px}
 </style>
 </head>
 <body>
 <main>
   <div class="top">
-    <h1>Road to <span>9</span> · admin</h1>
+    <h1 class="brandlink" style="font-size:24px"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b> · admin</span></h1>
     <div class="row small"><span id="whoami" class="muted"></span><button class="ghost" id="signout" hidden>Sign out</button></div>
   </div>
 
