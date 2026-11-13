@@ -440,7 +440,8 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .mh{font-size:11px;font-weight:700;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase}
 .mnav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-bottom:10px}.mnav h2{text-align:center;margin:0}
-.mday{border-radius:8px;padding:6px 7px;min-height:52px;display:grid;align-content:space-between;background:var(--sunk);font-variant-numeric:tabular-nums}
+.mday{border-radius:8px;padding:6px 7px;min-height:78px;display:grid;align-content:space-between;background:var(--sunk);font-variant-numeric:tabular-nums}
+.mday .mi{display:flex;flex-wrap:wrap;gap:3px;align-items:center;opacity:.9}
 .mday .md{font-family:var(--f-body);font-size:11px;font-weight:600;letter-spacing:.02em;opacity:.7}
 .mday .mc{font-family:var(--f-display);justify-self:end;display:flex;align-items:baseline;gap:3px;font-variant-numeric:tabular-nums}
 .mday .mc b{font-size:16px;font-weight:700}
@@ -461,7 +462,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .sp .nm{font-weight:700}
 .sp .small{text-align:right}
 /* calendar and progress stack in one column (Moritz, 13 Nov) */
-@media (max-width:520px){ .sp{grid-template-columns:100px minmax(0,1fr) 120px} .sp > .small{display:none} .mday{min-height:42px;padding:4px} .mday .mc b{font-size:12px} .mday .mc small{font-size:8px} .mday .mc{gap:1px} }
+@media (max-width:520px){ .sp{grid-template-columns:100px minmax(0,1fr) 120px} .sp > .small{display:none} .mday{min-height:63px;padding:4px} .mday .mi svg{width:10px;height:10px} .mday .mc b{font-size:12px} .mday .mc small{font-size:8px} .mday .mc{gap:1px} }
 /* widescreen: use the full width */
 .sbody{display:grid;gap:16px}
 .rategrid{display:grid;gap:12px}
@@ -1624,7 +1625,7 @@ function monthGrid(today, first){
     if (d < S.settings.startedOn) cls = 'pre';
     else if (d < today || (d===today && dn > 0)) cls = t===0 ? (dn ? 'met' : 'off') : dn>=t ? 'met' : dn>0 ? 'part' : 'miss';   // today updates as soon as something is done
     else if (t===0) cls = 'off';
-    cells += `<div class="mday ${cls} ${inM?'':'out'} ${d===today?'now':''}" title="${esc(fmtDay(d))}${cls==='fut' ? ': ' + t + ' min planned' : dn ? ': ' + dn + ' min studied' : ''}"><span class="md">${parse(d).getUTCDate()}</span><span class="mc">${(m => cls!=='pre' && m ? `<b>${m}</b><small>min</small>` : '')(cls==='fut' ? t : dn)}</span></div>`;
+    cells += `<div class="mday ${cls} ${inM?'':'out'} ${d===today?'now':''}" title="${esc(fmtDay(d))}${cls==='fut' ? ': ' + t + ' min planned' : dn ? ': ' + dn + ' min studied' : ''}"><span class="md">${parse(d).getUTCDate()}</span>${(sids => sids.length ? `<span class="mi">${sids.map(x => `<span title="${esc(SUBJ[x].name)}">${icon(x,16)}</span>`).join('')}</span>` : '<span></span>')(d <= today ? [...new Set(S.log.filter(l => l.d===d).flatMap(l => l.t==='paper' ? [l.s] : (l.c||[]).filter(id => CARD[id]).map(id => CARD[id].sid)))].filter(x => SUBJ[x]) : [])}<span class="mc">${(m => cls!=='pre' && m ? `<b>${m}</b><small>min</small>` : '')(cls==='fut' ? t : dn)}</span></div>`;
   }
   return `<div class="mgrid">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x => `<div class="mh">${x}</div>`).join('')}${cells}</div>
     <div class="legend" style="margin-top:8px"><span><i class="lg met"></i>Goal met</span><span><i class="lg part"></i>Some done</span><span><i class="lg miss"></i>Missed</span><span><i class="lg off"></i>Day off</span></div>`;
