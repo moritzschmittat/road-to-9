@@ -195,10 +195,15 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 @media (max-width:520px){.wk-day{grid-template-columns:84px minmax(0,1fr)}.wk-day ul{grid-template-columns:1fr}}
 .grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .grid7 label{display:grid;gap:4px;font-size:12px;color:var(--muted);text-align:center;font-weight:700}
-.grid7 input{text-align:center;font-variant-numeric:tabular-nums}
+.grid7 input{font-variant-numeric:tabular-nums}
+.minf{position:relative;display:block;min-width:0}
+.minf input{width:100%;padding-right:38px;text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.minf input::-webkit-inner-spin-button,.minf input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.minf i{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-style:normal;font-size:13px;font-weight:600;color:var(--muted);pointer-events:none}
+@media (max-width:640px){.grid7{grid-template-columns:repeat(4,minmax(0,1fr))}}
 input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-width:0;width:100%}
 .periods{display:grid;gap:8px}
-.prow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) 64px 32px;gap:6px;align-items:center}
+.prow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) 92px 32px;gap:6px;align-items:center}
 .prow .x,.paprow .x{border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
 .exams{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,150px);gap:6px 10px;align-items:center}
 .papgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:14px;margin-top:12px}
@@ -2127,13 +2132,13 @@ function renderPlan(){
         <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
         <div id="msgmsg" class="small" role="status"></div></div></section>
     <div class="plangrid"><div>
-    <section class="panel"><h2>Study time per day in term time</h2><p class="small muted" style="margin:0">In minutes. A revise session is 45 minutes (20 for topics you rated strong, 30 to revise a weak topic again); refreshers are 5 to 10 minutes each.</p><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"></label>`).join('')}</div>
+    <section class="panel"><h2>Study time per day in term time</h2><p class="small muted" style="margin:0">A revise session is 45 minutes (20 for topics you rated strong, 30 to revise a weak topic again); refreshers are 5 to 10 minutes each.</p><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<span class="minf"><input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"><i>min</i></span></label>`).join('')}</div>
       </section>
-    <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><span></span></div>
+    <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><span class="minf"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><i>min</i></span><span></span></div>
       <p class="small muted" style="margin:0">From, to and minutes of study per day during the mock week. Put the date of each mock paper in the list below.</p></section>
     </div><div>
-    <section class="panel"><h2>Holidays and special periods</h2><p class="small muted" style="margin:0">Name, from, to, minutes per day. The first matching row wins, so put the more specific one first.</p>
-      <div class="periods">${s.periods.map((p,i) => `<div class="prow"><input id="pn${i}" value="${esc(p.name)}" aria-label="Name"><input id="pf${i}" type="date" value="${p.from}" aria-label="From"><input id="pt${i}" type="date" value="${p.to}" aria-label="To"><input id="pg${i}" type="number" min="0" max="600" step="15" value="${p.target}" aria-label="Minutes per day"><button class="x" data-del="${i}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div>
+    <section class="panel"><h2>Holidays and special periods</h2>
+      <div class="periods">${s.periods.map((p,i) => `<div class="prow"><input id="pn${i}" value="${esc(p.name)}" aria-label="Name"><input id="pf${i}" type="date" value="${p.from}" aria-label="From"><input id="pt${i}" type="date" value="${p.to}" aria-label="To"><span class="minf"><input id="pg${i}" type="number" min="0" max="600" step="15" value="${p.target}" aria-label="Minutes per day"><i>min</i></span><button class="x" data-del="${i}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div>
       <div><button class="btn small" id="addp">Add a period</button></div></section>
     </div></div>
     <section class="panel" id="papers"><div class="row" style="justify-content:space-between;align-items:flex-end"><h2>Exam and mock dates</h2><span class="small muted">Leave a date empty until you know it</span></div>
