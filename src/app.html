@@ -465,6 +465,12 @@ body.onboarding #mainnav,body.onboarding #hdrmeta{visibility:hidden}
 .obrows li{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .obt{display:flex;flex-direction:column;min-width:0;flex:1 1 220px}
 .obt small{color:var(--muted);font-size:12px}
+.obpts{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.4;color:var(--muted)}
+.obrows .obpts li{display:grid;grid-template-columns:auto 1fr;gap:8px;border:0;padding:0;justify-content:start}
+.obt{flex:1 1 340px}
+.obpts .code{font-family:var(--f-mono);font-size:11.5px;color:var(--ink);opacity:.75;padding-top:1px;min-width:2.6em}
+.obrows li{align-items:flex-start}
+.obrows .obbtns{padding-top:2px}
 .obbtns{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .obb{width:30px;height:30px;border-radius:7px;border:2px solid transparent;cursor:pointer;opacity:.35;padding:0}
 .obb[aria-pressed="true"]{opacity:1;border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
@@ -2330,7 +2336,7 @@ function renderOnboarding(){
         <div><i class="rag lv-x"></i><b>Not taught yet</b><span>We haven’t covered it at school</span></div></div>
       <div class="obprog"><div class="bar"><i style="width:${Math.round(100*rated/sb.cards.length)}%"></i></div><span class="small muted">${rated} of ${sb.cards.length} topics rated</span></div>
       ${secs.map(g => `<section class="obsec"><div class="obsech"><h2>${esc(g.name)}</h2><button class="linkbtn" data-obsec="${esc(g.cards.map(c => c.id).join(','))}">Not taught yet: whole section</button></div>
-        <ul class="obrows">${g.cards.map(c => { const v = chunkChoice(c.id); return `<li><div class="obt"><b>${esc(c.n)}</b><small>${c.p.length} spec point${c.p.length===1?'':'s'}</small></div>
+        <ul class="obrows">${g.cards.map(c => { const v = chunkChoice(c.id); return `<li><div class="obt"><b>${esc(c.n)}</b><ul class="obpts">${c.p.map(q => `<li><span class="code">${esc(q.c)}</span><span>${esc(q.t)}</span></li>`).join('')}</ul></div>
           <div class="obbtns" role="group" aria-label="Rate ${esc(c.n)}">${[...OB_LEVELS].reverse().map(([lv, n]) => `<button class="obb ${lvClass(lv)}" data-obr="${c.id}" data-v="${lv}" aria-pressed="${v===lv}" title="${n}" aria-label="${n}"></button>`).join('')}
             <button class="obtx" data-obr="${c.id}" data-v="later" aria-pressed="${v==='later'}">Not taught yet</button>
             <button class="obtx" data-obr="${c.id}" data-v="off" aria-pressed="${v==='off'}" title="Not part of my course">Not on my course</button></div></li>`; }).join('')}</ul></section>`).join('')}
