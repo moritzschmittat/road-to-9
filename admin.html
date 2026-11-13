@@ -55,6 +55,7 @@ label.check input{width:18px;height:18px;margin-top:2px;flex:none}
 .acts{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
 .confirm{grid-column:1/-1;background:var(--red-soft);border-radius:10px;padding:12px;font-size:14px}
 .confirm .row{margin-top:8px}
+.filepick{display:grid;gap:6px;margin-top:12px}.filepick input{font-size:13px;color:var(--muted)}
 @media (max-width:560px){.user{grid-template-columns:1fr}.acts{justify-content:flex-start}}
 [hidden]{display:none!important}
 
@@ -116,7 +117,10 @@ main{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
           <input type="email" id="inviteEmail" required autocomplete="off" placeholder="student@example.com" aria-label="Student's email address">
           <button class="btn" type="submit" id="inviteBtn">Send invite</button>
         </div>
+        <label class="small muted filepick">Their planner file (optional): their plan is waiting for them when they first sign in
+          <input type="file" id="inviteFile" accept=".json,application/json"></label>
       </form>
+      <input type="file" id="seedFile" accept=".json,application/json" hidden>
       <div id="inviteMsg"></div>
     </div>
 
@@ -208,7 +212,7 @@ function draw(){
       u.joined ? `last sign-in ${when(u.last_sign_in_at)}` : null,
       u.joined ? (u.onboarded ? `last active ${when(u.last_saved_at)}` : 'setup not finished') : null,
     ].filter(Boolean).join(' · ');
-    const acts = u.id === ME ? '' : `${u.joined ? '' : `<button class="ghost" data-resend="${u.id}">Resend invite</button>`}<button class="ghost danger" data-remove="${u.id}">Remove</button>`;
+    const acts = u.id === ME ? '' : `${u.last_saved_at ? '' : `<button class="ghost" data-seed="${u.id}">Load planner file</button>`}${u.joined ? '' : `<button class="ghost" data-resend="${u.id}">Resend invite</button>`}<button class="ghost danger" data-remove="${u.id}">Remove</button>`;
     const conf = confirmId === u.id ? `<div class="confirm"><b>Remove ${esc(u.email)}?</b> This deletes their account and all their planner data straight away. It can't be undone.
       <div class="row"><button class="btn" style="background:var(--red);color:#fff" data-yes="${u.id}">Yes, remove</button><button class="ghost" data-no="1">Cancel</button></div></div>` : '';
     return `<div class="user"><div><div class="who">${esc(u.email)}${tag}</div><div class="meta">${meta}</div></div><div class="acts">${acts}</div>${conf}</div>`;
@@ -217,6 +221,7 @@ function draw(){
 
 document.addEventListener('click', async e => {
   const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.seed){ seedFor = t.dataset.seed; $('seedFile').value = ''; $('seedFile').click(); return; }
   if (t.dataset.done){ await call('done', {id: t.dataset.done, undo: !!t.dataset.undo}); return loadMsgs(); }
   if (t.dataset.resend){
     t.disabled = true; const r = await call('resend', {id: t.dataset.resend}); t.disabled = false;
@@ -230,15 +235,33 @@ document.addEventListener('click', async e => {
   }
 });
 
+// a planner file exported from Road to 9 (Settings → Export progress)
+async function readPlanner(input){
+  const f = input.files && input.files[0]; if (!f) return {doc: undefined};
+  try { const d = JSON.parse(await f.text()); if (!d || typeof d !== 'object' || !d.settings || !d.cards) throw 0; return {doc: d, name: d.settings.name}; }
+  catch(e){ return {error: 'That file isn\'t a Road to 9 planner.'}; }
+}
+let seedFor = null;
+$('seedFile').addEventListener('change', async () => {
+  const p = await readPlanner($('seedFile')); if (!seedFor || p.doc === undefined) return;
+  if (p.error) return msg('listMsg', p.error);
+  const u = USERS.find(x => x.id === seedFor);
+  const r = await call('seed', {id: seedFor, doc: p.doc}); seedFor = null;
+  if (!r.error) await load();
+  msg('listMsg', r.error || `Planner loaded for ${u ? u.email : 'them'}. It's waiting for them when they sign in.`, !r.error);
+});
+
 $('inviteForm').addEventListener('submit', async e => {
   e.preventDefault();
   const email = $('inviteEmail').value.trim();
+  const p = await readPlanner($('inviteFile'));
+  if (p.error) return msg('inviteMsg', p.error);
   $('inviteBtn').disabled = true;
-  const r = await call('invite', {email});
+  const r = await call('invite', p.doc === undefined ? {email} : {email, doc: p.doc});
   $('inviteBtn').disabled = false;
   if (r.error) return msg('inviteMsg', r.error);
-  msg('inviteMsg', `Invite sent to ${email}.`, true);
-  $('inviteEmail').value = '';
+  msg('inviteMsg', r.seedError ? `Invite sent to ${email}, but the planner file wasn't loaded: ${r.seedError}` : r.seeded ? `Invite sent to ${email}, with their planner waiting for them.` : `Invite sent to ${email}.`, !r.seedError);
+  $('inviteEmail').value = ''; $('inviteFile').value = '';
   load();
 });
 

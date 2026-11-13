@@ -44,6 +44,24 @@ Deno.serve(async (req) => {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return reply({ error: "Bad request." }, 400); }
 
+  // Put a planner file (exported from Road to 9) into a student's account before they first sign in,
+  // so their plan is waiting for them. Never overwrites: only for an account with nothing saved yet.
+  // The terms tick is left out on purpose: the student agrees to the terms themselves on first sign-in.
+  const seed = async (uid: string, raw: unknown): Promise<string | null> => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return "That file isn't a Road to 9 planner.";
+    const doc = { ...(raw as Record<string, unknown>) };
+    delete doc.app; delete doc.exportedAt;
+    const st = doc.settings as Record<string, unknown> | undefined;
+    if (!st || typeof st !== "object" || !doc.cards || typeof doc.cards !== "object" || !Array.isArray(doc.log)) return "That file isn't a Road to 9 planner.";
+    doc.settings = { ...st, onboarded: true, ob: { step: "done", i: 0 } };
+    delete (doc.settings as Record<string, unknown>).terms;
+    if (JSON.stringify(doc).length > 1_900_000) return "That file is too big.";
+    const { data: ex } = await svc.from("progress").select("user_id").eq("user_id", uid).maybeSingle();
+    if (ex) return "They already have a planner saved, so nothing was changed.";
+    const { error } = await svc.from("progress").insert({ user_id: uid, doc });
+    return error ? error.message : null;
+  };
+
   switch (body.action) {
     case "list": {
       const users = [];
@@ -108,12 +126,21 @@ Deno.serve(async (req) => {
     case "invite": {
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!EMAIL.test(email)) return reply({ error: "That doesn't look like an email address." }, 400);
-      const { error } = await svc.auth.admin.inviteUserByEmail(email, {
+      // with a planner file: check it before anyone gets an email
+      if (body.doc !== undefined && (!body.doc || typeof body.doc !== "object" || !(body.doc as Record<string, unknown>).settings)) {
+        return reply({ error: "That file isn't a Road to 9 planner." }, 400);
+      }
+      const { data, error } = await svc.auth.admin.inviteUserByEmail(email, {
         redirectTo: SITE,
       });
       if (error) {
         const msg = /already been registered/i.test(error.message) ? "That email already has an account." : error.message;
         return reply({ error: msg }, 400);
+      }
+      if (body.doc !== undefined && data.user) {
+        const e = await seed(data.user.id, body.doc);
+        if (e) return reply({ ok: true, seedError: e });
+        return reply({ ok: true, seeded: true });
       }
       return reply({ ok: true });
     }
@@ -124,6 +151,15 @@ Deno.serve(async (req) => {
       if (data.user.email_confirmed_at) return reply({ error: "They've already joined, so they can sign in with their email on roadto9.com." }, 400);
       const { error: e2 } = await svc.auth.admin.inviteUserByEmail(data.user.email, { redirectTo: SITE });
       if (e2) return reply({ error: e2.message }, 400);
+      return reply({ ok: true });
+    }
+
+    case "seed": {
+      const id = String(body.id ?? "");
+      const { data, error } = await svc.auth.admin.getUserById(id);
+      if (error || !data.user) return reply({ error: "No such user." }, 404);
+      const e = await seed(id, body.doc);
+      if (e) return reply({ error: e }, 400);
       return reply({ ok: true });
     }
 

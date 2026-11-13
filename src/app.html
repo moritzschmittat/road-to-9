@@ -2553,7 +2553,7 @@ render = function(){ if (!USER){ return; } applySubjects();
 function renderTermsGate(){
   document.body.classList.add('onboarding');
   $('#view').innerHTML = `<div class="ob"><h1>${S.settings.terms ? 'We’ve updated our terms' : 'One quick thing'}</h1>
-    <p class="lead">Please agree to the Terms of use before you carry on. Your planner is exactly as you left it.</p>
+    <p class="lead">Please agree to the Terms of use before you carry on. ${S.settings.terms ? 'Your planner is exactly as you left it.' : 'Your planner is ready and waiting for you.'}</p>
     ${TERMS_TICK}<div class="obnav"><span></span><button class="btn primary" id="obnext">Continue</button></div><div id="obmsg" class="small" role="status"></div></div>`;
   $('#obnext').onclick = () => { if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box first.'; return; } acceptTerms(); save(); render(); };
 }
