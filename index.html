@@ -235,7 +235,8 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .bsec{font-family:var(--f-display);font-weight:600;font-size:20px;line-height:1.2}
 .bchunk{padding:10px 14px 12px;border-top:1px solid var(--line);display:grid;gap:6px}
 .bchunk:first-of-type{border-top:0}
-.bchunk.dim{opacity:.55}
+.bchunk.dim{opacity:.3}
+.bchunk.dim:hover,.bchunk.dim:focus-within{opacity:.6}
 .bch-h{display:flex;gap:8px;align-items:center}
 .optchip{white-space:normal;display:inline-block;max-width:100%;border-radius:8px;line-height:1.35}
 .bch-h .nm{font-weight:700}
@@ -430,6 +431,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .homegrid2{display:grid;gap:0 14px}
 .mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .mh{font-size:11px;font-weight:700;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase}
+.mnav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-bottom:10px}.mnav h2{text-align:center;margin:0}
 .mday{border-radius:8px;padding:6px 7px;min-height:52px;display:grid;align-content:space-between;background:var(--sunk);font-variant-numeric:tabular-nums}
 .mday .md{font-family:var(--f-body);font-size:11px;font-weight:600;letter-spacing:.02em;opacity:.7}
 .mday .mc{font-family:var(--f-display);justify-self:end;display:flex;align-items:baseline;gap:3px;font-variant-numeric:tabular-nums}
@@ -450,7 +452,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .sp .stack{grid-column:auto}
 .sp .nm{font-weight:700}
 .sp .small{text-align:right}
-@media (min-width:1000px){ .homegrid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+/* calendar and progress stack in one column (Moritz, 13 Nov) */
 @media (max-width:520px){ .sp{grid-template-columns:100px minmax(0,1fr) 120px} .sp > .small{display:none} .mday{min-height:42px;padding:4px} .mday .mc b{font-size:12px} .mday .mc small{font-size:8px} .mday .mc{gap:1px} }
 /* widescreen: use the full width */
 .sbody{display:grid;gap:16px}
@@ -521,6 +523,7 @@ body.onboarding #mainnav,body.onboarding #hdrmeta{visibility:hidden}
 .obp[aria-pressed="true"]{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
 .obp:hover{opacity:.8}
 .obpts.dim .obpb{visibility:hidden}
+.obpts.dim{opacity:.3}
 .obball{font-size:12px;color:var(--muted);margin-right:4px;align-self:center}
 .obrows .obpts li{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;border:0;padding:0;justify-content:stretch;align-items:start}
 .obt{flex:1 1 340px}
@@ -1580,8 +1583,21 @@ function tile(title, sub, st){
     <div class="tnum"><b>${fmtMin(st.done)}</b><span>/ ${fmtMin(st.planned)}</span></div>
     <div class="tbar"><i style="width:${pct}%"></i></div></div>`;
 }
-function monthGrid(today){
-  const first = today.slice(0,8)+'01'; const start = mondayOf(first);
+let monthOffset = 0;
+const monthFirst = (today, off) => { const d = parse(today.slice(0,8)+'01'); d.setUTCMonth(d.getUTCMonth() + off); return iso(d); };
+function monthPanel(today){
+  const first = monthFirst(today, monthOffset); const d = parse(first);
+  const name = d.toLocaleDateString('en-GB', d.getUTCFullYear()===parse(today).getUTCFullYear() ? {month:'long',timeZone:'UTC'} : {month:'long',year:'numeric',timeZone:'UTC'});
+  const lastEx = CURRICULUM.map(x => examLast(x.id)).sort().pop() || today;
+  const canBack = first > (S.settings.startedOn || today).slice(0,8)+'01', canFwd = first < lastEx.slice(0,8)+'01';
+  return `<section class="panel" id="mpanel"><div class="mnav"><button class="btn small ghost" id="mprev" aria-label="Previous month" ${canBack?'':'disabled'}>←</button><h2>${esc(name)}</h2><button class="btn small ghost" id="mnext" aria-label="Next month" ${canFwd?'':'disabled'}>→</button></div>${monthGrid(today, first)}</section>`;
+}
+function bindMonth(){
+  const go = d => () => { monthOffset += d; const el = document.getElementById('mpanel'); if (el){ el.outerHTML = monthPanel(todayStr()); bindMonth(); } };
+  const p = document.getElementById('mprev'), n = document.getElementById('mnext'); if (p) p.onclick = go(-1); if (n) n.onclick = go(1);
+}
+function monthGrid(today, first){
+  first = first || today.slice(0,8)+'01'; const start = mondayOf(first);
   const m = parse(first).getUTCMonth();
   let cells = '';
   for (let d = start, i=0; i<42; d = addDays(d,1), i++){
@@ -1620,7 +1636,7 @@ function renderHome(){
     ${tile('Whole project', `${fmtShort(s.startedOn)} to ${fmtShort(end)}`, periodStats(s.startedOn, end))}
   </div>
   <div class="homegrid2">
-    <section class="panel"><div class="row" style="justify-content:space-between"><h2>${esc(parse(today).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'}))}</h2></div>${monthGrid(today)}</section>
+    ${monthPanel(today)}
     <section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Progress${tipHTML('What do these numbers mean?', `<p><b>${greenPts} of ${allPts}</b> spec points are strong or very strong.</p><p><b>Learning done</b> is the revision time already behind you compared with the time still to go, for the topics you’ve rated.</p><p><b>Confidence</b> averages your ratings over every spec point: very strong counts 100%, strong 50%, OK 25%, weak 12.5% and very weak 6.25%.</p>`)}</h2></div><div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}</div>`)(workOf(CURRICULUM.flatMap(x => x.cards), true))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(CURRICULUM.flatMap(x => x.cards)),'big')}</div></div></div>
       ${stackHTML(ptCounts(CURRICULUM.flatMap(x => x.cards)))}
       <div class="legend">${(pc => [[3,'l3'],[2.5,'l25'],[2,'l2'],[1.5,'l15'],[1,'l1']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
@@ -1630,7 +1646,7 @@ function renderHome(){
   ${timelineHTML()}
   ${journalHTML()}
   ${S.settings.routine ? routineHTML() : ''}`;
-  bindHabits(); bindTimeline(); bindJournal();
+  bindHabits(); bindTimeline(); bindJournal(); bindMonth();
 }
 
 /* ---------- views ---------- */
