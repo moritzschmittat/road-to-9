@@ -355,7 +355,14 @@ details.howto[open] summary{margin-bottom:10px;color:var(--ink)}
 @media (max-width:640px){ .qsmall-wrap{justify-items:start} .qsmall{text-align:left} .qsmall-wrap .chips{justify-content:flex-start!important} }
 /* rate-these-topics box: full width, red frame until everything is rated */
 .panel.setup{border:2px solid var(--lv3);margin:0 0 44px}
-.subjpanel{margin-top:18px}.subjpanel .legend{margin:12px 0 10px}
+.tip{position:relative;display:inline-block;vertical-align:middle;margin-left:10px}
+.tip summary{list-style:none;cursor:pointer;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--f-body);font-size:12px;font-weight:800;color:var(--muted)}
+.tip summary::-webkit-details-marker{display:none}
+.tip summary:hover{color:var(--ink);border-color:var(--muted)}
+.tip[open] summary{background:var(--lime,var(--accent));border-color:var(--lime,var(--accent));color:#050c14}
+.tipbox{position:absolute;left:0;top:30px;z-index:30;width:min(340px,82vw);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:var(--f-body);font-size:13px;font-weight:400;line-height:1.5;letter-spacing:0;text-transform:none;color:var(--ink);box-shadow:0 14px 34px rgba(0,0,0,.5);display:grid;gap:6px}
+.tipbox p{margin:0}
+.subjpanel{margin-top:18px;scroll-margin-top:84px}.subjhead{display:flex;justify-content:space-between;align-items:center;gap:8px 20px;flex-wrap:wrap;margin-bottom:12px}.subjhead .legend{margin:0}
 /* clickable session details */
 details.sx{min-width:0;flex:1}
 details.sx summary{list-style:none;cursor:pointer}
@@ -402,8 +409,10 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .mh{font-size:11px;font-weight:700;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase}
 .mday{border-radius:8px;padding:6px 7px;min-height:52px;display:grid;align-content:space-between;background:var(--sunk);font-variant-numeric:tabular-nums}
-.mday .md{font-size:12px;font-weight:700}
-.mday .mc{font-size:12px;font-family:var(--f-mono);justify-self:end}
+.mday .md{font-family:var(--f-body);font-size:11px;font-weight:600;letter-spacing:.02em;opacity:.7}
+.mday .mc{font-family:var(--f-display);justify-self:end;display:flex;align-items:baseline;gap:3px;font-variant-numeric:tabular-nums}
+.mday .mc b{font-size:16px;font-weight:700}
+.mday .mc small{font-family:var(--f-body);font-size:10px;font-weight:600;opacity:.75}
 .mday.out{opacity:.35}
 .mday.now{outline:2px solid var(--accent)}
 .mday.fut{background:transparent;border:1px dashed var(--line)}
@@ -420,7 +429,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .sp .nm{font-weight:700}
 .sp .small{text-align:right}
 @media (min-width:1000px){ .homegrid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
-@media (max-width:520px){ .sp{grid-template-columns:100px minmax(0,1fr) 120px} .sp > .small{display:none} .mday{min-height:42px;padding:4px} .mday .mc{font-size:10px} }
+@media (max-width:520px){ .sp{grid-template-columns:100px minmax(0,1fr) 120px} .sp > .small{display:none} .mday{min-height:42px;padding:4px} .mday .mc b{font-size:12px} .mday .mc small{font-size:8px} .mday .mc{gap:1px} }
 /* widescreen: use the full width */
 .sbody{display:grid;gap:16px}
 .rategrid{display:grid;gap:12px}
@@ -883,7 +892,7 @@ function dayInfo(d){
   const base = baseDayInfo(d); const o = (S.settings.overrides||{})[d];
   if (o==null) return base;
   const label = base.target===0 ? `${base.label} skipped · studying` : +o===0 ? `${base.label} · skipped` : +o > base.target ? `${base.label} · +${fmtMin(o-base.target)} extra` : `${base.label} · changed to ${fmtMin(o)}`;
-  return {target:+o, label, kind:base.kind, override:true, skippedDay: base.target>0 && +o===0, baseTarget:base.target, baseLabel:base.label};
+  return {target:+o, label, kind:base.kind, override:true, skippedDay: base.target>0 && +o===0, stoppedEarly: +o>0 && +o<base.target, baseTarget:base.target, baseLabel:base.label};
 }
 function setOverride(d, n){
   const o = Object.assign({}, S.settings.overrides||{});
@@ -1200,8 +1209,7 @@ function checkinHTML(){
     return `<span class="hpair" role="group" aria-label="${esc(l)}: ${esc(q)}">${[1,0].map(x => `<button class="hbtn ${x?'yes':'no'}" data-night="${d}" data-k="${k}" data-v="${x}" aria-pressed="${v===x}">${x?'Yes':'No'}</button>`).join('')}</span>`; };
   return `<section class="checkin"><h2>Daily routine check</h2>
     <div class="hgrid"><span></span>${days.map(([d,l]) => `<span class="hday">${l}<small>${wd(d)}</small></span>`).join('')}
-    ${hs.map(([k,q]) => `<span class="hqq">${esc(q)}</span>${days.map(([d,l]) => pair(d,k,q,l)).join('')}`).join('')}</div>
-    <p class="small muted" style="margin:0">Got one wrong? Tap the other answer, or tap it again to clear it. Older days are under Stats.</p></section>`;
+    ${hs.map(([k,q]) => `<span class="hqq">${esc(q)}</span>${days.map(([d,l]) => pair(d,k,q,l)).join('')}`).join('')}</div></section>`;
 }
 function routineHTML(){
   const today = todayStr(); const nights = Array.from({length:14}, (_,i) => addDays(today, i-13));
@@ -1513,12 +1521,14 @@ function streak(){
   }
   return n;
 }
+/* small "?" that opens a short explainer */
+function tipHTML(label, body){ return `<details class="tip"><summary aria-label="${esc(label)}" title="${esc(label)}">?</summary><div class="tipbox">${body}</div></details>`; }
+document.addEventListener('click', e => document.querySelectorAll('details.tip[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
 function tile(title, sub, st){
   const pct = st.planned ? Math.min(100, Math.round(100*st.done/st.planned)) : 0;
-  return `<div class="tile"><div class="eyebrow">${esc(title)}</div><div class="small muted">${esc(sub)}</div>
+  return `<div class="tile"><div class="eyebrow">${esc(title)}</div>
     <div class="tnum"><b>${fmtMin(st.done)}</b><span>/ ${fmtMin(st.planned)}</span></div>
-    <div class="tbar"><i style="width:${pct}%"></i></div>
-    <div class="small muted">${st.left ? `${fmtMin(st.left)} left` : st.planned ? 'All done' : 'Nothing planned'}</div></div>`;
+    <div class="tbar"><i style="width:${pct}%"></i></div></div>`;
 }
 function monthGrid(today){
   const first = today.slice(0,8)+'01'; const start = mondayOf(first);
@@ -1531,7 +1541,7 @@ function monthGrid(today){
     if (d < S.settings.startedOn) cls = 'pre';
     else if (d < today || (d===today && dn > 0)) cls = t===0 ? (dn ? 'met' : 'off') : dn>=t ? 'met' : dn>0 ? 'part' : 'miss';   // today updates as soon as something is done
     else if (t===0) cls = 'off';
-    cells += `<div class="mday ${cls} ${inM?'':'out'} ${d===today?'now':''}" title="${esc(fmtDay(d))}${cls==='fut' ? ': ' + fmtMin(t) + ' planned' : dn ? ': ' + fmtMin(dn) + ' studied' : ''}"><span class="md">${parse(d).getUTCDate()}</span><span class="mc">${cls!=='pre' && (t||dn) ? (cls==='fut' ? (t/60).toFixed(t%60?2:0).replace(/0$/,'').replace(/\.$/,'') + 'h' : (dn ? fmtMin(dn) : '')) : ''}</span></div>`;
+    cells += `<div class="mday ${cls} ${inM?'':'out'} ${d===today?'now':''}" title="${esc(fmtDay(d))}${cls==='fut' ? ': ' + t + ' min planned' : dn ? ': ' + dn + ' min studied' : ''}"><span class="md">${parse(d).getUTCDate()}</span><span class="mc">${(m => cls!=='pre' && m ? `<b>${m}</b><small>min</small>` : '')(cls==='fut' ? t : dn)}</span></div>`;
   }
   return `<div class="mgrid">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x => `<div class="mh">${x}</div>`).join('')}${cells}</div>
     <div class="legend" style="margin-top:8px"><span><i class="lg met"></i>Goal met</span><span><i class="lg part"></i>Some done</span><span><i class="lg miss"></i>Missed</span><span><i class="lg off"></i>Day off</span></div>`;
@@ -1560,8 +1570,8 @@ function renderHome(){
     ${tile('Whole project', `${fmtShort(s.startedOn)} to ${fmtShort(end)}`, periodStats(s.startedOn, end))}
   </div>
   <div class="homegrid2">
-    <section class="panel"><div class="row" style="justify-content:space-between"><h2>${esc(parse(today).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'}))}, day by day</h2><span class="small muted">past days: time studied · coming days: time planned</span></div>${monthGrid(today)}</section>
-    <section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Progress</h2><span class="small muted">${greenPts} of ${allPts} spec points strong or very strong · learning done = time behind you vs. time still to go; confidence = your ratings (very strong 100% … very weak 6.25%)</span></div><div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}</div>`)(workOf(CURRICULUM.flatMap(x => x.cards), true))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(CURRICULUM.flatMap(x => x.cards)),'big')}</div></div></div>
+    <section class="panel"><div class="row" style="justify-content:space-between"><h2>${esc(parse(today).toLocaleDateString('en-GB',{month:'long',timeZone:'UTC'}))}, day by day</h2></div>${monthGrid(today)}</section>
+    <section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Progress${tipHTML('What do these numbers mean?', `<p><b>${greenPts} of ${allPts}</b> spec points are strong or very strong.</p><p><b>Learning done</b> is the revision time already behind you compared with the time still to go, for the topics you’ve rated.</p><p><b>Confidence</b> averages your ratings over every spec point: very strong counts 100%, strong 50%, OK 25%, weak 12.5% and very weak 6.25%.</p>`)}</h2></div><div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}</div>`)(workOf(CURRICULUM.flatMap(x => x.cards), true))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(CURRICULUM.flatMap(x => x.cards)),'big')}</div></div></div>
       ${stackHTML(ptCounts(CURRICULUM.flatMap(x => x.cards)))}
       <div class="legend">${(pc => [[1,'l1'],[1.5,'l15'],[2,'l2'],[2.5,'l25'],[3,'l3']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
       <div class="sprog">${CURRICULUM.map(sb => { const k = counts(sb); const wk = S.log.filter(l => l.d>=weekAgo && (l.s===sb.id || l.c.some(id => CARD[id] && CARD[id].sid===sb.id))).length;
@@ -1627,9 +1637,9 @@ function renderNext(){
     const reached = done>=info.target && info.target>0;
     if ((restDay || reached) && !window.__anyway){
       html += `<section class="session"><div class="head"><div class="eyebrow">${restDay?'Day off':'Done for today'}</div>
-        <h2 class="topic">${info.skippedDay ? 'Skipped today.' : restDay ? esc(info.label)+'.' : 'Goal reached.'}</h2>
-        <p class="muted" style="margin:0">${info.skippedDay ? 'No problem. Anything that was due today moves to the front of the queue next time you study.' : restDay ? 'No revision planned today. Enjoy it.' : `You studied ${fmtMin(done)} today. Your brain stores it while you rest.`}</p></div>
-        <div class="row">${info.skippedDay ? '<button class="btn small" id="ovundo2">Undo, I can study today</button>' : restDay
+        <h2 class="topic">${info.skippedDay ? 'Skipped today.' : info.stoppedEarly ? 'Finished for today.' : restDay ? esc(info.label)+'.' : 'Goal reached.'}</h2>
+        <p class="muted" style="margin:0">${info.skippedDay ? 'No problem. Anything that was due today moves to the front of the queue next time you study.' : info.stoppedEarly ? `You studied ${fmtMin(done)} today. Whatever was left moves to the front of the queue next time you study.` : restDay ? 'No revision planned today. Enjoy it.' : `You studied ${fmtMin(done)} today. Your brain stores it while you rest.`}</p></div>
+        <div class="row">${info.skippedDay || info.stoppedEarly ? `<button class="btn small" id="ovundo2">${info.skippedDay ? 'Undo, I can study today' : 'Undo, I can study more'}</button>` : restDay
           ? `<span class="small muted">Skip it and study instead:</span><button class="btn primary small" data-ov="45">45 min</button><button class="btn small" data-ov="90">1h 30m</button><button class="btn small" data-ov="135">2h 15m</button>`
           : `<span class="small muted">In the mood for more?</span>${quickNext() ? '<button class="btn primary" data-quick="1">Quick refresher · 5 min</button>' : ''}<button class="btn" data-extra="refresh">Refresh · about 20 min</button><button class="btn" data-extra="revise">Revise · 20 to 45 min</button>`}<button class="btn ghost" data-choose="1">Choose a different topic</button></div></section>`;
     } else {
@@ -1645,9 +1655,7 @@ function renderNext(){
       }
     }
   }
-  if (info.override && !info.skippedDay) html += `<div class="row small muted" style="margin:-4px 0 10px">${esc(info.baseLabel)} normally has ${info.baseTarget ? fmtMin(info.baseTarget) : 'no study time'}. <button class="btn small ghost" id="ovundo">Undo</button></div>`;
   if (current) html += sessionHTML();
-  if (current && info.target>0 && !info.override && done < info.target) html += `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn small ghost" id="skipday">I can't study today</button></div>`;
   html += '</div><div class="side">' + todayListHTML(info) + '</div></div>' + subjectsHTML() + weekHTML() + (S.settings.routine ? checkinHTML() : '');
   $('#view').innerHTML = html;
   bindNext();
@@ -1699,7 +1707,8 @@ function sessionHTML(){
   let foot;
   if (cur.phase==='work'){
     foot = `<div class="row"><button class="btn primary" id="finish">Finish and rate</button>
-      <button class="btn ghost" data-choose="1">Choose a different topic</button></div>`;
+      <button class="btn ghost" data-choose="1">Choose a different topic</button>
+      ${(() => { const t = todayStr(), inf = dayInfo(t), dn = doneOn(t); return inf.target>0 && dn < inf.target ? `<button class="btn ghost" id="skipday">${dn ? 'Can’t study any more today' : 'Can’t study today'}</button>` : ''; })()}</div>`;
   } else {
     foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
       <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
@@ -1986,8 +1995,8 @@ function chunkHTML(c){
 }
 function subjectsHTML(){
   if (!CURRICULUM.length) return '';
-  return `<section class="panel subjpanel" id="subjects"><h2>Subjects</h2><p class="small muted" style="margin:0">Every spec point, grouped into 45-minute chunks. Open a subject to rate, re-rate or study a topic of your choice.</p>
-      <div class="legend">${[1,1.5,2,2.5,3].map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div>
+  return `<section class="panel subjpanel" id="subjects"><div class="subjhead"><h2>Subjects</h2>
+      <div class="legend">${[1,1.5,2,2.5,3].map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div></div>
       <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
         <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · ${k.x} to rate`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
 }
