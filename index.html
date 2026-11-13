@@ -2231,7 +2231,7 @@ function renderPlan(){
     <section class="panel"><h2>Study time per day in term time</h2><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<span class="minf"><input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"><i>min</i></span></label>`).join('')}</div>
       </section>
     <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><span class="minf"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><i>min</i></span><span></span></div>
-      <p class="small muted" style="margin:0">From, to and minutes of study per day during the mock week. Put the date of each mock paper in the list below.</p></section>
+      </section>
     </div><div>
     <section class="panel"><h2>Holidays and special periods</h2>
       <div class="periods">${s.periods.map((p,i) => `<div class="prow"><input id="pn${i}" value="${esc(p.name)}" aria-label="Name"><input id="pf${i}" type="date" value="${p.from}" aria-label="From"><input id="pt${i}" type="date" value="${p.to}" aria-label="To"><span class="minf"><input id="pg${i}" type="number" min="0" max="600" step="15" value="${p.target}" aria-label="Minutes per day"><i>min</i></span><button class="x" data-del="${i}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div>
