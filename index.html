@@ -2609,7 +2609,7 @@ function renderOnboarding(){
     body = `<h1>Welcome to Road to <span>9</span></h1>
       <label class="small muted" for="obname">First name or nickname<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" required></label>
       ${TERMS_TICK}
-      <div class="obnav"><span></span><button class="btn primary" id="obnext">Next</button></div><div id="obmsg" class="small" role="status"></div>`;
+      <div class="obnav"><span></span><button class="btn primary" id="obnext">Next: choose subjects</button></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='subjects'){
     body = `<h1>Which subjects do you take?</h1>
       <p class="lead">Tick the ones you want Road to 9 to plan. You don’t have to include every subject, and you can add or remove subjects later in Settings. For each subject you pick, Road to 9 needs a rating for every topic to plan your time until the exams as well as it can. Check the exam board with your school if you’re not sure.</p>
@@ -2617,7 +2617,7 @@ function renderOnboarding(){
       <div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
         <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
         <div id="msgmsg" class="small" role="status"></div></div>
-      <div class="obnav"><button class="btn ghost" id="obback">Back</button><span class="obnr"><span class="obtotal" id="obtotal"></span><button class="btn primary" id="obnext">Next</button></span></div><div id="obmsg" class="small" role="status"></div>`;
+      <div class="obnav"><button class="btn ghost" id="obback">Back</button><span class="obnr"><span class="obtotal" id="obtotal"></span><button class="btn primary" id="obnext">Next: rate topics</button></span></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='rate'){
     const subs = CURRICULUM; const i = Math.min(ob.i||0, subs.length-1); const sb = subs[i];
     const rated = sb.cards.filter(c => chunkChoice(c.id)!=null).length;
@@ -2633,7 +2633,7 @@ function renderOnboarding(){
           <div class="obbtns" role="group" aria-label="${esc(c.n)}">
             <button class="obtx" data-obr="${c.id}" data-v="later" aria-pressed="${v==='later'}">Not taught yet</button>
             <button class="obtx" data-obr="${c.id}" data-v="off" aria-pressed="${v==='off'}" title="Not part of my course">Not on my course</button></div></li>`; }).join('')}</ul></section>`).join('')}
-      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">${i+1 < subs.length ? 'Next subject' : 'Next'}</button></div>
+      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">${i+1 < subs.length ? 'Next subject' : 'Next: study time'}</button></div>
       <div id="obmsg" class="small" role="status"></div>`;
   } else {
     const wd = s.week[1], we = s.week[6];
@@ -2643,7 +2643,7 @@ function renderOnboarding(){
       <h2>On a school day</h2>${chips('wd', [30,45,60,90,120], wd)}
       <h2>On a weekend day</h2>${chips('we', [60,90,120,180,240], we)}
       <p class="small muted">Exam dates are filled in from the 2027 timetables for your subjects. Check them in Settings once your school confirms.</p>
-      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">Let’s get started</button></div>`;
+      <div class="obnav"><button class="btn ghost" id="obback">Back</button><button class="btn primary" id="obnext">Let’s go</button></div>`;
   }
   $('#view').innerHTML = `<div class="ob">${steps}${body}</div>`;
   const go = (step, i) => { obSet({step, i: i||0}); window.scrollTo({top:0}); };
