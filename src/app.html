@@ -2576,7 +2576,8 @@ const termsOK = () => !!(S.settings.terms && S.settings.terms.v === TERMS_V);
 function acceptTerms(){ S.settings.terms = {v: TERMS_V, at: new Date().toISOString()}; }
 const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I’m 13 or over, I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
 // Rating speed for the time estimate: about 3 spec points a minute.
-const rateMins = sid => { const sb = ALL_SUBJECTS.find(x => x.id===sid); return sb ? Math.max(1, Math.ceil(sb.cards.reduce((a, c) => a + c.p.length, 0) / 3)) : 0; };
+// about 6 seconds per colour picker (one per spec point)
+const rateMins = sid => { const sb = ALL_SUBJECTS.find(x => x.id===sid); return sb ? Math.max(1, Math.ceil(sb.cards.reduce((a, c) => a + c.p.length, 0) * 6 / 60)) : 0; };
 const OB_STEPS = [['welcome','You'],['subjects','Subjects'],['rate','Rate topics'],['time','Study time']];
 const OB_LEVELS = [
   [1,'Very strong','I could answer exam questions on it now'],
