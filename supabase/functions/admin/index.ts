@@ -3,10 +3,18 @@
 // caller is signed in as one of the admin emails (secret ADMIN_EMAILS, comma separated) before
 // doing anything. It returns account details only, never anyone's ratings, sessions or notes.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import nodemailer from "npm:nodemailer@6.9.14";
 
 const ORIGINS = ["https://roadto9.com", "https://www.roadto9.com"];
 const SITE = "https://roadto9.com/";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FROM = "hello@roadto9.com";
+const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // same codes as the friend invite links
+function newCode() {
+  const b = crypto.getRandomValues(new Uint8Array(10));
+  const s = Array.from(b, (x) => ALPHABET[x % 32]).join("");
+  return s.slice(0, 5) + "-" + s.slice(5);
+}
 
 function headers(origin: string) {
   return {
@@ -161,6 +169,32 @@ Deno.serve(async (req) => {
       const e = await seed(id, body.doc);
       if (e) return reply({ error: e }, 400);
       return reply({ ok: true });
+    }
+
+    case "codes": {
+      // A batch of one-use invite links owned by the admin, emailed to the admin's own address.
+      const n = Math.min(100, Math.max(1, Math.floor(Number(body.count ?? 50)) || 50));
+      const rows = Array.from({ length: n }, () => ({ inviter: user.id, code: newCode() }));
+      const { error } = await svc.from("invites").insert(rows);
+      if (error) return reply({ error: "Couldn't make the links: " + error.message }, 500);
+      const links = rows.map((r) => `${SITE}?join=${r.code}`);
+      const pass = Deno.env.get("SMTP_PASS");
+      let emailed = false, mailError: string | null = pass ? null : "Email isn't set up yet (SMTP_PASS secret missing).";
+      if (pass) {
+        try {
+          const mail = nodemailer.createTransport({ host: Deno.env.get("SMTP_HOST") ?? "gukm1088.siteground.biz", port: 465, secure: true, auth: { user: FROM, pass } });
+          const day = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
+          await mail.sendMail({
+            from: `"Road to 9" <${FROM}>`, to: user.email!,
+            subject: `Road to 9: ${n} invite links (${day})`,
+            text: `Here are ${n} new invite links for Road to 9. Each link works once: the person who opens it types their own email address and gets a sign-in link.\n\n` +
+              links.map((l, i) => `${i + 1}. ${l}`).join("\n") +
+              `\n\nUsed links show as "used" on roadto9.com/admin.html under your own invites.`,
+          });
+          emailed = true;
+        } catch (e) { mailError = String((e as Error)?.message ?? e); }
+      }
+      return reply({ ok: true, links, emailed, mailError, to: user.email });
     }
 
     case "remove": {
