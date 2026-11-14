@@ -688,6 +688,20 @@ body.signedout #view,body.onboarding #view{min-height:calc(100vh - 150px)}
 body.signedout .top{display:none}
 body.signedout #view{min-height:calc(100vh - 90px)}
 @media (max-width:560px){.obrows .obpts li{grid-template-columns:auto 1fr}.obpb{grid-column:2}}
+.ggrid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));margin-bottom:14px}
+.gcard h2{margin:0}
+.gcode{font-family:var(--f-mono);font-weight:600;letter-spacing:.06em;font-size:14px;padding:4px 10px;border-radius:8px;background:var(--sunk)}
+.gmembers{list-style:none;margin:12px 0;padding:0;display:grid;gap:6px}
+.gmembers li{display:flex;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;align-items:center;padding:8px 10px;border-radius:10px;background:var(--sunk)}
+.gname{font-weight:700}
+.gstudy{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink)}
+.gstudy i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.gswitch{display:flex;gap:10px;align-items:flex-start;cursor:pointer;line-height:1.4}
+.gswitch input{width:18px;height:18px;flex:0 0 auto;margin-top:2px}
+.ghelp{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.ghelp .gswitch span{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gmsg{border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:600}.gmsg.ok{background:var(--green-soft);color:var(--ink)}.gmsg.err{background:var(--red-soft);color:var(--ink)}
+.helpbox{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:10px 14px;margin:12px 0}.helpbox p{margin:4px 0 0;font-size:14px}
 /* Day mode (Settings → Appearance): the original planner look. Night stays the default. */
 :root[data-theme="light"]{
   --bg:#eef2f5; --surface:#ffffff; --sunk:#e4e9ee; --refbg:#ffffff; --revbg:#f6f8fa; --ink:#13202b; --muted:#566775; --line:#d3dbe2;
@@ -710,6 +724,7 @@ body.signedout #view{min-height:calc(100vh - 90px)}
     <div class="hdrmeta" id="hdrmeta"></div>
     <nav aria-label="Views" id="mainnav">
       <a href="#next" id="nav-next">Study</a>
+      <a href="#groups" id="nav-groups">Groups</a>
       <a href="#home" id="nav-home">Stats</a>
       <a href="#plan" id="nav-plan">Settings</a>
     </nav>
@@ -1652,6 +1667,122 @@ function monthGrid(today, first){
   return `<div class="mgrid">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x => `<div class="mh">${x}</div>`).join('')}${cells}</div>
     <div class="legend" style="margin-top:8px"><span><i class="lg met"></i>Goal met</span><span><i class="lg part"></i>Some done</span><span><i class="lg miss"></i>Missed</span><span><i class="lg off"></i>Day off</span></div>`;
 }
+/* ---------- groups: make or join with a code, leave with one click ----------
+   Inside a group, members see each other's first name and, only if each switched it on:
+   what they're studying right now, and which topics they rated very strong in the subjects where they offer help.
+   Never: ratings, hours, percentages, journals, emails, contact details or messages. */
+let G = {loaded:false, loading:null, groups:[], shares:{}, at:0, msg:'', err:''};
+let lastShare = '', shareTimer = null, studyingSince = null;
+const shareName = u => (USER && u===USER.id ? (S.settings.name||'').trim() : '') || (G.shares[u] && G.shares[u].name) || 'A student';
+function groupsReady(){ return !!(sb && USER); }
+async function loadGroups(force){
+  if (!groupsReady()) return;
+  if (G.loading) return G.loading;
+  if (!force && G.loaded && Date.now() - G.at < 60000) return;
+  G.loading = (async () => {
+    try {
+      const [g, m, sh] = await Promise.all([sb.from('groups').select('id,name,code,created_by,created_at'), sb.from('group_members').select('group_id,user_id,joined_at'), sb.from('shares').select('user_id,name,studying,strong')]);
+      if (g.error || m.error || sh.error) throw (g.error || m.error || sh.error);
+      G.shares = Object.fromEntries((sh.data||[]).map(x => [x.user_id, x]));
+      G.groups = (g.data||[]).sort((a,b) => a.created_at < b.created_at ? -1 : 1).map(gr => ({...gr, members:(m.data||[]).filter(x => x.group_id===gr.id).map(x => x.user_id)}));
+      G.loaded = true; G.at = Date.now(); G.err = '';
+    } catch(e){ G.err = 'Couldn’t load your groups. Check your connection and try again.'; }
+    G.loading = null;
+  })();
+  return G.loading;
+}
+// everyone this student shares a group with (not themselves)
+const groupMates = () => [...new Set(G.groups.flatMap(g => g.members))].filter(u => USER && u !== USER.id);
+const activeStudy = sh => sh && sh.studying && sh.studying.until && new Date(sh.studying.until) > new Date() ? sh.studying : null;
+function strongShared(){
+  const help = S.settings.helpSubj || {};
+  return CURRICULUM.filter(x => help[x.id]).flatMap(x => x.cards).filter(c => { const st = cs(c.id); return st.st!=='off' && st.st!=='later' && st.st!=='unrated' && st.lvl===1; }).map(c => c.id);
+}
+function myShare(){
+  const studying = S.settings.shareStudying && studyingSince ? studyingSince : null;
+  return {user_id: USER.id, name: (S.settings.name||'').trim().slice(0,30) || null, studying, strong: strongShared(), updated_at: new Date().toISOString()};
+}
+// write this student's share row when it changes (only while they are in a group)
+function pushShare(now){
+  if (!groupsReady()) return;
+  if (!G.loaded){ if (!G.loading) loadGroups().then(() => { if (G.loaded) pushShare(now); }); return; }
+  if (!G.groups.length) return;
+  clearTimeout(shareTimer);
+  shareTimer = setTimeout(async () => {
+    const row = myShare(); const key = JSON.stringify({...row, updated_at:0});
+    if (key === lastShare) return;
+    const { error } = await sb.from('shares').upsert(row);
+    if (!error){ lastShare = key; G.shares[USER.id] = row; }
+  }, now ? 0 : 1200);
+}
+// "Show when I'm studying": from Start until Finish and rate (or leaving the session)
+function syncStudying(){
+  const on = current && current.phase==='work' && (timer.running || timer.left < timer.total);
+  if (on && !studyingSince){
+    studyingSince = {sid: current.type==='paper' ? current.sid : CARD[current.cards[0]].sid, cid: current.type==='paper' ? null : current.cards[0], paper: current.type==='paper' || undefined,
+      until: new Date(Date.now() + (timer.total + 30*60) * 1000).toISOString()};
+    pushShare(true);
+  } else if (!on && studyingSince){ studyingSince = null; pushShare(true); }
+  else if (G.loaded) pushShare();
+}
+function studyingText(st){
+  if (!st) return '';
+  const sb2 = SUBJ[st.sid]; const c = st.cid && CARD[st.cid];
+  return 'Studying ' + (sb2 ? esc(sb2.name) : 'now') + (st.paper ? ' · past paper' : c ? ' · ' + esc(c.n) : '');
+}
+// on a session: group mates who rated this topic very strong and offer help with it
+function helpHTML(cards){
+  if (!groupsReady()) return '';
+  if (!G.loaded){ loadGroups().then(() => { if (G.loaded && G.groups.length && current) render(); }); return ''; }
+  if (Date.now() - G.at > 300000 && !G.loading) loadGroups(true).then(() => { if (current && current.phase==='work') render(); });
+  const ids = new Set(cards.map(c => c.id));
+  const who = groupMates().filter(u => (G.shares[u] && G.shares[u].strong || []).some(id => ids.has(id)));
+  if (!who.length) return '';
+  const subjNames = [...new Set(cards.map(c => SUBJ[c.sid].name))].join(' and ');
+  return `<div class="helpbox"><div class="eyebrow">Need help?</div><p>${who.map(u => `<b>${esc(shareName(u))}</b>`).join(', ')} ${who.length>1 ? 'have' : 'has'} marked ${cards.length>1 ? 'one of these topics' : 'this topic'} as very strong. Ask them about ${esc(subjNames)} however you normally talk to them. Road to 9 has no messaging.</p></div>`;
+}
+let gpoll = null;
+function renderGroups(){
+  if (!groupsReady()){ $('#view').innerHTML = `<section class="panel"><h2>Groups</h2><p class="muted">Groups need you to be signed in and online.</p></section>`; return; }
+  if (!G.loaded){ $('#view').innerHTML = `<section class="panel"><h2>Groups</h2><p class="muted">${G.err ? esc(G.err) : 'Loading your groups…'}</p></section>`;
+    if (!G.err) loadGroups().then(() => { if (route()==='groups') render(); }); return; }
+  if (!gpoll) gpoll = setInterval(() => { if (route()!=='groups' || document.hidden) return; loadGroups(true).then(() => { if (route()==='groups' && !document.activeElement.matches('input')) render(); }); }, 60000);
+  const s = S.settings; const me = USER.id;
+  const strongBy = Object.fromEntries(CURRICULUM.map(x => [x.id, x.cards.filter(c => { const st = cs(c.id); return st.st!=='off' && st.st!=='later' && st.st!=='unrated' && st.lvl===1; }).length]));
+  const groupCard = g => {
+    const ms = g.members.slice().sort((a,b) => (a===me) - (b===me) || shareName(a).localeCompare(shareName(b)));
+    return `<section class="panel gcard"><div class="row" style="justify-content:space-between;align-items:center"><h2>${esc(g.name)}</h2>
+        <div class="row"><span class="gcode" title="Group code">${esc(g.code)}</span><button class="btn small ghost" data-gcopy="${esc(g.code)}">Copy code</button></div></div>
+      <ul class="gmembers">${ms.map(u => { const st = activeStudy(G.shares[u]); return `<li><span class="gname">${esc(shareName(u))}${u===me ? ' <span class="muted">(you)</span>' : ''}</span>${st ? `<span class="gstudy"><i></i>${studyingText(st)}</span>` : ''}</li>`; }).join('')}</ul>
+      <div class="row" style="justify-content:space-between;align-items:center"><span class="small muted">${g.members.length} member${g.members.length>1?'s':''}</span><button class="btn small ghost" data-gleave="${g.id}">Leave group</button></div></section>`;
+  };
+  $('#view').innerHTML = `
+    ${G.msg ? `<div class="gmsg ok">${esc(G.msg)}</div>` : ''}${G.err ? `<div class="gmsg err">${esc(G.err)}</div>` : ''}
+    ${G.groups.length ? `<div class="ggrid">${G.groups.map(groupCard).join('')}</div>` : `<section class="panel"><h2>Groups</h2><p class="muted" style="margin:0">Study alongside your friends: see who’s studying right now, and who can help with a topic. Make a group and give the code to your friends, or join one with a code you’ve been given.</p></section>`}
+    <div class="acctgrid">
+      <section class="panel"><h2>Make a group</h2><form id="gmake" class="row"><input id="gname" maxlength="40" placeholder="Group name, e.g. Year 11 science" aria-label="Group name" style="flex:1 1 200px"><button class="btn primary" type="submit">Make group</button></form></section>
+      <section class="panel"><h2>Join a group</h2><form id="gjoin" class="row"><input id="gcodein" maxlength="12" placeholder="ABCD-EFGH" aria-label="Group code" autocapitalize="characters" style="flex:1 1 160px;text-align:center;letter-spacing:.08em"><button class="btn primary" type="submit">Join</button></form></section>
+    </div>
+    <section class="panel"><h2>What your groups see</h2>
+      <p class="small muted" style="margin:0 0 12px">Your first name${s.name ? ` (<b>${esc(s.name)}</b>)` : ', which you haven’t set yet: add it in Settings so friends know it’s you'}. Everything else is off until you switch it on. Road to 9 never shares your ratings, study time, journal, email or contact details, and has no messaging.</p>
+      <label class="gswitch"><input type="checkbox" id="gshowstudy" ${s.shareStudying ? 'checked' : ''}><span><b>Show when I’m studying</b><br><span class="small muted">From Start until Finish and rate, your groups see the subject and topic.</span></span></label>
+      <div class="eyebrow" style="margin:16px 0 6px">Offer help</div>
+      <p class="small muted" style="margin:0 0 8px">For the subjects you tick, friends studying a topic you rated very strong are told you’re good at it.</p>
+      <div class="ghelp">${CURRICULUM.map(x => `<label class="gswitch small"><input type="checkbox" data-ghelp="${x.id}" ${(s.helpSubj||{})[x.id] ? 'checked' : ''}><span>${icon(x.id,16)} ${esc(x.name)} <span class="muted">· ${strongBy[x.id]} very strong</span></span></label>`).join('')}</div>
+    </section>`;
+  G.msg = ''; G.err = '';
+  const after = async (p, ok) => { const { data, error } = await p; if (error){ G.err = (error.message||'').replace(/^.*?: /,'') || 'That didn’t work. Try again.'; render(); return; } G.msg = ok(data); await loadGroups(true); pushShare(true); render(); };
+  $('#gmake').onsubmit = e => { e.preventDefault(); const n = $('#gname').value.trim(); if (!n){ $('#gname').focus(); return; }
+    after(sb.rpc('create_group', {p_name:n}), code => `Group made. Give your friends the code ${code}.`); };
+  $('#gjoin').onsubmit = e => { e.preventDefault(); const c = $('#gcodein').value.trim(); if (!c){ $('#gcodein').focus(); return; }
+    after(sb.rpc('join_group', {p_code:c}), name => `You joined ${name}.`); };
+  document.querySelectorAll('[data-gleave]').forEach(b => b.onclick = () => { const g = G.groups.find(x => x.id===b.dataset.gleave);
+    after(sb.from('group_members').delete().eq('group_id', g.id).eq('user_id', me), () => g.members.length > 1 ? `You left ${g.name}. To join again, use the code ${g.code}.` : `You left ${g.name}. You were the last member, so the group is gone.`); });
+  document.querySelectorAll('[data-gcopy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.gcopy); b.textContent = 'Copied'; } catch(e){ b.textContent = b.dataset.gcopy; } });
+  $('#gshowstudy').onchange = e => { S.settings.shareStudying = e.target.checked; save(true); pushShare(true); };
+  document.querySelectorAll('[data-ghelp]').forEach(b => b.onchange = () => { S.settings.helpSubj = Object.assign({}, S.settings.helpSubj, {[b.dataset.ghelp]: b.checked}); save(true); pushShare(true); });
+}
+
 function renderHome(){
   const today = todayStr(); const info = dayInfo(today); const s = S.settings;
   const [q, who] = quoteOf(today);
@@ -1709,8 +1840,10 @@ function render(){
   const r = route();
   // Study = today's session + the subjects list; a subject's own page sits under Study too
   const tab = r.startsWith('topics-') ? 'next' : r;
-  ['home','next','plan'].forEach(n => $('#nav-'+n).setAttribute('aria-current', tab===n ? 'page' : 'false'));
+  ['home','next','groups','plan'].forEach(n => $('#nav-'+n).setAttribute('aria-current', tab===n ? 'page' : 'false'));
+  syncStudying();
   if (r==='home') renderHome();
+  else if (r==='groups') renderGroups();
   else if (r.startsWith('topics-') && SUBJ[r.split('-')[1]]) renderTopics(r.split('-')[1]);
   else if (r.startsWith('topics')){ history.replaceState(null, '', location.pathname + location.search + '#next'); $('#nav-next').setAttribute('aria-current','page'); renderNext(); const el = document.getElementById('subjects'); if (el) el.scrollIntoView(); }
   else if (r==='plan') renderPlan();
@@ -1828,7 +1961,7 @@ function sessionHTML(){
   }
   const todos = cards.filter(c => S.todo[c.id]);
   const todoBlock = cur.phase==='work' && todos.length ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}<div class="small muted">You can tick it off or update it when you rate this session.</div></div>` : '';
-  return `<section class="session">${head}${todoBlock}${cur.phase==='work' ? body + timerBlock : ''}${foot}</section>`;
+  return `<section class="session">${head}${todoBlock}${cur.phase==='work' ? body + helpHTML(cards) + timerBlock : ''}${foot}</section>`;
 }
 
 function allRated(cards){ return cards.every(c => c.p.every((_,i) => current.pr[pk(c.id,i)]!=null)); }
@@ -2256,12 +2389,12 @@ function renderPlan(){
     <div class="plangrid"><div>
     <section class="panel"><h2>Study time per day in term time</h2><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<span class="minf"><input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"><i>min</i></span></label>`).join('')}</div>
       </section>
-    <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><label class="minf"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><i>min</i></label><span></span></div>
+    <section class="panel"><h2>Minutes per day during mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><label class="minf"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><i>min</i></label><span></span></div>
       </section>
     </div><div>
-    <section class="panel"><h2>Holidays and special periods</h2>
+    <section class="panel"><h2>Minutes per day during holidays</h2>
       <div class="periods">${s.periods.map((p,i) => `<div class="prow"><input id="pn${i}" value="${esc(p.name)}" aria-label="Name"><input id="pf${i}" type="date" value="${p.from}" aria-label="From"><input id="pt${i}" type="date" value="${p.to}" aria-label="To"><label class="minf"><input id="pg${i}" type="number" min="0" max="600" step="15" value="${p.target}" aria-label="Minutes per day"><i>min</i></label><button class="x" data-del="${i}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div>
-      <div><button class="btn small" id="addp">Add a period</button></div></section>
+      <div><button class="btn small" id="addp">Add a holiday</button></div></section>
     </div></div>
     <section class="panel" id="papers"><div class="row" style="justify-content:space-between;align-items:flex-end"><h2>Exam and mock dates</h2><span class="small muted">Leave a date empty until you know it</span></div>
       
@@ -2289,7 +2422,7 @@ function renderPlan(){
   bindRm(document);
   document.querySelectorAll('[data-addpaper]').forEach(b => b.onclick = () => { const rows = b.parentElement.querySelector('.paprows');
     rows.insertAdjacentHTML('beforeend', paperRow({n:'Paper ' + (rows.children.length+1), mock:'', exam:''})); bindRm(rows); rows.lastElementChild.querySelector('.pn').focus(); });
-  $('#addp').onclick = () => { const t=todayStr(); s.periods.unshift({name:'New period', from:t, to:t, target:135}); save(); };
+  $('#addp').onclick = () => { const t=todayStr(); s.periods.unshift({name:'New holiday', from:t, to:t, target:135}); save(); };
   document.querySelectorAll('[data-theme-set]').forEach(b => b.onclick = () => { S.settings.theme = b.dataset.themeSet; applyTheme(S.settings.theme);
     document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x===b)); save(true); });
   const ur = $('#uroutine'); if (ur) ur.onchange = () => { $('#uhabs').hidden = !ur.checked; if (ur.checked) $('#uhab-duo').focus(); };

@@ -20,4 +20,6 @@
 - [ ] Delete accounts unused for 12 months, with a warning email 2 weeks before (Moritz to confirm period).
 - [ ] Public study-time counter once there are about 10 students.
 - [ ] ICO fee check; processor terms (Supabase, GitHub, SiteGround, Google); solicitor review before charging.
-- [ ] Study groups (phase 2) and "who can help" (phase 3).
+- [x] Study groups and "Need help?" (14 Nov 2026).
+- [ ] DPIA addendum for study groups (names, studying status and very strong topics shared inside groups).
+- [ ] Groups across different exam boards: match by subject only (today: same specification, by topic).

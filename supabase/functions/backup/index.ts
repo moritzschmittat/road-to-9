@@ -1,6 +1,6 @@
 // Road to 9 · nightly backup (Supabase Edge Function "backup").
 // Returns ONE encrypted file with everything needed to rebuild Road to 9: every planner, every account
-// (email and dates, no passwords exist) and every invite link. A Google Apps Script in Moritz's Drive
+// (email and dates, no passwords exist), every invite link and the study groups. A Google Apps Script in Moritz's Drive
 // fetches it each night. The file is unreadable without BACKUP_KEY, which only Moritz holds.
 //
 // File format (.r9b): "R9B1" | 16-byte salt | 12-byte IV | AES-256-GCM ciphertext of gzip(JSON)
@@ -55,11 +55,15 @@ Deno.serve(async (req) => {
   if (e1) return new Response("Progress: " + e1.message, { status: 500 });
   const { data: invites, error: e2 } = await svc.from("invites").select("*");
   if (e2) return new Response("Invites: " + e2.message, { status: 500 });
+  const { data: groups, error: e3 } = await svc.from("groups").select("*");
+  if (e3) return new Response("Groups: " + e3.message, { status: 500 });
+  const { data: group_members, error: e4 } = await svc.from("group_members").select("*");
+  if (e4) return new Response("Group members: " + e4.message, { status: 500 });
 
   const plain = new TextEncoder().encode(JSON.stringify({
     app: "road-to-9", format: 1, made_at: new Date().toISOString(),
-    counts: { users: users.length, progress: progress?.length ?? 0, invites: invites?.length ?? 0 },
-    users, progress, invites,
+    counts: { users: users.length, progress: progress?.length ?? 0, invites: invites?.length ?? 0, groups: groups?.length ?? 0 },
+    users, progress, invites, groups, group_members,
   }));
 
   const salt = crypto.getRandomValues(new Uint8Array(16));

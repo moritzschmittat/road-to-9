@@ -165,21 +165,23 @@ saved, setup finished. Never ratings, sessions, journals or to-dos.
   secret SMTP_PASS is set, emails hello@roadto9.com via SiteGround with the student's address as reply-to.
 - The admin page lists messages with a Done / Reopen button.
 
-## 4. Study groups (phase 2) and "Who can help" (phase 3)
+## 4. Study groups (built 14 Nov 2026)
 
-- Groups are joined by invite code only. Kids only. Leave at any time.
-- Two switches per user, both **off** by default:
-  - "Show when I'm studying" → live bar: *"Toby is studying Chemistry · States of matter"*.
-    Supabase Realtime Presence; disappears when the session ends; nothing stored.
-    A "hide the bar" option for focus.
-  - "Show topics I'm strong on" → shares only topics rated very strong or strong (and when last
-    studied). Switching it off deletes the shared rows.
-- **Who can help**: on a topic, lists group members who are strong on it, with the exact text:
-  *"Contact Toby via your usual channel for help with Chemistry. This platform does not provide
-  any communication facility."*
-- Never: messaging, notifications between users, ask buttons, league tables, rankings, hours,
-  percentages, weak topics, journals or to-dos of other users.
-- Matching: same exam board → by topic; different boards → by subject only.
+- **Groups tab** between Study and Stats. Anyone can make a group (gets a code like `ABCD-EFGH`),
+  join with a code, and leave with one click. Last one out deletes the group (database trigger), so
+  there are no orphaned groups. Limits: 10 groups per student, 40 students per group.
+- Members see each other's first name. Everything else is **off** by default:
+  - **Show when I'm studying**: from Start until Finish and rate, members see subject and topic.
+    Stored as `shares.studying` with an `until` time (session length + 30 min), so a closed tab
+    expires on its own. No live push: the Groups page refreshes every minute.
+  - **Offer help**, ticked per subject: shares the topics rated **very strong** (dark green) in those
+    subjects only.
+- **Need help?** box on a session: group mates who marked the topic very strong and offer help with
+  that subject. Matching is by topic id, so it works between students on the same specification.
+- Never: messaging, notifications between users, league tables, rankings, hours, percentages, weak
+  topics, journals, to-dos, emails or contact details.
+- Tables `groups`, `group_members`, `shares` with row-level security (`supabase/007_groups.sql`);
+  joining and making go through `create_group` / `join_group` functions.
 
 ## 5. Subjects
 
