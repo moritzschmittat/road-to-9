@@ -2653,7 +2653,7 @@ function renderOnboarding(){
     if (step==='welcome'){
       const nm = ($('#obname').value||'').trim().slice(0,30);
       if (!nm){ $('#obmsg').textContent = 'Add your first name or a nickname. A nickname is fine.'; $('#obname').focus(); return; }
-      if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to agree to the Terms of use first.'; return; }
+      if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to confirm you’re 13 or over and agree to the Terms of use.'; return; }
       acceptTerms(); s.name = nm; return go('subjects'); }
     if (step==='subjects'){
       const pick = [...document.querySelectorAll('[data-obsubj]')].filter(x => x.checked).map(x => x.dataset.obsubj);
@@ -2693,7 +2693,7 @@ function renderTermsGate(){
   $('#view').innerHTML = `<div class="ob"><h1>${S.settings.terms ? 'We’ve updated our terms' : 'One quick thing'}</h1>
     <p class="lead">Please agree to the Terms of use before you carry on. ${S.settings.terms ? 'Your planner is exactly as you left it.' : 'Your planner is ready and waiting for you.'}</p>
     ${TERMS_TICK}<div class="obnav"><span></span><button class="btn primary" id="obnext">Continue</button></div><div id="obmsg" class="small" role="status"></div></div>`;
-  $('#obnext').onclick = () => { if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box first.'; return; } acceptTerms(); save(); render(); };
+  $('#obnext').onclick = () => { if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to confirm you’re 13 or over and agree to the Terms of use.'; return; } acceptTerms(); save(); render(); };
 }
 window.addEventListener('hashchange', () => { if (USER) render(); });
 (async function boot(){
