@@ -1317,26 +1317,8 @@ function bindHabits(){
 }
 
 
-/* ---------- export / import ---------- */
-let pendingImport = null;
+/* ---------- export (download a copy of your data) ---------- */
 function exportText(){ return JSON.stringify(Object.assign({app:'road-to-9', exportedAt:new Date().toISOString()}, S)); }
-function checkImport(txt){
-  let d; try { d = JSON.parse(txt); } catch(e){ return {err:'That isn’t a progress file (it isn’t valid JSON).'}; }
-  if (!d || typeof d!=='object' || !d.settings || !('cards' in d)) return {err:'That file doesn’t look like a planner export.'};
-  const n = (d.log||[]).length, pts = Object.keys(d.pts||{}).length;
-  return {d, summary:`${n} session${n===1?'':'s'}, ${pts} rated spec point${pts===1?'':'s'}${d.exportedAt ? ', exported ' + new Date(d.exportedAt).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}`};
-}
-function showImportConfirm(res){
-  const m = $('#bkmsg'), x = $('#bkextra');
-  if (res.err){ m.textContent = '⚠ ' + res.err; return; }
-  pendingImport = res.d;
-  const have = `${S.log.length} session${S.log.length===1?'':'s'}, ${Object.keys(S.pts||{}).length} rated spec points`;
-  m.textContent = '';
-  x.innerHTML = `<div class="note small" style="margin-top:8px">The file has <b>${esc(res.summary)}</b>. This browser has <b>${esc(have)}</b>. Importing replaces what's in this browser.
-    <div class="row" style="margin-top:8px"><button class="btn primary small" id="impgo">Replace with the file</button><button class="btn ghost small" id="impno">Cancel</button></div></div>`;
-  $('#impgo').onclick = () => { const d = pendingImport; pendingImport = null; S = normalise(d); delete S.app; delete S.exportedAt; current = null; save(); setTimeout(() => { const mm = $('#bkmsg'); if (mm) mm.textContent = '✓ Progress imported.'; }, 0); };
-  $('#impno').onclick = () => { pendingImport = null; x.innerHTML = ''; };
-}
 function bindBackup(){
   const exp = $('#exp'); if (!exp) return;
   exp.onclick = async () => {
@@ -1348,15 +1330,10 @@ function bindBackup(){
       m.textContent = '✓ Downloaded ' + name + '. Keep it somewhere safe.'; return;
     } catch(e){}
     // fallback: show the text to copy
-    $('#bkextra').innerHTML = `<p class="small muted" style="margin:8px 0 4px">Downloads aren't available here. Copy this text and keep it (for example in a note or an email to yourself). Use "Paste instead" to load it back.</p>
+    $('#bkextra').innerHTML = `<p class="small muted" style="margin:8px 0 4px">Downloads aren't available here. Copy this text and keep it (for example in a note or an email to yourself).</p>
       <textarea id="exptxt" readonly style="width:100%;height:120px;font:12px var(--f-mono)"></textarea><div class="row" style="margin-top:6px"><button class="btn small" id="expcopy">Copy</button></div>`;
     $('#exptxt').value = txt;
     $('#expcopy').onclick = async () => { try { await navigator.clipboard.writeText(txt); m.textContent = '✓ Copied.'; } catch(e){ $('#exptxt').select(); m.textContent = 'Press Ctrl+C (or Cmd+C) to copy the selected text.'; } };
-  };
-  $('#impfile').onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return; showImportConfirm(checkImport(await f.text())); e.target.value = ''; };
-  $('#imppaste').onclick = () => {
-    $('#bkextra').innerHTML = `<p class="small muted" style="margin:8px 0 4px">Paste the exported text here:</p><textarea id="imptxt" style="width:100%;height:120px;font:12px var(--f-mono)"></textarea><div class="row" style="margin-top:6px"><button class="btn small" id="impcheck">Load it</button></div>`;
-    $('#impcheck').onclick = () => showImportConfirm(checkImport($('#imptxt').value));
   };
 }
 
@@ -2402,11 +2379,9 @@ function renderPlan(){
         <div class="paprow paphead small muted"><span>Paper</span><span>Mock</span><span>Exam</span><span></span></div>
         <div class="paprows">${(s.papers[x.id]||[]).map(q => paperRow(q)).join('')}</div>
         <button class="btn small ghost" data-addpaper="${x.id}">+ Add paper</button></div>`).join('')}</div></section>
-    <section class="panel" id="backup"><h2>Back up or move your progress</h2>
-      <p class="small muted" style="margin:0">Export saves everything (ratings, sessions, skipped days, bedtime check-ins and this plan) to one file. Import loads that file into this browser, for example on your phone or after clearing your browser.</p>
-      <div class="row"><button class="btn primary" id="exp">Export progress</button>
-        <label class="btn" for="impfile" style="cursor:pointer">Import from file</label><input id="impfile" type="file" accept=".json,application/json" hidden>
-        <button class="btn ghost" id="imppaste">Paste instead</button></div>
+    <section class="panel" id="backup"><h2>Download your data</h2>
+      <p class="small muted" style="margin:0">A copy of everything Road to 9 keeps for you (ratings, sessions, journal, routine answers and your plan) in one file. Your planner is already saved to your account, so you don't need this to switch devices.</p>
+      <div class="row"><button class="btn primary" id="exp">Download my data</button></div>
       <div id="bkmsg" class="small" role="status"></div>
       <div id="bkextra"></div></section>
     <section class="panel"><h2>Account</h2>
@@ -2629,15 +2604,9 @@ function renderOnboarding(){
   let body = '';
   if (step==='welcome'){
     body = `<h1>Welcome to Road to <span>9</span></h1>
-      <p class="lead">We do the planning, you do the learning. Three quick steps and your first session is ready.</p>
-      <ol class="obhow"><li><b>Pick your subjects.</b></li><li><b>Rate every topic</b> from very weak to very strong. Be honest: the weakest come first.</li><li><b>Open Road to 9 each day</b> and do what it says. It plans revising, and brings topics back just before you’d forget them.</li></ol>
       <label class="small muted" for="obname">First name or nickname (optional)<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name"></label>
       ${TERMS_TICK}
-      <div class="obnav"><span></span><button class="btn primary" id="obnext">Let’s start</button></div><div id="obmsg" class="small" role="status"></div>
-      <details class="obimport"><summary class="small">Already have a progress file from an earlier planner?</summary>
-        <p class="small muted">Tick the box above first, then load it to skip these steps. Everything in it (subjects, ratings, sessions, journal) comes across.</p>
-        <label class="btn small" for="obfile" style="cursor:pointer">Choose file</label><input id="obfile" type="file" accept=".json,application/json" hidden>
-        <div id="obimpmsg" class="small" role="status"></div></details>`;
+      <div class="obnav"><span></span><button class="btn primary" id="obnext">Next</button></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='subjects'){
     body = `<h1>Which subjects do you take?</h1>
       <p class="lead">Tick each one. Check the exam board with your school if you’re not sure.</p>
@@ -2692,16 +2661,6 @@ function renderOnboarding(){
       return i+1 < CURRICULUM.length ? go('rate', i+1) : go('time');
     }
     s.onboarded = true; s.ob = {step:'done', i:0}; s.startedOn = todayStr(); location.hash = '#next'; save();
-  };
-  const f = $('#obfile'); if (f) f.onchange = async () => {
-    const file = f.files && f.files[0]; if (!file) return; const m = $('#obimpmsg');
-    if (!$('#obterms').checked){ m.textContent = '⚠ Tick the box to agree to the Terms of use first, then choose the file again.'; f.value = ''; return; }
-    const res = checkImport(await file.text());
-    if (res.err){ m.textContent = '⚠ ' + res.err; return; }
-    const d = normalise(res.d); delete d.app; delete d.exportedAt; d.settings.onboarded = true; d.settings.ob = {step:'done', i:0};
-    d.settings.terms = {v: TERMS_V, at: new Date().toISOString()};
-    if (!d.settings.subjects.length) d.settings.subjects = ALL_SUBJECTS.map(q => q.id);
-    S = d; current = null; location.hash = '#next'; save();
   };
   document.querySelectorAll('[data-obr]').forEach(b => b.onclick = () => { const v = b.dataset.v; rateChunk(b.dataset.obr, isNaN(+v) ? v : +v); });
   document.querySelectorAll('[data-obp]').forEach(b => b.onclick = () => applyPoint(b.dataset.obp, +b.dataset.v));
