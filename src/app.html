@@ -2348,7 +2348,7 @@ function renderPlan(){
     <p class="muted" style="margin:0">Change these whenever life changes. The next session updates straight away.</p>
     <div class="acctgrid">
     <section class="panel"><h2>You</h2>
-      <label class="small muted" for="uname">First name or nickname (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
+      <label class="small muted" for="uname">First name or nickname (shown to friends in your groups and on your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
       <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions about your day, answered at the bottom of Study. Leave a box empty to skip it.</p>
       ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div>
@@ -2402,7 +2402,9 @@ function renderPlan(){
     document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x===b)); save(true); });
   const ur = $('#uroutine'); if (ur) ur.onchange = () => { $('#uhabs').hidden = !ur.checked; if (ur.checked) $('#uhab-duo').focus(); };
   $('#saveplan').onclick = () => {
-    s.name = ($('#uname').value || '').trim().slice(0, 30);
+    const nm = ($('#uname').value || '').trim().slice(0, 30);
+    if (!nm){ $('#uname').focus(); $('#uname').setCustomValidity('Add your first name or a nickname.'); $('#uname').reportValidity(); $('#uname').oninput = e => e.target.setCustomValidity(''); return; }
+    s.name = nm;
     s.routine = $('#uroutine').checked;
     s.habitQ = Object.fromEntries(HABITS.map(([k]) => [k, (($('#uhab-' + k) || {}).value || '').trim().slice(0, 80)]));
     s.subjects = [...document.querySelectorAll('[data-subj]')].filter(x => x.checked).map(x => x.dataset.subj);
@@ -2604,7 +2606,7 @@ function renderOnboarding(){
   let body = '';
   if (step==='welcome'){
     body = `<h1>Welcome to Road to <span>9</span></h1>
-      <label class="small muted" for="obname">First name or nickname (optional)<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name"></label>
+      <label class="small muted" for="obname">First name or nickname<input id="obname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" required></label>
       ${TERMS_TICK}
       <div class="obnav"><span></span><button class="btn primary" id="obnext">Next</button></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='subjects'){
@@ -2649,8 +2651,10 @@ function renderOnboarding(){
     go(OB_STEPS[Math.max(0, idx-1)][0], step==='time' ? CURRICULUM.length-1 : 0); };
   $('#obnext').onclick = () => {
     if (step==='welcome'){
+      const nm = ($('#obname').value||'').trim().slice(0,30);
+      if (!nm){ $('#obmsg').textContent = 'Add your first name or a nickname. A nickname is fine.'; $('#obname').focus(); return; }
       if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to agree to the Terms of use first.'; return; }
-      acceptTerms(); s.name = ($('#obname').value||'').trim().slice(0,30); return go('subjects'); }
+      acceptTerms(); s.name = nm; return go('subjects'); }
     if (step==='subjects'){
       const pick = [...document.querySelectorAll('[data-obsubj]')].filter(x => x.checked).map(x => x.dataset.obsubj);
       if (!pick.length){ $('#obmsg').textContent = 'Tick at least one subject.'; return; }
