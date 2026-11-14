@@ -424,6 +424,7 @@ details.sx[open] .wk-t{-webkit-line-clamp:unset;display:block}
 .sd-pts .rag{width:9px;height:9px;margin-top:3px}
 .sd-pts .code{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;padding-top:1px}
 .tl{align-items:flex-start}
+@media (min-width:700px){ .tlist .tl-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px} }
 /* time progress on Today */
 .timebar{display:flex;align-items:center;gap:10px;margin-top:4px}
 .timebar .tb{width:160px;height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
@@ -483,7 +484,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .sbody{display:grid;gap:16px}
 .rategrid{display:grid;gap:12px}
 @media (min-width:1000px){
-  .cols{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(300px,1fr);gap:20px;align-items:start}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}   /* session full width, today below (Moritz, 14 Nov) */
   .side .panel:first-child{margin-top:0}
   .sbody{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px}
   .multi{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
