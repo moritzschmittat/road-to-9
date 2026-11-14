@@ -197,10 +197,13 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 .grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .grid7 label{display:grid;gap:4px;font-size:12px;color:var(--muted);text-align:center;font-weight:700}
 .grid7 input{font-variant-numeric:tabular-nums}
-.minf{position:relative;display:block;min-width:0}
-.minf input{width:100%;padding-right:38px;text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.minf{display:flex;justify-content:center;align-items:baseline;gap:5px;min-width:0;cursor:text;font-size:16px;font-weight:400;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 8px;transition:border-color .12s ease,box-shadow .12s ease}
+.minf:focus-within{border-color:var(--navy-2);box-shadow:var(--ring)}
+.minf input{all:unset;width:3.2ch;field-sizing:content;min-width:1ch;max-width:4ch;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);-moz-appearance:textfield}
 .minf input::-webkit-inner-spin-button,.minf input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.minf i{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-style:normal;font-size:13px;font-weight:600;color:var(--muted);pointer-events:none}
+.minf i{font-style:normal;font-size:13px;font-weight:600;color:var(--muted)}
+:root[data-theme="dark"] .minf{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.13)}
+:root .minf input,:root[data-theme] .minf input{background:transparent;border:0;box-shadow:none;padding:0;border-radius:0;outline:none}
 @media (max-width:640px){.grid7{grid-template-columns:repeat(4,minmax(0,1fr))}}
 input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-width:0;width:100%}
 .periods{display:grid;gap:8px}
@@ -2253,11 +2256,11 @@ function renderPlan(){
     <div class="plangrid"><div>
     <section class="panel"><h2>Study time per day in term time</h2><div class="grid7">${order.map(d => `<label for="wk${d}">${names[d]}<span class="minf"><input id="wk${d}" type="number" min="0" max="600" step="15" value="${s.week[d]}"><i>min</i></span></label>`).join('')}</div>
       </section>
-    <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><span class="minf"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><i>min</i></span><span></span></div>
+    <section class="panel"><h2>Mock exam week</h2><div class="prow"><input value="Mock exams" disabled aria-label="Name"><input id="mf" type="date" value="${s.mocks.from}" aria-label="From"><input id="mt" type="date" value="${s.mocks.to}" aria-label="To"><label class="minf"><input id="mn" type="number" min="0" max="600" step="15" value="${s.mocks.target}" aria-label="Minutes per day"><i>min</i></label><span></span></div>
       </section>
     </div><div>
     <section class="panel"><h2>Holidays and special periods</h2>
-      <div class="periods">${s.periods.map((p,i) => `<div class="prow"><input id="pn${i}" value="${esc(p.name)}" aria-label="Name"><input id="pf${i}" type="date" value="${p.from}" aria-label="From"><input id="pt${i}" type="date" value="${p.to}" aria-label="To"><span class="minf"><input id="pg${i}" type="number" min="0" max="600" step="15" value="${p.target}" aria-label="Minutes per day"><i>min</i></span><button class="x" data-del="${i}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div>
+      <div class="periods">${s.periods.map((p,i) => `<div class="prow"><input id="pn${i}" value="${esc(p.name)}" aria-label="Name"><input id="pf${i}" type="date" value="${p.from}" aria-label="From"><input id="pt${i}" type="date" value="${p.to}" aria-label="To"><label class="minf"><input id="pg${i}" type="number" min="0" max="600" step="15" value="${p.target}" aria-label="Minutes per day"><i>min</i></label><button class="x" data-del="${i}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div>
       <div><button class="btn small" id="addp">Add a period</button></div></section>
     </div></div>
     <section class="panel" id="papers"><div class="row" style="justify-content:space-between;align-items:flex-end"><h2>Exam and mock dates</h2><span class="small muted">Leave a date empty until you know it</span></div>
