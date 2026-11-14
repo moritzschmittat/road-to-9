@@ -424,6 +424,15 @@ details.sx[open] .wk-t{-webkit-line-clamp:unset;display:block}
 .sd-pts .rag{width:9px;height:9px;margin-top:3px}
 .sd-pts .code{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;padding-top:1px}
 .tl{align-items:flex-start}
+.tlist .tl{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m t" "m a";gap:6px 10px}
+.tlist .tl > details.sx{grid-area:m}
+.tlist .tl-min{grid-area:t;align-self:start;justify-self:end;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tlist .tl-act{grid-area:a;align-self:end;justify-self:end}
+.tlist .tl-act:empty{display:none}
+.tlist details.sx summary > :first-child::after{content:" ▸";color:var(--muted)}
+.tlist details.sx[open] summary > :first-child::after{content:" ▾"}
+.tlist details.sx summary .wk-k::after{content:none}
+.tlist .wk-sub{font-weight:700}
 @media (min-width:700px){ .tlist .tl-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px} }
 /* time progress on Today */
 .timebar{display:flex;align-items:center;gap:10px;margin-top:4px}
@@ -1401,7 +1410,8 @@ function todayListHTML(info){
   const left = Math.max(0, info.target - doneOn(today) - (current ? (current.mins || 45) : 0));
   todayRest = mixDay(restOfToday(left), startKind(today, current));
   if (!done.length && !current && !todayRest.length && info.target===0) return '';
-  const row = (n, cls, extra) => { const L = sessLabel(n); return `<li class="tl ${cls}"><details class="sx"><summary><div class="wk-k">${esc(L.k)}</div><div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div></summary>${sessDetail(n)}</details>${extra||''}</li>`; };
+  const row = (n, cls, extra) => { const L = sessLabel(n); const parts = L.k.split(' · '); const mins = parts.pop(); const kind = /^Revise/.test(parts[0]||'') ? '' : parts.join(' · ');
+    return `<li class="tl ${cls}"><details class="sx"><summary>${kind ? `<div class="wk-k">${esc(kind)}</div>` : ''}<div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div></summary>${sessDetail(n)}</details><span class="tl-min">${esc(mins)}</span><div class="tl-act">${extra||''}</div></li>`; };
   const items = done.map(l => row(l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, 'done', `<span class="tl-tag">✓ ${l.r && l.r.length ? l.r.map(x => `<i class="rag ${lvClass(x)}"></i>`).join('') : ''}</span>`))
     .concat(current ? [row(current, 'now', '<span class="tl-tag now">Now</span>')] : [])
     .concat(todayRest.map((n, i) => row(n, '', `<button class="btn small" data-pick="${i}">Do this now</button>`)));
