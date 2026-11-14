@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<script>try{ if (localStorage.getItem("r9-theme")==="day") document.documentElement.setAttribute("data-theme","light"); }catch(e){}</script>
 <style>
 /* Layout: one narrow column, one "next session" card that owns the screen; everything else is quiet and secondary. */
 :root{
@@ -684,6 +685,18 @@ body.signedout #view,body.onboarding #view{min-height:calc(100vh - 150px)}
 body.signedout .top{display:none}
 body.signedout #view{min-height:calc(100vh - 90px)}
 @media (max-width:560px){.obrows .obpts li{grid-template-columns:auto 1fr}.obpb{grid-column:2}}
+/* Day mode (Settings → Appearance): the original planner look. Night stays the default. */
+:root[data-theme="light"]{
+  --bg:#eef2f5; --surface:#ffffff; --sunk:#e4e9ee; --refbg:#ffffff; --revbg:#f6f8fa; --ink:#13202b; --muted:#566775; --line:#d3dbe2;
+  --accent:#1f45d6; --accent-ink:#ffffff; --accent-soft:#e3e9ff;
+  --f-display:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --r:14px; --shadow:0 1px 2px rgba(19,32,43,.05); color-scheme:light}
+:root[data-theme="light"] body{background:var(--bg)}
+:root[data-theme="light"] h1,:root[data-theme="light"] h2,:root[data-theme="light"] h3{font-weight:600;letter-spacing:-.01em}
+:root[data-theme="light"] .btn.primary{background:var(--accent);color:#fff;box-shadow:none}
+:root[data-theme="light"] .brand b,:root[data-theme="light"] .ob h1 span,:root[data-theme="light"] .wm b{color:var(--accent)}
+:root[data-theme="light"] input[type=checkbox]{accent-color:var(--accent)}
+.themeseg{display:inline-flex;margin-top:6px}
 </style>
 </head>
 <body>
@@ -784,6 +797,11 @@ const DELETE_CONFIRMED = new URLSearchParams(location.search).get('delete') === 
 var lastSnap = null;
 let S = null; // {v, updated, cards:{id:state}, settings, log:[]}
 function fresh(){ return {v:1, updated:0, cards:{}, pts:{}, habits:{}, hist:{}, settings:defaultSettings(), log:[]}; }
+function applyTheme(t){
+  const day = t==='day';
+  document.documentElement.setAttribute('data-theme', day ? 'light' : 'dark');
+  try { localStorage.setItem('r9-theme', day ? 'day' : 'night'); } catch(e){}
+}
 function normalise(x){
   const f = fresh();
   if (!x || typeof x!=='object') return f;
@@ -1182,13 +1200,13 @@ function progressSnapshot(){
   CURRICULUM.forEach(s => { const w = workOf(s.cards, true).pct; if (w!=null) o['w_'+s.id] = w; });
   return o;
 }
-function save(){
+function save(quiet){
   try { S.hist = Object.assign({}, S.hist, {[todayStr()]: progressSnapshot()}); } catch(e){}
   stamp(); lastSnap = clone(S);
   S.updated = Date.now();
   try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){}
   if (dbRef) pushOnline(); else { setState('local'); setSync('⚠ Saved on this device only' + noDbReason); }
-  render();
+  if (!quiet) render();
 }
 window.addEventListener('online', () => { if (pendingSync) pushOnline(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState==='visible' && dbRef){ dbRef.get().then(s => { if (s.exists) applyRemote(normalise(s.data()), true); }).catch(()=>{}); if (pendingSync) pushOnline(); } });
@@ -1683,6 +1701,7 @@ function headerMeta(){
   return '';   // no countdowns or quotes in the header (Moritz, 13 Nov 2026)
 }
 function render(){
+  if (S && S.settings) applyTheme(S.settings.theme);
   const hm = document.getElementById('hdrmeta'); if (hm) hm.innerHTML = headerMeta();
   const r = route();
   // Study = today's session + the subjects list; a subject's own page sits under Study too
@@ -2219,7 +2238,10 @@ function renderPlan(){
       <label class="small muted" for="uname">First name or nickname (shown only to friends who open one of your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
       <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
       <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions about your day, answered at the bottom of Study. Leave a box empty to skip it.</p>
-      ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div></section>
+      ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div>
+      <div class="small muted" style="margin-top:16px">Appearance</div>
+      <div class="seg themeseg" role="group" aria-label="Appearance">${[['night','Night'],['day','Day']].map(([v,l]) => `<button type="button" data-theme-set="${v}" aria-pressed="${(s.theme||'night')===v}">${l}</button>`).join('')}</div>
+      </section>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
       <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
@@ -2265,6 +2287,8 @@ function renderPlan(){
   document.querySelectorAll('[data-addpaper]').forEach(b => b.onclick = () => { const rows = b.parentElement.querySelector('.paprows');
     rows.insertAdjacentHTML('beforeend', paperRow({n:'Paper ' + (rows.children.length+1), mock:'', exam:''})); bindRm(rows); rows.lastElementChild.querySelector('.pn').focus(); });
   $('#addp').onclick = () => { const t=todayStr(); s.periods.unshift({name:'New period', from:t, to:t, target:135}); save(); };
+  document.querySelectorAll('[data-theme-set]').forEach(b => b.onclick = () => { S.settings.theme = b.dataset.themeSet; applyTheme(S.settings.theme);
+    document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x===b)); save(true); });
   const ur = $('#uroutine'); if (ur) ur.onchange = () => { $('#uhabs').hidden = !ur.checked; if (ur.checked) $('#uhab-duo').focus(); };
   $('#saveplan').onclick = () => {
     s.name = ($('#uname').value || '').trim().slice(0, 30);
