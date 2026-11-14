@@ -83,6 +83,11 @@ nav a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow
 /* the session card */
 .session{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 20px;display:grid;gap:16px;box-shadow:0 8px 28px -18px rgba(20,32,43,.35)}
 .session .head{display:grid;gap:6px}
+.ratenote{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.ratenote a{color:var(--accent);font-weight:700;text-decoration:none}
+.torate{color:var(--accent);font-weight:700}
+.session .toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.session .toprow .subj{flex-shrink:0;margin-top:4px}
 .kind{display:inline-flex;gap:8px;align-items:center}
 .subj{font-size:15px;font-weight:700;color:var(--accent)}
 .topic{font-size:clamp(28px,6vw,42px);font-weight:600;letter-spacing:-.015em}
@@ -351,11 +356,17 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .seg button{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 /* collapsible how-to */
-details.howto{border:1px solid var(--line);border-radius:10px;padding:8px 12px}
-details.howto summary{cursor:pointer;list-style:none;display:flex;gap:8px;align-items:center;font-size:14px;font-weight:700;color:var(--muted)}
+.session{position:relative}
+.session > .row:last-child{padding-right:46px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+details.howto{position:absolute;right:18px;bottom:20px;z-index:6}
+details.howto summary{cursor:pointer;list-style:none}
 details.howto summary::-webkit-details-marker{display:none}
-details.howto .q{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:800}
-details.howto[open] summary{margin-bottom:10px;color:var(--ink)}
+details.howto .q{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);color:var(--muted);font-size:14px;font-weight:800}
+details.howto summary:hover .q{color:var(--ink);border-color:var(--muted)}
+details.howto[open] .q{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#050c14)}
+details.howto > :not(summary){position:absolute;right:0;bottom:40px;width:min(520px,calc(100vw - 48px));margin:0;background:#121e2c;border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 34px;box-shadow:0 14px 34px rgba(0,0,0,.5);max-height:60vh;overflow:auto}
+:root[data-theme="light"] details.howto > :not(summary){background:#fff;box-shadow:0 14px 34px rgba(19,32,43,.18)}
 .howlist{margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px;color:var(--muted)}
 /* evening routine */
 .checkin{background:var(--surface);border:2px solid var(--accent);border-radius:var(--r);padding:16px 20px;display:grid;gap:10px;margin:18px 0 14px}
@@ -1610,7 +1621,7 @@ function streak(){
 }
 /* small "?" that opens a short explainer */
 function tipHTML(label, body){ return `<details class="tip"><summary aria-label="${esc(label)}" title="${esc(label)}">?</summary><div class="tipbox">${body}</div></details>`; }
-document.addEventListener('click', e => document.querySelectorAll('details.tip[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
+document.addEventListener('click', e => document.querySelectorAll('details.tip[open], details.howto[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
 function tile(title, sub, st){
   const pct = st.planned ? Math.min(100, Math.round(100*st.done/st.planned)) : 0;
   return `<div class="tile"><div class="eyebrow">${esc(title)}</div>
@@ -1885,7 +1896,7 @@ function paperHTML(){
   const mm = Math.floor(timer.left/60), ss = timer.left%60;
   return `<section class="session"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
-    <details class="howto"><summary><span class="q" aria-hidden="true">?</span>How to do a past-paper session</summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
+    <details class="howto"><summary title="How to do a past-paper session"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a past-paper session</span></summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
       <li><div><b>Mark</b><span>Mark it with the mark scheme, honestly. Keep the papers in one folder so you can see your scores go up.</span></div></li>
       <li><div><b>Feed it back</b><span>For each question where you dropped marks, find the topic under Subjects on the Study page and set it to weak or very weak. It comes back in your next sessions.</span></div></li></ol></details>
     <div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
@@ -1904,10 +1915,9 @@ function sessionHTML(){
   const kindLabel = isLearn ? (st.st==='learning' ? 'Revise again' : 'Revise') : 'Refresh';
   let head, body;
   if (isLearn){
-    head = `<div class="head"><div class="kind"><span class="rag ${lvClass(st.lvl)}"></span><span class="eyebrow">${kindLabel} · ${cur.mins || 45} min</span></div>
-      <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">${esc(first.n)}</h2><div class="sec">${esc(first.sec)}</div></div>`;
-    body = `${first.p.length ? '<div><div class="eyebrow" style="margin-bottom:8px">Spec points</div>' + pointsHTML(first) + '</div>' : ''}
-      <details class="howto"><summary><span class="q" aria-hidden="true">?</span>How to spend the ${cur.mins || 45} minutes</summary><ol class="steps">${((cur.mins||45) <= SHORT_REV ? LEARN_SHORT : (cur.mins||45) < 45 ? LEARN_AGAIN : (LEARN[first.k]||LEARN.content)).map(([a,b]) => `<li><div><b>${esc(a)}</b><span>${esc(b)}</span></div></li>`).join('')}</ol></details>`;
+    head = `<div class="head"><div class="toprow"><h2 class="topic">${esc(first.n)}</h2><div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div></div><div class="sec">${esc(first.sec)}</div></div>`;
+    body = `${first.p.length ? '<div>' + pointsHTML(first) + '</div>' : ''}
+      <details class="howto"><summary title="How to spend the ${cur.mins || 45} minutes"><span class="q" aria-hidden="true">?</span><span class="sr">How to spend the ${cur.mins || 45} minutes</span></summary><ol class="steps">${((cur.mins||45) <= SHORT_REV ? LEARN_SHORT : (cur.mins||45) < 45 ? LEARN_AGAIN : (LEARN[first.k]||LEARN.content)).map(([a,b]) => `<li><div><b>${esc(a)}</b><span>${esc(b)}</span></div></li>`).join('')}</ol></details>`;
   } else {
     const totalMin = cards.reduce((a,c) => a + (cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)), 0);
     head = `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topic${cards.length>1?'s':''} · ${totalMin} min</span></div>
@@ -1915,7 +1925,7 @@ function sessionHTML(){
     const __unused = ` min each</span></div>
 `;
     const kinds = [...new Set(cards.map(c => c.k))];
-    body = `<details class="howto"><summary><span class="q" aria-hidden="true">?</span>How to do a review</summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try each topic from memory first, then open its spec points to check.</li></ul></details>
+    body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try each topic from memory first, then open its spec points to check.</li></ul></details>
       <div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
       <h3>${esc(c.n)}</h3>
       ${c.p.length ? `<details class="more"><summary>Show the ${c.p.length} spec point${c.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(c)}</details>` : ''}</div>`).join('')}</div>`;
@@ -1991,11 +2001,7 @@ function setupPanel(){
   if (!S.settings.subjects.length) return `<section class="panel setup"><h2>Welcome${S.settings.name ? ', ' + esc(S.settings.name) : ''}! Choose your subjects</h2>
     <p class="small muted" style="margin:0">Pick the subjects you take in Settings, then rate the topics. After that the planner tells you what to do every day.</p>
     <div class="row"><a class="btn primary" style="text-decoration:none" href="#plan">Choose subjects</a></div></section>`;
-  const todo = CURRICULUM.map(s => ({s, n: s.cards.filter(c => cs(c.id).st==='unrated').length})).filter(x => x.n);
-  if (!todo.length) return '';
-  return `<section class="panel setup"><h2>Rate these topics</h2>
-    <p class="small muted" style="margin:0">They can't be scheduled until you rate them. Takes about 5 minutes per subject. Use "Not taught yet" for anything you haven't covered at school.</p>
-    <div class="row">${todo.map(x => `<a class="btn small" style="text-decoration:none" href="#topics-${x.s.id}">${icon(x.s.id,15)}${esc(x.s.name)} · ${x.n}</a>`).join('')}</div></section>`;
+  return '';
 }
 
 function pacePanel(){
@@ -2229,8 +2235,10 @@ function subjectsHTML(){
   if (!CURRICULUM.length) return '';
   return `<section class="panel subjpanel" id="subjects"><div class="subjhead"><h2>Subjects</h2>
       <div class="legend">${LV.map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div></div>
+      ${(() => { const todo = CURRICULUM.map(s => ({s, n: s.cards.filter(c => cs(c.id).st==='unrated').length})).filter(x => x.n);
+        return todo.length ? `<p class="ratenote">Still to rate, so they can be planned: ${todo.map(x => `<a href="#topics-${x.s.id}">${esc(x.s.name)} ${x.n}</a>`).join(', ')}</p>` : ''; })()}
       <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
-        <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · ${k.x} to rate`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
+        <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · <b class="torate">${k.x} to rate</b>`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
 }
 function renderTopics(sid){
   let html='';
