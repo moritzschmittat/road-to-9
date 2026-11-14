@@ -1417,7 +1417,7 @@ function todayListHTML(info){
     .concat(todayRest.map((n, i) => row(n, '', `<button class="btn small" data-pick="${i}">Do this now</button>`)));
   return `<section class="panel tlist"><div class="row" style="justify-content:space-between"><h2>Today's sessions</h2><span class="small muted">${fmtMin(doneOn(today))} of ${fmtMin(info.target)}</span></div>
     <ol class="tl-list">${items.join('')}</ol>
-    <div class="row" style="justify-content:space-between"><p class="small muted" style="margin:0;flex:1 1 220px">Do them in any order. The ones after "Now" can change once you rate a session.</p>
+    <div class="row" style="justify-content:flex-end">
       <div class="row">${quickNext() ? '<button class="btn small" data-quick="1">+ Quick 5 min</button>' : ''}<button class="btn small" data-addsess="1">+ Add 45 min</button></div></div></section>`;
 }
 
