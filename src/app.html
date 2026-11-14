@@ -2511,8 +2511,9 @@ function renderContinue(tokenHash, type){
   document.body.classList.add('signedout'); $('#footacct').innerHTML = '';
   const invite = type === 'invite';
   $('#view').innerHTML = `<section class="login"><div class="hero">${document.querySelector('.brand .mark').outerHTML}<h1 class="wm">Road to <b>9</b></h1></div>
-    <p class="tag">${invite ? 'Welcome! Your invite is ready.' : 'One more tap and you’re in.'}</p>
-    <button class="btn primary" id="goon">${invite ? 'Accept invite and continue' : 'Continue to Road to 9'}</button>
+    <p class="tag">${invite ? 'Welcome! Your invite is ready.' : 'Tap to sign in.'}</p>
+    <p class="small muted" style="margin:0">This stops email scanners using up your link.</p>
+    <button class="btn primary" id="goon">${invite ? 'Accept invite and continue' : 'Sign in'}</button>
     <div id="gomsg" class="small" role="status"></div></section>`;
   $('#goon').onclick = async () => {
     const m = $('#gomsg'); $('#goon').disabled = true; m.textContent = 'Signing you in…';
