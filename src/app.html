@@ -622,6 +622,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--navy-2)}
 .obsteps li.now span{background:var(--navy);border-color:var(--navy);color:var(--lime)}
 .obsteps li.done span{background:var(--lime);border-color:var(--lime);color:var(--night)}
 .obnav{background:linear-gradient(to top,var(--surface) 70%,transparent)}
+.obpoints{margin:0;padding-left:20px;display:grid;gap:4px;color:var(--muted);font-size:16px}
+.obpoints li::marker{color:var(--accent)}
 .obhow li::marker{font-weight:700;color:var(--accent)}
 .obsec,.oblegend,.subjpick label{border-radius:14px}
 
@@ -2611,8 +2613,8 @@ function renderOnboarding(){
       ${TERMS_TICK}
       <div class="obnav"><span></span><button class="btn primary" id="obnext">Next: choose subjects</button></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='subjects'){
-    body = `<h1>Which subjects do you take?</h1>
-      <p class="lead">Tick the ones you want Road to 9 to plan. You don’t have to include every subject, and you can add or remove subjects later in Settings. For each subject you pick, Road to 9 needs a rating for every topic to plan your time until the exams as well as it can. Check the exam board with your school if you’re not sure.</p>
+    body = `<h1>Which subjects would you like to study here?</h1>
+      <ul class="obpoints"><li>You can add or remove subjects in Settings later.</li><li>Next, you rate the topics of each subject.</li><li>Not sure of your exam board? Check with your school.</li></ul>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-obsubj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small><small class="obmins">${x.cards.length} topics · ${x.cards.reduce((n, c) => n + c.p.length, 0)} spec points · about ${fmtMin(rateMins(x.id))} to rate</small></span></label>`).join('')}</div>
       <div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
         <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
