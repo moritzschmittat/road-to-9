@@ -2612,7 +2612,7 @@ function renderOnboarding(){
       <div class="obnav"><span></span><button class="btn primary" id="obnext">Next</button></div><div id="obmsg" class="small" role="status"></div>`;
   } else if (step==='subjects'){
     body = `<h1>Which subjects do you take?</h1>
-      <p class="lead">Tick the ones you want Road to 9 to plan. You don’t have to include every subject, and you can add or remove subjects later in Settings. Check the exam board with your school if you’re not sure.</p>
+      <p class="lead">Tick the ones you want Road to 9 to plan. You don’t have to include every subject, and you can add or remove subjects later in Settings. For each subject you pick, Road to 9 needs a rating for every topic to plan your time until the exams as well as it can. Check the exam board with your school if you’re not sure.</p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-obsubj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small><small class="obmins">About ${fmtMin(rateMins(x.id))} to rate</small></span></label>`).join('')}</div>
       <div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
         <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
