@@ -13,10 +13,9 @@
       - Subject picker in onboarding must handle many boards (group by subject, then board).
 
 ## Parked
-- [ ] Nightly Drive backup: Moritz adds BACKUP_TOKEN / BACKUP_KEY and runs the Apps Script setup
-      (calendar reminder Sat 14 Nov 10:00).
-- [ ] Email for student messages: Moritz adds Supabase secret SMTP_PASS (the hello@roadto9.com mailbox
-      password). Until then messages only show on the admin page.
+- [x] Nightly Drive backup running since 14 Nov 2026 (3am, 30 days kept, "Road to 9 backups" folder).
+      Still worth doing once: open one file with tools/backup_decrypt.py to prove the key works.
+- [x] SMTP_PASS set (14 Nov 2026): student messages now also arrive by email.
 - [ ] Delete accounts unused for 12 months, with a warning email 2 weeks before (Moritz to confirm period).
 - [ ] Public study-time counter once there are about 10 students.
 - [ ] ICO fee check; processor terms (Supabase, GitHub, SiteGround, Google); solicitor review before charging.
