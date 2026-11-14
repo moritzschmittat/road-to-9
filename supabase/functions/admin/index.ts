@@ -188,8 +188,7 @@ Deno.serve(async (req) => {
             from: `"Road to 9" <${FROM}>`, to: user.email!,
             subject: `Road to 9: ${n} invite links (${day})`,
             text: `Here are ${n} new invite links for Road to 9. Each link works once: the person who opens it types their own email address and gets a sign-in link.\n\n` +
-              links.map((l, i) => `${i + 1}. ${l}`).join("\n") +
-              `\n\nUsed links show as "used" on roadto9.com/admin.html under your own invites.`,
+              links.map((l, i) => `${i + 1}. ${l}`).join("\n") + "\n",
           });
           emailed = true;
         } catch (e) { mailError = String((e as Error)?.message ?? e); }
