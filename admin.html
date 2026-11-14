@@ -127,8 +127,8 @@ main{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
 
     <div class="card">
       <h2>Invite links</h2>
-      <p class="muted small" style="margin:4px 0 12px">One-use links to hand out yourself. Whoever opens one types their own email and gets a sign-in link. The batch is emailed to you.</p>
-      <div class="row"><button class="btn" id="codesBtn">Make 50 invite links</button></div>
+      <p class="muted small" style="margin:4px 0 12px">One-use links to hand out yourself. Whoever opens one types their own email and gets a sign-in link.</p>
+      <div class="row"><button class="btn" id="codesBtn">Make 50 invite links</button><button class="ghost" id="codesCopy" hidden>Copy all</button></div>
       <div id="codesMsg"></div>
       <textarea id="codesOut" readonly rows="8" hidden style="width:100%;margin-top:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px" aria-label="Invite links"></textarea>
     </div>
@@ -265,8 +265,12 @@ $('codesBtn').addEventListener('click', async () => {
   const r = await call('codes', {count: 50});
   $('codesBtn').disabled = false;
   if (r.error) return msg('codesMsg', r.error);
-  $('codesOut').hidden = false; $('codesOut').value = r.links.join('\n');
-  msg('codesMsg', r.emailed ? `50 links made and emailed to ${r.to}. They're also below.` : `50 links made, but the email didn't go out (${r.mailError}). Copy them from below.`, r.emailed);
+  $('codesOut').hidden = false; $('codesOut').value = r.links.join('\n'); $('codesCopy').hidden = false;
+  msg('codesMsg', `${r.links.length} links made. Copy them from below; they aren't shown again.`, true);
+});
+$('codesCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('codesOut').value); msg('codesMsg', 'Copied.', true); }
+  catch(e){ $('codesOut').select(); msg('codesMsg', 'Press Cmd+C to copy the selected links.', true); }
 });
 
 $('inviteForm').addEventListener('submit', async e => {
