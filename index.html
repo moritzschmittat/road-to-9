@@ -424,6 +424,7 @@ details.sx[open] .wk-t{-webkit-line-clamp:unset;display:block}
 .sd-pts .rag{width:9px;height:9px;margin-top:3px}
 .sd-pts .code{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;padding-top:1px}
 .tl{align-items:flex-start}
+.addrow{align-items:center;gap:8px}
 .tlist .tl{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m t" "m a";gap:6px 10px}
 .tlist .tl > details.sx{grid-area:m}
 .tlist .tl-min{grid-area:t;align-self:start;justify-self:end;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
@@ -1396,7 +1397,9 @@ function restOfToday(n){
   try {
     for (let left=n, guard=0; left>0 && guard<30; guard++){
       const x = pickNext(); if (!x) break;
-      if ((x.type==='learn' || x.type==='paper') && left < Math.min(30, (x.mins||45) - 5)) break;   // not enough time left for a full block
+      // the day adds up exactly: a revise session that doesn't fit is shortened (20 min at least), a past paper needs 40+
+      if (x.type==='paper' && left < 40) break;
+      if (x.type==='learn' && (x.mins || 45) > left){ if (left < 20) break; x.mins = left; }
       out.push(x); left -= (x.mins || 45);
       if (x.type==='paper'){ skipped.add('paper:'+x.sid); S.log.push({d:today, t:'paper', s:x.sid, c:[], r:[]}); continue; }
       x.cards.forEach(id => skipped.add(id));
@@ -1405,20 +1408,22 @@ function restOfToday(n){
   } finally { S = keepS; skipped = keepSkip; skipDay = keepSkipDay; }
   return out;
 }
+let todayPlanned = null;   // minutes of everything listed for today: done + now + still to do
 function todayListHTML(info){
   const today = todayStr(); const done = S.log.filter(l => l.d===today);
   const left = Math.max(0, info.target - doneOn(today) - (current ? (current.mins || 45) : 0));
   todayRest = mixDay(restOfToday(left), startKind(today, current));
+  todayPlanned = doneOn(today) + (current ? (current.mins || 45) : 0) + todayRest.reduce((a, n) => a + (n.mins || 45), 0);
   if (!done.length && !current && !todayRest.length && info.target===0) return '';
   const row = (n, cls, extra) => { const L = sessLabel(n); const parts = L.k.split(' · '); const mins = parts.pop(); const kind = /^Revise/.test(parts[0]||'') ? '' : parts.join(' · ');
     return `<li class="tl ${cls}"><details class="sx"><summary>${kind ? `<div class="wk-k">${esc(kind)}</div>` : ''}<div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div></summary>${sessDetail(n)}</details><span class="tl-min">${esc(mins)}</span><div class="tl-act">${extra||''}</div></li>`; };
   const items = done.map(l => row(l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, 'done', `<span class="tl-tag">✓ ${l.r && l.r.length ? l.r.map(x => `<i class="rag ${lvClass(x)}"></i>`).join('') : ''}</span>`))
     .concat(current ? [row(current, 'now', '<span class="tl-tag now">Now</span>')] : [])
     .concat(todayRest.map((n, i) => row(n, '', `<button class="btn small" data-pick="${i}">Do this now</button>`)));
-  return `<section class="panel tlist"><div class="row" style="justify-content:space-between"><h2>Today's sessions</h2><span class="small muted">${fmtMin(doneOn(today))} of ${fmtMin(info.target)}</span></div>
+  return `<section class="panel tlist"><div class="row" style="justify-content:space-between"><h2>Today's sessions</h2><span class="small muted">${fmtMin(doneOn(today))} of ${fmtMin(todayPlanned)}</span></div>
     <ol class="tl-list">${items.join('')}</ol>
     <div class="row" style="justify-content:flex-end">
-      <div class="row">${quickNext() ? '<button class="btn small" data-quick="1">+ Quick 5 min</button>' : ''}<button class="btn small" data-addsess="1">+ Add 45 min</button></div></div></section>`;
+      <div class="row addrow"><span class="small muted">More time today?</span>${quickNext() ? '<button class="btn small" data-quick="1">+ 5 min</button>' : ''}${[20, 30, 45, 60].map(m => `<button class="btn small" data-addsess="${m}">+ ${fmtMin(m)}</button>`).join('')}</div></div></section>`;
 }
 
 
@@ -1663,7 +1668,7 @@ function monthGrid(today, first){
     if (d < S.settings.startedOn) cls = 'pre';
     else if (d < today || (d===today && dn > 0)) cls = t===0 ? (dn ? 'met' : 'off') : dn>=t ? 'met' : dn>0 ? 'part' : 'miss';   // today updates as soon as something is done
     else if (t===0) cls = 'off';
-    cells += `<div class="mday ${cls} ${inM?'':'out'} ${d===today?'now':''}" title="${esc(fmtDay(d))}${cls==='fut' ? ': ' + t + ' min planned' : dn ? ': ' + dn + ' min studied' : ''}"><span class="md">${parse(d).getUTCDate()}</span>${(sids => sids.length ? `<span class="mi">${sids.map(x => `<span title="${esc(SUBJ[x].name)}">${icon(x,16)}</span>`).join('')}</span>` : '<span></span>')(d <= today ? [...new Set(S.log.filter(l => l.d===d).flatMap(l => l.t==='paper' ? [l.s] : (l.c||[]).filter(id => CARD[id]).map(id => CARD[id].sid)))].filter(x => SUBJ[x]) : [])}<span class="mc">${(m => cls!=='pre' && m ? `<b>${m}</b><small>min</small>` : '')(cls==='fut' ? t : dn)}</span></div>`;
+    cells += `<div class="mday ${cls} ${inM?'':'out'} ${d===today?'now':''}" title="${esc(fmtDay(d))}${cls==='fut' ? ': ' + t + ' min planned' : cls==='pre' ? '' : ': ' + dn + ' min studied' + (t ? ' of ' + t + ' scheduled' : '')}"><span class="md">${parse(d).getUTCDate()}</span>${(sids => sids.length ? `<span class="mi">${sids.map(x => `<span title="${esc(SUBJ[x].name)}">${icon(x,16)}</span>`).join('')}</span>` : '<span></span>')(d <= today ? [...new Set(S.log.filter(l => l.d===d).flatMap(l => l.t==='paper' ? [l.s] : (l.c||[]).filter(id => CARD[id]).map(id => CARD[id].sid)))].filter(x => SUBJ[x]) : [])}<span class="mc">${cls==='pre' ? '' : cls==='fut' ? (t ? `<b>${t}</b><small>min</small>` : '') : (t || dn) ? `<b>${dn}</b><small>${t ? '/' + t + ' ' : ''}min</small>` : ''}</span></div>`;
   }
   return `<div class="mgrid">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x => `<div class="mh">${x}</div>`).join('')}${cells}</div>
     <div class="legend" style="margin-top:8px"><span><i class="lg met"></i>Goal met</span><span><i class="lg part"></i>Some done</span><span><i class="lg miss"></i>Missed</span><span><i class="lg off"></i>Day off</span></div>`;
@@ -2053,7 +2058,8 @@ function bindNext(){
     if (!n){ b.textContent = b.dataset.extra==='refresh' ? 'Nothing to refresh yet' : 'Nothing left to revise'; b.disabled = true; return; }
     current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}, extra:true}; resetTimer(); render(); });
   document.querySelectorAll('#view [data-addsess]').forEach(b => b.onclick = () => { const t = todayStr(); const keep = current;
-    setOverride(t, Math.max(dayInfo(t).target, doneOn(t)) + 45); if (keep) { current = keep; render(); } });
+    const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, doneOn(t));
+    setOverride(t, base + (+b.dataset.addsess || 45)); if (keep) { current = keep; render(); } });
   on('ovundo2', () => setOverride(todayStr(), null));
   document.querySelectorAll('#view [data-taught]').forEach(b => b.onclick = () => unpark(b.dataset.taught));
   on('parklater', () => { S.settings.laterAsked = todayStr(); save(); });
