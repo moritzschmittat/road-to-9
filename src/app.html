@@ -1110,7 +1110,11 @@ function pickNext(mode){
   if (due.length && !reviewHeavy && mode!=='revise') return pack(Math.max(15, Math.min(45, left)));
   const pool = relearn.concat(fresh_);
   const doneN = S.log.filter(l => l.d===today).length;
-  if (mode!=='revise' && S.settings.papersFrom && today >= S.settings.papersFrom && doneN % 3 === 2 && !(due.length>=8)){
+  // exam season: from papersFrom (around Easter) every 3rd session of a day is a past paper; in the last 4 weeks before the first exam, every 2nd
+  const firstEx = live.map(sb => S.settings.exams[sb.id]).filter(Boolean).sort()[0];
+  const closeToExams = firstEx && diff(today, firstEx) <= 28;
+  const paperTurn = closeToExams ? doneN % 2 === 1 : doneN % 3 === 2;
+  if (mode!=='revise' && S.settings.papersFrom && today >= S.settings.papersFrom && paperTurn && !(due.length>=8)){
     const last = S.log.length ? S.log[S.log.length-1].s : null;
     const recentP = S.log.filter(l => l.t==='paper').slice(-live.length).map(l => l.s);
     const subs = live.filter(s => !out('paper:'+s.id)).sort((a,b) => (S.settings.exams[a.id]||'9') < (S.settings.exams[b.id]||'9') ? -1 : 1);
