@@ -2391,7 +2391,6 @@ function renderPlan(){
   const order = [1,2,3,4,5,6,0];
   const hist = S.log.slice(-8).reverse();
   $('#view').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0 4px"><h1 style="font-size:28px;margin:0">Settings</h1><button class="btn primary" id="saveplan">Save settings</button></div>
-    <p class="muted" style="margin:0">Change these whenever life changes. The next session updates straight away.</p>
     <div class="acctgrid">
     <section class="panel"><h2>You</h2>
       <label class="small muted" for="uname">First name or nickname (shown to friends in your groups and on your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
