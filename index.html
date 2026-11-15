@@ -2009,8 +2009,7 @@ function sessionHTML(){
       <details class="howto"><summary title="How to spend the ${cur.mins || 45} minutes"><span class="q" aria-hidden="true">?</span><span class="sr">How to spend the ${cur.mins || 45} minutes</span></summary><ol class="steps">${((cur.mins||45) <= SHORT_REV ? LEARN_SHORT : (cur.mins||45) < 45 ? LEARN_AGAIN : (LEARN[first.k]||LEARN.content)).map(([a,b]) => `<li><div><b>${esc(a)}</b><span>${esc(b)}</span></div></li>`).join('')}</ol></details>`;
   } else {
     const totalMin = cards.reduce((a,c) => a + (cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)), 0);
-    head = `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topic${cards.length>1?'s':''} · ${totalMin} min</span></div>
-      <h2 class="topic">${cur.type==='quick' ? 'Bonus: one quick refresher' : 'Refresh what you know'}</h2><div class="sec">${cur.type==='quick' ? 'Five minutes on a topic that is coming up for a refresher soon. Blurt it, check it, rate it. It counts as that topic’s next refresher.' : 'These are coming back right before you’d forget them. Stronger topics get less time.'}</div></div>`;
+    head = `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topic${cards.length>1?'s':''} · ${totalMin} min</span></div></div>`;
     const __unused = ` min each</span></div>
 `;
     const kinds = [...new Set(cards.map(c => c.k))];
@@ -2039,8 +2038,8 @@ function sessionHTML(){
       <div class="row end"><button class="btn ghost" id="back">Back</button><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div></div>`;
   }
   const todos = cards.filter(c => S.todo[c.id]);
-  const todoBlock = cur.phase==='work' && todos.length ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}<div class="small muted">You can tick it off or update it when you rate this session.</div></div>` : '';
-  return `<section class="session">${head}${todoBlock}${cur.phase==='work' ? body + helpHTML(cards) + timerBlock : ''}${foot}</section>`;
+  const todoBlock = cur.phase==='work' && todos.length ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
+  return `<section class="session">${head}${cur.phase==='work' ? body + todoBlock + helpHTML(cards) + timerBlock : ''}${foot}</section>`;
 }
 
 function allRated(cards){ return cards.every(c => c.p.every((_,i) => current.pr[pk(c.id,i)]!=null)); }
