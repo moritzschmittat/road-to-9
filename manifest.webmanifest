@@ -1,0 +1,15 @@
+{
+  "name": "Road to 9",
+  "short_name": "Road to 9",
+  "description": "The GCSE revision planner. We do the planning, you do the learning.",
+  "start_url": "/#study",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#06111d",
+  "theme_color": "#06111d",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
