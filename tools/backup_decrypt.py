@@ -1,15 +1,26 @@
 """Open a Road to 9 backup (.r9b) made by the "backup" server function.
 
-    python3 tools/backup_decrypt.py road-to-9-2026-11-14.r9b > backup.json
+    python3 backup_decrypt.py > /dev/null                 # just check the newest .r9b in Downloads opens
+    python3 backup_decrypt.py > backup.json               # write it out (keep it private, delete it after)
+    python3 backup_decrypt.py some-file.r9b > backup.json # a particular file
 
 Asks for BACKUP_KEY (from the password manager). Needs: pip install cryptography
 The JSON holds users, progress (each student's planner) and invites. Keep it private and delete
 it when you're done: it contains every student's planner.
 """
-import getpass, gzip, hashlib, json, sys
+import getpass, glob, gzip, hashlib, json, os, sys
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-data = open(sys.argv[1], 'rb').read()
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+else:   # no file named: take the newest .r9b in Downloads
+    downloads = os.path.expanduser('~/Downloads')
+    found = sorted(glob.glob(os.path.join(downloads, '*.r9b')), key=os.path.getmtime)
+    if not found:
+        sys.exit('No .r9b file in Downloads. Download the newest one from "Road to 9 backups" on Google Drive first.')
+    path = found[-1]
+print('Opening ' + os.path.basename(path), file=sys.stderr)
+data = open(path, 'rb').read()
 if data[:4] != b'R9B1':
     sys.exit('Not a Road to 9 backup file.')
 salt, iv, sealed = data[4:20], data[20:32], data[32:]
