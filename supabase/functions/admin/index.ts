@@ -64,6 +64,9 @@ Deno.serve(async (req) => {
         .select("user_id, name:doc->settings->>name, onboarded:doc->settings->>onboarded, updated_at");
       if (error) return reply({ error: error.message }, 500);
       const byId = new Map((rows ?? []).map((r) => [r.user_id, r]));
+      // When each student last had Road to 9 open (one timestamp per account, updated once a minute).
+      const { data: pres } = await svc.from("presence").select("user_id, seen_at");
+      const seen = new Map((pres ?? []).map((p) => [p.user_id, p.seen_at]));
       // Who invited whom (friend invites). Admin invites have no row here.
       const { data: inv } = await svc.from("invites").select("inviter, invitee, used_at");
       const emailOf = new Map(users.map((u) => [u.id, u.email]));
@@ -84,6 +87,7 @@ Deno.serve(async (req) => {
             name: r?.name ?? null,
             onboarded: r?.onboarded === "true",
             last_saved_at: r?.updated_at ?? null,
+            seen_at: seen.get(u.id) ?? null,
             admin: admins.includes((u.email ?? "").toLowerCase()),
             invited_by: invitedBy.get(u.id) ?? null,
             invites_sent: sentBy.get(u.id) ?? 0,

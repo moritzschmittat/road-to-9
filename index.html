@@ -2660,6 +2660,13 @@ async function signOut(){
   await sb.auth.signOut().catch(() => {});
   location.hash = ''; location.reload();
 }
+/* While Road to 9 is open and on screen, tell the server "still here" once a minute (only a timestamp; the admin page shows who is online). */
+let presenceTimer = null;
+function startPresence(){
+  const ping = () => { if (USER && sb && document.visibilityState === 'visible' && navigator.onLine) sb.rpc('touch_presence').then(() => {}, () => {}); };
+  clearInterval(presenceTimer); ping(); presenceTimer = setInterval(ping, 60000);
+  if (!startPresence.bound){ startPresence.bound = true; document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ping(); }); }
+}
 function startApp(user){
   USER = user; LS = 'roadto9:' + user.id;
   document.body.classList.remove('signedout');
@@ -2668,7 +2675,7 @@ function startApp(user){
   $('#footacct').innerHTML = `<button id="footsignout">Sign out</button>`; $('#footsignout').onclick = () => signOut();
   if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + (DELETE_CONFIRMED ? '#plan' : '#next'));
   if (location.search) history.replaceState(null, '', location.pathname + location.hash);   // drop ?join= once signed in
-  render(); connect();
+  render(); connect(); startPresence();
 }
 /* ---------- onboarding: welcome → subjects → rate every topic → study time ---------- */
 // Terms of use version. Change it when terms.html changes in a way that matters: everyone is asked to agree again.

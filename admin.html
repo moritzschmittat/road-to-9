@@ -81,13 +81,29 @@ input[type=email]{background:rgba(255,255,255,.05)!important;border-color:rgba(2
 .ghost{color:var(--ink);border-color:rgba(255,255,255,.16)}
 .tag.you{background:rgba(255,255,255,.08)}
 main{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 25%,transparent);margin-right:6px;vertical-align:1px}
+.online{color:var(--green);font-weight:700}
+.seg{display:inline-flex;background:var(--sunk);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:12px;padding:4px 11px;border-radius:999px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+/* Day: the light look, same switch and setting as the planner (stored on this device) */
+:root[data-mode="day"]{--bg:#eef2f5;--surface:#fff;--sunk:#e4e9ee;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6;--accent-ink:#fff;
+  --red:#c73636;--red-soft:#fbe5e5;--green:#23925a;--green-soft:#ddf3e6;--amber:#9a6200;--amber-soft:#fdf0d6;color-scheme:light}
+:root[data-mode="day"], :root[data-mode="day"] body{background:#eef2f5}
+:root[data-mode="day"] .card,:root[data-mode="day"] .stat{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 2px rgba(10,26,43,.04),0 10px 30px -12px rgba(10,26,43,.12)}
+:root[data-mode="day"] .brandlink .mark{filter:none}
+:root[data-mode="day"] input[type=email],:root[data-mode="day"] #codesOut{background:#fff!important;border-color:var(--line)!important}
+:root[data-mode="day"] .btn{background:var(--accent)!important;color:#fff!important}
+:root[data-mode="day"] .ghost{border-color:var(--line)}
+:root[data-mode="day"] .tag.you{background:var(--sunk)}
 </style>
 </head>
 <body>
 <main>
   <div class="top">
     <h1 class="brandlink" style="font-size:24px"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b> · admin</span></h1>
-    <div class="row small"><span id="whoami" class="muted"></span><button class="ghost" id="signout" hidden>Sign out</button></div>
+    <div class="row small"><div class="seg" role="group" aria-label="Appearance"><button type="button" data-mode-set="night">Night</button><button type="button" data-mode-set="day">Day</button></div><span id="whoami" class="muted"></span><button class="ghost" id="signout" hidden>Sign out</button></div>
   </div>
 
   <!-- signed out -->
@@ -152,6 +168,16 @@ main{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+// Night/Day: same device setting as the planner ('r9-theme')
+function setMode(m){ document.documentElement.dataset.mode = m === 'day' ? 'day' : 'night';
+  document.querySelectorAll('[data-mode-set]').forEach(b => b.setAttribute('aria-pressed', b.dataset.modeSet === document.documentElement.dataset.mode)); }
+let MODE = 'night'; try { MODE = localStorage.getItem('r9-theme') || 'night'; } catch(e){}
+setMode(MODE);
+document.querySelectorAll('[data-mode-set]').forEach(b => b.onclick = () => { setMode(b.dataset.modeSet); try { localStorage.setItem('r9-theme', b.dataset.modeSet); } catch(e){} });
+const ONLINE_MS = 3 * 60000;   // seen in the last 3 minutes = online
+const isOnline = u => u.seen_at && Date.now() - new Date(u.seen_at) < ONLINE_MS;
+function seenText(iso){ if (!iso) return null; const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  return m < 60 ? `seen ${Math.max(m, 1)} min ago` : m < 24 * 60 ? `seen ${Math.round(m / 60)} h ago` : `seen ${when(iso)}`; }
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let sb, USERS = [], ME = null, confirmId = null;
 
@@ -204,13 +230,15 @@ function draw(){
   const joined = students.filter(u => u.joined).length;
   const set = students.filter(u => u.onboarded).length;
   const week = students.filter(u => u.last_saved_at && Date.now() - new Date(u.last_saved_at) < 7 * 864e5).length;
-  $('stats').innerHTML = [['Invited', students.length], ['Joined', joined], ['Finished setup', set], ['Active this week', week]]
+  const online = students.filter(isOnline).length;
+  $('stats').innerHTML = [['Online now', online], ['Invited', students.length], ['Joined', joined], ['Finished setup', set], ['Active this week', week]]
     .map(([k, v]) => `<div class="stat"><b>${v}</b><span class="small muted">${k}</span></div>`).join('');
-  const sorted = [...USERS].sort((a, b) => (b.invited_at || '').localeCompare(a.invited_at || ''));
+  const sorted = [...USERS].sort((a, b) => (isOnline(b) - isOnline(a)) || (b.invited_at || '').localeCompare(a.invited_at || ''));
   $('list').innerHTML = sorted.length ? sorted.map(u => {
     const tag = u.id === ME ? '<span class="tag you">you · admin</span>'
       : u.joined ? '<span class="tag joined">joined</span>' : '<span class="tag pending">invite sent</span>';
     const meta = u.admin ? `admin · last sign-in ${when(u.last_sign_in_at)}` : [
+      isOnline(u) ? '<span class="online"><i class="dot"></i>online now</span>' : u.joined ? seenText(u.seen_at) : null,
       u.name ? esc(u.name) : null,
       `invited ${when(u.invited_at)}${u.invited_by ? ' by ' + esc(u.invited_by) : ' by you'}`,
       u.invites_sent ? `${u.invites_sent} of 3 invite links used` : null,
@@ -272,6 +300,8 @@ $('loginForm').addEventListener('submit', async e => {
 });
 $('signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 $('refresh').onclick = load;
+// keep "online now" fresh while the page is open
+setInterval(() => { if (document.visibilityState === 'visible' && !$('panel').hidden && confirmId === null) load(); }, 60000);
 
 (async () => {
   const cfg = await fetch('config.json', {cache: 'no-store'}).then(r => r.json());
