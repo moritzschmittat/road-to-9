@@ -1992,17 +1992,40 @@ function renderNext(){
   bindNext();
 }
 
+/* Where each subject's past papers and mark schemes are (the exam board's own pages) */
+const PAST_PAPERS = {
+  bio:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-biology-2017.coursematerials.html',
+  chem:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-chemistry-2017.coursematerials.html',
+  maths:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-mathematics-a-2016.coursematerials.html',
+  englit:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-english-literature-2016.coursematerials.html',
+  englang:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-english-language-b-2016.coursematerials.html',
+  fre:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-french-2017.coursematerials.html',
+  ger:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-german-2017.coursematerials.html',
+  spa:'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-spanish-2017.coursematerials.html',
+  cs:'https://qualifications.pearson.com/en/qualifications/edexcel-gcses/computer-science-2020.coursematerials.html',
+  geog:'https://www.aqa.org.uk/subjects/geography/gcse/geography-8035/assessment-resources',
+  hist:'https://www.aqa.org.uk/subjects/history/gcse/history-8145/assessment-resources',
+  rs:'https://www.aqa.org.uk/subjects/religious-studies/gcse/religious-studies-a-8062/assessment-resources',
+  fm:'https://www.aqa.org.uk/subjects/mathematics/level-2/further-mathematics-8365/assessment-resources',
+  phys:'https://www.ocr.org.uk/qualifications/past-paper-finder/',
+  lat:'https://www.ocr.org.uk/qualifications/past-paper-finder/',
+  grk:'https://www.ocr.org.uk/qualifications/past-paper-finder/',
+};
+const ppLink = sid => PAST_PAPERS[sid] ? `<a href="${PAST_PAPERS[sid]}" target="_blank" rel="noopener">Past papers</a>` : '';
 function paperHTML(){
+  const cur = current;
   const subj = SUBJ[current.sid];
   const mm = Math.floor(timer.left/60), ss = timer.left%60;
   return `<section class="session"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
     <details class="howto"><summary title="How to do a past-paper session"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a past-paper session</span></summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
       <li><div><b>Mark</b><span>Mark it with the mark scheme, honestly. Keep the papers in one folder so you can see your scores go up.</span></div></li>
-      <li><div><b>Feed it back</b><span>For each question where you dropped marks, find the topic under Subjects on the Study page and set it to weak or very weak. It comes back in your next sessions.</span></div></li></ol></details>
+      <li><div><b>Feed it back</b><span>Tick the topics that cost you marks below. They move to weak and come back in your next sessions.</span></div></li></ol></details>
     <div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
       <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>
-    <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>
+    ${PAST_PAPERS[subj.id] ? `<p class="small" style="margin:0">${ppLink(subj.id)} and mark schemes for ${esc(subj.board)} (opens the exam board’s site)</p>` : ''}
+    <details class="mocksub"><summary>After marking: which topics cost you marks?</summary>${lostListHTML(subj, 'data-plost')}</details>
+    <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Paper 1 2023, 61/80, lost marks on enzymes and osmosis">${esc(cur.note||'')}</textarea></label>
     <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Choose a different topic</button>
       <a class="btn ghost" style="text-decoration:none" href="#study-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
 }
@@ -2117,17 +2140,23 @@ function mockPanel(){
     <p class="small muted" style="margin:0">Tick the topics that cost you marks. They move to weak, so they come up again soon.</p>
     ${list.map(sb => `<details class="mocksub" data-msid="${sb.id}"><summary>${icon(sb.id,16)}${esc(sb.name)}</summary>
       <label class="small mockpct">Mark <span class="minf"><input type="number" min="0" max="100" inputmode="numeric" data-mpct="${sb.id}" placeholder="–"><i>%</i></span> <span class="muted">(optional)</span></label>
-      <div class="mocklist">${sb.cards.filter(c => cs(c.id).st!=='off').map(c => `<label class="mockt"><input type="checkbox" data-mlost="${c.id}"><i class="rag ${lvClass(cs(c.id).lvl)}"></i><span>${esc(c.n)}</span></label>`).join('')}</div>
+      ${lostListHTML(sb, 'data-mlost')}
       <div class="row"><button class="btn primary small" data-msave="${sb.id}">Save</button><button class="btn ghost small" data-mskip="${sb.id}">I didn’t sit this mock</button></div></details>`).join('')}</section>`;
 }
+// Topics that cost marks in a mock or past paper: anything rated stronger than weak becomes weak.
+function lostMarks(ids, why){
+  const today = todayStr();
+  ids.forEach(id => { const c = CARD[id]; if (!c) return;
+    c.p.forEach((_, j) => { const v = ptLvl(c, j); if (v == null || v < 2.5) S.pts[pk(id, j)] = 2.5; });
+    setRating(id, deriveR(c.p.map((_, j) => ptLvl(c, j))));
+    const h = S.rh[id] || []; if (h.length && h[h.length-1].d === today) h[h.length-1].mock = why === 'mock' ? 1 : 2; });
+}
+const lostListHTML = (sb, attr) => `<div class="mocklist">${sb.cards.filter(c => cs(c.id).st!=='off').map(c => `<label class="mockt"><input type="checkbox" ${attr}="${c.id}"><i class="rag ${lvClass(cs(c.id).lvl)}"></i><span>${esc(c.n)}</span></label>`).join('')}</div>`;
 function saveMock(sid, skip){
   const box = document.querySelector(`.mocksub[data-msid="${sid}"]`); const today = todayStr();
   const pctIn = box && box.querySelector(`[data-mpct="${sid}"]`); const pct = pctIn && pctIn.value !== '' ? Math.max(0, Math.min(100, Math.round(+pctIn.value))) : null;
   const lost = skip || !box ? [] : [...box.querySelectorAll('[data-mlost]:checked')].map(x => x.dataset.mlost);
-  lost.forEach(id => { const c = CARD[id]; if (!c) return;
-    c.p.forEach((_, j) => { const v = ptLvl(c, j); if (v == null || v < 2.5) S.pts[pk(id, j)] = 2.5; });   // stronger than weak → weak
-    setRating(id, deriveR(c.p.map((_, j) => ptLvl(c, j))));
-    const h = S.rh[id] || []; if (h.length && h[h.length-1].d === today) h[h.length-1].mock = 1; });
+  lostMarks(lost, 'mock');
   mockRes()[sid] = {d: today, pct: skip ? null : pct, lost, skip: !!skip};
   current = null; save();
 }
@@ -2201,7 +2230,7 @@ function bindNext(){
   on('swap', () => { if (current.type==='paper') skipped.add('paper:'+current.sid); current.cards.forEach(id => skipped.add(id)); current=null; render(); });
   { const nt = document.getElementById('note'); if (nt) nt.oninput = () => { if (current) current.note = nt.value; }; }
   document.querySelectorAll('[data-todo]').forEach(t => t.oninput = () => { if (current){ current.todo = current.todo || {}; current.todo[t.dataset.todo] = t.value; } });
-  on('paperdone', () => { const at = new Date().toISOString(); S.log.push({d:todayStr(), at, t:'paper', s:current.sid, c:[], r:[], prev:{}, mins:45}); keepNote(at);
+  on('paperdone', () => { const at = new Date().toISOString(); lostMarks([...document.querySelectorAll('#view [data-plost]:checked')].map(x => x.dataset.plost), 'paper'); S.log.push({d:todayStr(), at, t:'paper', s:current.sid, c:[], r:[], prev:{}, mins:45}); keepNote(at);
     current = null; window.__anyway = false; stopTimer(); save(); window.scrollTo({top:0,behavior:'smooth'}); });
   on('later', () => { setRating(current.cards[0], 'later'); current=null; render(); });
   const keep = f => { const y = window.scrollY; f(); render(); window.scrollTo(0, y); };
@@ -2334,7 +2363,7 @@ function applyPoint(k, v){
 let openHist = new Set();
 function topicHistory(id){
   const c = CARD[id]; const ev = [];
-  (S.rh[id]||[]).forEach(e => ev.push({d:e.d, at:e.d+'~', k: e.v==='later' ? 'later' : e.v==='off' ? 'off' : e.mock ? 'mock' : 'manual', v: typeof e.v==='number' ? e.v : null}));
+  (S.rh[id]||[]).forEach(e => ev.push({d:e.d, at:e.d+'~', k: e.v==='later' ? 'later' : e.v==='off' ? 'off' : e.mock===2 ? 'paperlost' : e.mock ? 'mock' : 'manual', v: typeof e.v==='number' ? e.v : null}));
   const sess = S.log.filter(l => (l.c||[]).includes(id));
   const ptsOf = obj => obj ? c.p.map((_,j) => obj[pk(id,j)] ?? null) : null;
   sess.forEach((l, n) => { const i = l.c.indexOf(id);
@@ -2351,7 +2380,7 @@ function topicHistory(id){
 }
 function historyHTML(id){
   const ev = topicHistory(id).filter(e => e.k!=='manual'); const x = cs(id);   // ratings changed on the Subjects board aren't listed
-  const label = e => e.k==='mock' ? 'Lost marks in the mock: moved to weak' : e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
+  const label = e => e.k==='mock' ? 'Lost marks in the mock: moved to weak' : e.k==='paperlost' ? 'Lost marks in a past paper: moved to weak' : e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
     e.k==='learn' ? 'After ' + (e.m ? e.m + ' min ' : '') + (e.relearn ? 'revising again' : 'revision') : e.k==='quick' ? 'After 5 min quick refresher' : 'After ' + (e.m ? e.m + ' min ' : '') + 'refresher';
   const next = x.st==='review' ? (x.trk && !x.left ? 'All refreshers done' : `Next refresher ${fmtShort(x.due)}`) : x.st==='learning' ? 'Next: revise again' : x.st==='new' ? 'Next: revise' : '';
   return `<div class="thist">
@@ -2391,7 +2420,7 @@ function renderTopics(sid){
     const s = SUBJ[sid]; const k = counts(s);
     const secs = []; s.cards.forEach(c => { let g = secs[secs.length-1]; if (!g || g.name!==c.sec){ g = {name:c.sec, cards:[]}; secs.push(g); } g.cards.push(c); });
     html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#subjects">← Back to Study</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
-      <p class="small muted" style="margin:4px 0 0">Exam board: ${esc(s.board)}${s.spec?` · <a href="${esc(s.spec)}" target="_blank" rel="noopener">Specification</a>`:''}</p></div>
+      <p class="small muted" style="margin:4px 0 0">Exam board: ${esc(s.board)}${s.spec?` · <a href="${esc(s.spec)}" target="_blank" rel="noopener">Specification</a>`:''}${PAST_PAPERS[s.id] ? ' · ' + ppLink(s.id) : ''}</p></div>
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
       <div class="key">${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
       ${stackHTML(ptCounts(s.cards))}
