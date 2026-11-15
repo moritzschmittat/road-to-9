@@ -297,6 +297,8 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .histbtn{border:0;background:none;color:var(--accent);font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;margin-left:auto;margin-right:6px}
 .histbtn[aria-expanded="true"]{text-decoration:underline}
 .thist{margin-top:8px;padding:10px;border-radius:8px;background:var(--sunk);display:flex;flex-direction:column;gap:8px}
+.htodo{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;white-space:pre-wrap}
+.htodo b{display:block}
 .hspark{display:flex;align-items:flex-end;justify-content:flex-start;gap:3px;height:28px}
 .hspark i{flex:0 0 10px}
 .hspark i{width:10px;border-radius:2px;display:block}
@@ -308,7 +310,7 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .hv{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
 .hpts{grid-column:2/-1;display:inline-flex;gap:3px;align-items:center}.hpts small{color:var(--muted);margin-left:4px;font-size:11px}
 .hn{grid-column:2/-1;margin:2px 0 0;color:var(--muted);white-space:pre-wrap}
-.hn b{color:var(--ink);font-weight:700}
+.hn b{display:block;color:var(--ink);font-weight:700}
 @media (max-width:700px){ .board{grid-auto-flow:row;grid-auto-columns:auto;overflow:visible} }
 /* progress percentages */
 .pct{font-family:var(--f-display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
@@ -2301,13 +2303,13 @@ function topicHistory(id){
   return out;
 }
 function historyHTML(id){
-  const ev = topicHistory(id); const x = cs(id);
+  const ev = topicHistory(id).filter(e => e.k!=='manual'); const x = cs(id);   // ratings changed on the Subjects board aren't listed
   const label = e => e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
     e.k==='learn' ? 'After ' + (e.m ? e.m + ' min ' : '') + (e.relearn ? 'revising again' : 'revision') : e.k==='quick' ? 'After 5 min quick refresher' : 'After ' + (e.m ? e.m + ' min ' : '') + 'refresher';
   const next = x.st==='review' ? (x.trk && !x.left ? 'All refreshers done' : `Next refresher ${fmtShort(x.due)}`) : x.st==='learning' ? 'Next: revise again' : x.st==='new' ? 'Next: revise' : '';
   return `<div class="thist">
-    <ol class="hlist">${ev.map((e, i) => `<li${i && ev[i-1].d===e.d ? ' class="same"' : ''}><span class="hd">${i && ev[i-1].d===e.d ? '' : esc(fmtShort(e.d))}</span><span class="hk">${esc(label(e))}</span><span></span>${e.pts && e.pts.some(v => v!=null) && CARD[id].p.length > 1 ? `<span class="hpts">${e.pts.map((v,j) => `<i class="rag ${v==null ? 'lv-x' : lvClass(v)}" title="${esc(CARD[id].p[j].c||'')}"></i>`).join('')}<small>spec points</small></span>` : ''}${e.note ? `<p class="hn"><b>Journal:</b> ${esc(e.note)}</p>` : ''}</li>`).join('') || '<li class="muted small">Nothing yet.</li>'}</ol>
-    ${S.todo[id] ? `<div class="small htodo"><b>To-do:</b> ${esc(S.todo[id])}</div>` : ''}${next ? `<div class="small muted">${esc(next)}</div>` : ''}</div>`;
+    <ol class="hlist">${ev.map((e, i) => `<li${i && ev[i-1].d===e.d ? ' class="same"' : ''}><span class="hd">${i && ev[i-1].d===e.d ? '' : esc(fmtShort(e.d))}</span><span class="hk">${esc(label(e))}</span><span></span>${e.pts && e.pts.some(v => v!=null) && CARD[id].p.length > 1 ? `<span class="hpts">${e.pts.map((v,j) => `<i class="rag ${v==null ? 'lv-x' : lvClass(v)}" title="${esc(CARD[id].p[j].c||'')}"></i>`).join('')}<small>spec points</small></span>` : ''}${e.note ? `<p class="hn"><b>Journal:</b>${esc(e.note)}</p>` : ''}</li>`).join('') || '<li class="muted small">Nothing yet.</li>'}</ol>
+    ${S.todo[id] ? `<div class="small htodo"><b>To-do:</b>${esc(S.todo[id])}</div>` : ''}${next ? `<div class="small muted">${esc(next)}</div>` : ''}</div>`;
 }
 function chunkHTML(c){
   const x = cs(c.id); const b = x.st==='unrated' ? 'x' : band(x.lvl);
