@@ -231,6 +231,10 @@ input[type=date]::-webkit-date-and-time-value{text-align:center;margin:0}
 @media (max-width:520px){
   .session{padding:18px 16px}
   .prow{grid-template-columns:1fr 1fr;}
+  .periods{gap:0}
+  .periods .prow{padding:14px 0}
+  .periods .prow + .prow{border-top:1px solid var(--line)}
+  .periods .prow:first-child{padding-top:0}
   .prow input:first-child{grid-column:1/-1}
   .clock{font-size:34px}
 }
