@@ -2478,7 +2478,7 @@ function renderPlan(){
     if (!timer.running) current = null;   // replan, but never drop a session that's running
   };
   let saveT = null;
-  const autosave = full => { clearTimeout(saveT); collect(); save(!full); setSync('Settings saved');
+  const autosave = full => { clearTimeout(saveT); collect(); const y = window.scrollY; save(!full); if (full) window.scrollTo(0, y); setSync('Settings saved');
     const m = $('#savedmsg'); if (m) m.textContent = '✓ Saved'; };
   const skipAuto = el => !el.closest || el.closest('#deldetails, .missbox, #invpanel, #backup') || el.matches('[data-theme-set]');
   $('#view').addEventListener('input', e => { if (skipAuto(e.target)) return; clearTimeout(saveT); saveT = setTimeout(() => autosave(false), 600); });
@@ -2495,6 +2495,7 @@ function renderPlan(){
 }
 
 function renderLogin(msg){
+  invCache = null;
   const join = new URLSearchParams(location.search).get('join');
   if (join && !msg) return renderJoin(join);
   document.body.classList.add('signedout');
@@ -2528,12 +2529,18 @@ async function callFn(name, body){
   if (error){ let t = 'Something went wrong. Try again later.'; try { t = (await error.context.json()).error || t; } catch(e){} return {error: t}; }
   return data;
 }
+let invCache = null;   // last invite list, drawn at once on re-render so Settings doesn't jump while it reloads
 async function loadInvites(note){
-  const box = $('#invbody'); if (!box) return;
-  if (!navigator.onLine){ box.textContent = 'Connect to the internet to see your invite links.'; return; }
+  if (!$('#invbody')) return;
+  if (invCache && !note) drawInvites(invCache);
+  if (!navigator.onLine){ if (!invCache) $('#invbody').textContent = 'Connect to the internet to see your invite links.'; return; }
   const r = await callFn('invite', {action: 'status'});
   if (!$('#invbody')) return;
-  if (r.error){ box.textContent = '⚠ ' + r.error; return; }
+  if (r.error){ if (!invCache) $('#invbody').textContent = '⚠ ' + r.error; return; }
+  invCache = r; drawInvites(r, note);
+}
+function drawInvites(r, note){
+  const box = $('#invbody'); if (!box) return;
   const url = c => `${location.origin}/?join=${c}`;
   const left = r.links.filter(l => !l.used).length;
   const panel = $('#invpanel'); if (panel) panel.hidden = !left && !r.admin;   // all links used: the card goes away
