@@ -33,7 +33,12 @@ drop function if exists public.shares_a_group_with(uuid);
 revoke all on function public.drop_empty_group() from public, anon, authenticated;
 
 -- Supabase's own "turn RLS on for new tables" event-trigger function: nobody needs to call it over the API
-revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
+-- (only some projects have it, so this is skipped when it isn't there)
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
+  end if;
+end $$;
 -- indexes the performance check asked for (account deletion cascades through these)
 create index if not exists groups_created_by on public.groups (created_by);
 create index if not exists messages_user_id on public.messages (user_id);

@@ -15,6 +15,8 @@
 ## Parked
 - [x] Nightly Drive backup running since 14 Nov 2026 (3am, 30 days kept, "Road to 9 backups" folder).
       Restore test passed 15 Nov 2026 (users 3, planners 2, invites 59). Key rotated that day; it lives only in Supabase and Moritz's password manager.
+      Students' messages in the backup from 15 Nov 2026. Full rebuild written up in RESTORE.md (tools/restore.py) and tested
+      the same day into an empty database: all migrations from zero, every field matched the backup.
 - [x] SMTP_PASS set (14 Nov 2026): student messages now also arrive by email.
 - [x] Accounts unused for 12 months: warning email 2 weeks before, then deleted (runs after the nightly backup; admins never; at most 20 a night). Done 15 Nov 2026.
 - [ ] Public study-time counter once there are about 10 students.

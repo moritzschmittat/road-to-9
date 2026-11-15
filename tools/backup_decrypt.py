@@ -43,6 +43,8 @@ if check:
     problems = []
     for k in ('users', 'progress', 'invites', 'groups', 'group_members'):
         if not isinstance(backup.get(k), list): problems.append('missing: ' + k)
+    if 'messages' not in backup:
+        print('note: this backup is from before 15 Nov 2026, so it has no students\' messages (newer ones do)', file=sys.stderr)
     ids = {u.get('id') for u in backup.get('users', [])}
     print('made', backup.get('made_at', '?'), file=sys.stderr)
     for i, p in enumerate(backup.get('progress', []), 1):
@@ -56,4 +58,5 @@ if check:
     print('OK: everything a restore needs is there.' if not problems else 'PROBLEMS: ' + '; '.join(problems), file=sys.stderr)
 else:
     print(json.dumps(backup, ensure_ascii=False, indent=1))
-print('users %(users)s, planners %(progress)s, invites %(invites)s' % backup['counts'], file=sys.stderr)
+print('users %d, planners %d, invites %d, groups %d, messages %s' % (len(backup.get('users', [])), len(backup.get('progress', [])),
+      len(backup.get('invites', [])), len(backup.get('groups', [])), len(backup['messages']) if 'messages' in backup else 'not in this backup'), file=sys.stderr)
