@@ -593,6 +593,9 @@ body.signedout .top .brand{visibility:hidden}
 .invlinks li{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--revbg)}
 .invlinks li code{font-family:var(--f-mono);font-size:13px;overflow-wrap:anywhere}
 .invlinks li.used{opacity:.6}
+@media (min-width:800px){ .invlinks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))} }
+.you3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 28px;align-items:start}
+@media (max-width:800px){ .you3{grid-template-columns:1fr} }
 .acctgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 @media (max-width:700px){.acctgrid{grid-template-columns:1fr}}
 
@@ -2391,19 +2394,18 @@ function renderPlan(){
   const order = [1,2,3,4,5,6,0];
   const hist = S.log.slice(-8).reverse();
   $('#view').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0 4px"><h1 style="font-size:28px;margin:0">Settings</h1><button class="btn primary" id="saveplan">Save settings</button></div>
-    <div class="acctgrid">
-    <section class="panel"><h2>You</h2>
-      <label class="small muted" for="uname">First name or nickname (shown to friends in your groups and on your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label>
-      <label class="small" style="display:flex;gap:10px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
+    <section class="panel"><h2>You</h2><div class="you3"><div>
+      <label class="small muted" for="uname">First name or nickname (shown to friends in your groups and on your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label></div><div>
+      <label class="small" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
       <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions about your day, answered at the bottom of Study. Leave a box empty to skip it.</p>
       ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div>
-      <div class="small muted" style="margin-top:16px">Appearance</div>
+      </div><div>
+      <div class="small muted">Appearance</div>
       <div class="seg themeseg" role="group" aria-label="Appearance">${[['night','Night'],['day','Day']].map(([v,l]) => `<button type="button" data-theme-set="${v}" aria-pressed="${(s.theme||'night')===v}">${l}</button>`).join('')}</div>
-      </section>
+      </div></div></section>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
       <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
-    </div>
     <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. </p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div><div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
         <div class="row"><input id="msgtext" maxlength="300" placeholder="e.g. History, AQA GCSE 8145" autocomplete="off"><button class="btn" id="msgsend">Send</button></div>
@@ -2513,6 +2515,7 @@ async function loadInvites(note){
   if (r.error){ box.textContent = '⚠ ' + r.error; return; }
   const url = c => `${location.origin}/?join=${c}`;
   const left = r.links.filter(l => !l.used).length;
+  const panel = $('#invpanel'); if (panel) panel.hidden = !left && !r.admin;   // all links used: the card goes away
   box.classList.remove('muted');
   box.innerHTML = `<ul class="invlinks">${r.links.map(l => `<li class="${l.used ? 'used' : ''}"><code>${esc(url(l.code).replace(/^https?:\/\//, ''))}</code>${l.used ? '<span class="small muted">used ✓</span>'
       : `<span class="row" style="gap:6px"><button class="btn small" data-copy="${esc(url(l.code))}">Copy</button>${navigator.share ? `<button class="btn small ghost" data-share="${esc(url(l.code))}">Share</button>` : ''}</span>`}</li>`).join('')}</ul>
