@@ -20,7 +20,8 @@
 - [x] SMTP_PASS set (14 Nov 2026): student messages now also arrive by email.
 - [x] Accounts unused for 12 months: warning email 2 weeks before, then deleted (runs after the nightly backup; admins never; at most 20 a night). Done 15 Nov 2026.
 - [ ] Public study-time counter once there are about 10 students.
-- [ ] ICO fee check; processor terms (Supabase, GitHub, SiteGround, Google); solicitor review before charging.
+- [x] ICO data protection fee registered and paid for Schmittat Ltd, 15 Nov 2026.
+- [ ] Processor terms (Supabase, GitHub, SiteGround, Google); solicitor review before charging.
 - [x] Study groups and "Need help?" (14 Nov 2026).
 - [x] RGS subjects added 15 Nov 2026: French, History, RS, Latin, Classical Greek. Latin/Greek: check which prose and verse options RGS takes.
 - [ ] DPIA addendum for study groups (names, studying status and very strong topics shared inside groups) and for "online now" on the admin page (presence table, last-seen time only, since 15 Nov 2026), error reports (client_errors, no user), mock marks and topics that cost marks (inside the planner).
