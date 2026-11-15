@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>/* iPhone/iPad: stop Safari zooming in when a text box is tapped. iOS still allows pinch-zoom with this; other phones are left alone. */
+if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) { var vp = document.querySelector('meta[name=viewport]'); vp.content += ', maximum-scale=1'; }</script>
 <title>Road to 9</title>
 <meta name="description" content="Road to 9: the GCSE revision planner. We do the planning, you do the learning.">
 <meta name="robots" content="noindex">
