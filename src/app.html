@@ -2135,8 +2135,9 @@ function parkedPanel(){
 const mockRes = () => S.settings.mockRes || (S.settings.mockRes = {});
 function mockOver(sid){
   const ds = paperDates(sid, null, 'mock'); const last = ds.length ? ds[ds.length-1] : (S.settings.mocks && S.settings.mocks.to) || null;
-  if (!last || todayStr() <= last) return null;
-  return diff(last, todayStr()) <= 60 ? last : null;   // ask for up to two months after the mock
+  if (!last) return null;
+  const gap = diff(last, todayStr());
+  return gap >= 3 && gap <= 60 ? last : null;   // ask from 3 days after the last mock (marks are usually back), for up to two months
 }
 function mockPending(){
   return CURRICULUM.filter(sb => { const r = mockRes()[sb.id]; const last = mockOver(sb.id); return last && !(r && r.d >= last); });
