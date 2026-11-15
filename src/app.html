@@ -224,8 +224,20 @@ input[type=date]::-webkit-date-and-time-value{text-align:center;margin:0}
 .paph{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .paprow{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 28px;gap:6px;align-items:center}
 .paphead{font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.paprow .pd{display:block;min-width:0;margin:0}
+.paprow .pd span{display:none}
+input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iPhone */
 .papsub [data-addpaper]{align-self:flex-start}
-@media (max-width:520px){.paprow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 24px;gap:4px}.paprow .pn{grid-column:1/-1;margin-top:4px}.paprow input[type=date]{padding:7px 4px;font-size:14px}.paphead span:first-child{display:none}.papsub{padding:10px 8px}}
+@media (max-width:520px){
+  .paprow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 24px;gap:6px;align-items:end;padding:12px 0}
+  .paprows .paprow + .paprow{border-top:1px solid var(--line)}
+  .paprows .paprow:first-child{padding-top:4px}
+  .paprow .pn{grid-column:1/-1}
+  .paprow input[type=date]{padding:7px 4px;font-size:14px}
+  .paprow .pd span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 3px 2px}
+  .paprow .x{align-self:end;height:2.6em}
+  .paphead{display:none}
+  .papsub{padding:10px 10px}}
 .hist{display:grid;gap:6px;font-size:14px}
 .hist div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:6px}
 @media (max-width:520px){
@@ -2409,7 +2421,7 @@ function weekHTML(){
     <div class="wk">${cols}</div></section>`;
 }
 
-const paperRow = q => `<div class="paprow"><input class="pn" value="${esc(q.n)}" aria-label="Paper name"><input class="pm" type="date" value="${q.mock||''}" aria-label="Mock date"><input class="pe" type="date" value="${q.exam||''}" aria-label="Exam date"><button class="x" data-rmpaper="1" aria-label="Remove paper" title="Remove paper">×</button></div>`;
+const paperRow = q => `<div class="paprow"><input class="pn" value="${esc(q.n)}" aria-label="Paper name"><label class="pd"><span>Mock</span><input class="pm" type="date" value="${q.mock||''}" aria-label="Mock date"></label><label class="pd"><span>Exam</span><input class="pe" type="date" value="${q.exam||''}" aria-label="Exam date"></label><button class="x" data-rmpaper="1" aria-label="Remove paper" title="Remove paper">×</button></div>`;
 /* plan view */
 function renderPlan(){
   const s = S.settings; const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
