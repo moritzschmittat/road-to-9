@@ -518,6 +518,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 /* widescreen: use the full width */
 .sbody{display:grid;gap:16px}
 .rategrid{display:grid;gap:12px}
+.rategrid.one{grid-template-columns:1fr!important}
 @media (min-width:1000px){
   .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start;margin-top:14px}   /* session full width, today below (Moritz, 14 Nov) */
   .side .panel:first-child{margin-top:0}
@@ -2024,13 +2025,14 @@ function sessionHTML(){
       <button class="btn ghost" data-choose="1">Choose a different topic</button>
       <button class="btn ghost" id="skipday">${doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today'}</button></div>`;
   } else {
+    const journalBox = `<label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>`;
     foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
       <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
-      <div class="rategrid">${cards.map(c => `<div class="rateitem"><div class="t">${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</div>
+      <div class="rategrid ${cards.length===1 ? 'one' : ''}">${cards.map(c => `<div class="rateitem"><div class="t">${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</div>
         <div class="allrow" data-id="${c.id}">Set all: ${[3,2.5,2,1.5,1].map(v => `<button class="${lvClass(v)}" data-all="${v}" title="${LVNAME[v]}">${LVNAME[v]}</button>`).join('')}</div>
         ${pointsHTML(c, {rate:true, pick:cur.pr})}
-        <label class="todobox"><span class="eyebrow">To-do for the next refresher</span><textarea data-todo="${c.id}" rows="2" placeholder="e.g. learn the 5 kingdoms by heart, redo Q3, ask about osmosis">${esc(cur.todo && cur.todo[c.id] != null ? cur.todo[c.id] : (S.todo[c.id]||''))}</textarea></label></div>`).join('')}</div>
-      <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>
+        <label class="todobox"><span class="eyebrow">To-do for the next refresher</span><textarea data-todo="${c.id}" rows="2" placeholder="e.g. learn the 5 kingdoms by heart, redo Q3, ask about osmosis">${esc(cur.todo && cur.todo[c.id] != null ? cur.todo[c.id] : (S.todo[c.id]||''))}</textarea></label>${cards.length===1 ? journalBox : ''}</div>`).join('')}</div>
+      ${cards.length > 1 ? `<div class="rateitem">${journalBox}</div>` : ''}
       <div class="row end"><button class="btn ghost" id="back">Back</button><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div></div>`;
   }
   const todos = cards.filter(c => S.todo[c.id]);
