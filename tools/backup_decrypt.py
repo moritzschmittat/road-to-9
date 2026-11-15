@@ -13,11 +13,17 @@ data = open(sys.argv[1], 'rb').read()
 if data[:4] != b'R9B1':
     sys.exit('Not a Road to 9 backup file.')
 salt, iv, sealed = data[4:20], data[20:32], data[32:]
-key = hashlib.pbkdf2_hmac('sha256', getpass.getpass('BACKUP_KEY: ').encode(), salt, 210000, 32)
-try:
-    plain = gzip.decompress(AESGCM(key).decrypt(iv, sealed, None))
-except Exception:
-    sys.exit('Wrong key, or the file is damaged.')
+typed = getpass.getpass('BACKUP_KEY: ')
+plain = None
+for k in dict.fromkeys([typed, typed.strip()]):   # also forgive a stray space or line break from pasting
+    try:
+        key = hashlib.pbkdf2_hmac('sha256', k.encode(), salt, 210000, 32)
+        plain = gzip.decompress(AESGCM(key).decrypt(iv, sealed, None))
+        break
+    except Exception:
+        pass
+if plain is None:
+    sys.exit('Wrong key, or the file is damaged. Is this file newer than your last key change in Supabase?')
 backup = json.loads(plain)
 print(json.dumps(backup, ensure_ascii=False, indent=1))
 print('users %(users)s, planners %(progress)s, invites %(invites)s' % backup['counts'], file=sys.stderr)
