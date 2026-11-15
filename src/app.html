@@ -1026,6 +1026,8 @@ const doneOn = d => S.log.filter(l => l.d===d).reduce((a,l) => a + sessMins(l), 
 
 /* ---------- the scheduler ---------- */
 let skipped = new Set(); let skipDay = todayStr();
+// sessions removed from today with ×: saved, so they stay gone after a reload (only for that day)
+const droppedToday = () => { const x = S.settings.dropped; return x && x.d===todayStr() ? new Set(x.ids) : new Set(); };
 // a subject is studied up to the day before its last paper, and not on the day of any of its papers
 function liveSubjects(today){ return CURRICULUM.filter(s => examLast(s.id) > today && !paperDates(s.id, null, 'exam').includes(today)); }
 
@@ -1034,7 +1036,8 @@ function pickNext(mode){
   if (skipDay!==today){ skipped = new Set(); skipDay = today; }
   const doneToday = new Set(S.log.filter(l=>l.d===today).flatMap(l=>l.c));
   const live = liveSubjects(today);
-  const all = live.flatMap(s => s.cards).filter(c => !skipped.has(c.id) && !doneToday.has(c.id));
+  const dropped = droppedToday(); const out = id => skipped.has(id) || dropped.has(id);
+  const all = live.flatMap(s => s.cards).filter(c => !out(c.id) && !doneToday.has(c.id));
   const st = c => cs(c.id);
   const due = all.filter(c => st(c).st==='review' && st(c).due<=today)
                  .sort((a,b) => (st(a).due < st(b).due ? -1 : st(a).due > st(b).due ? 1 : (st(b).lvl||0)-(st(a).lvl||0)));
@@ -1061,7 +1064,7 @@ function pickNext(mode){
   if (mode!=='revise' && S.settings.papersFrom && today >= S.settings.papersFrom && doneN % 3 === 2 && !(due.length>=8)){
     const last = S.log.length ? S.log[S.log.length-1].s : null;
     const recentP = S.log.filter(l => l.t==='paper').slice(-live.length).map(l => l.s);
-    const subs = live.filter(s => !skipped.has('paper:'+s.id)).sort((a,b) => (S.settings.exams[a.id]||'9') < (S.settings.exams[b.id]||'9') ? -1 : 1);
+    const subs = live.filter(s => !out('paper:'+s.id)).sort((a,b) => (S.settings.exams[a.id]||'9') < (S.settings.exams[b.id]||'9') ? -1 : 1);
     const pick = subs.find(s => s.id!==last && !recentP.includes(s.id)) || subs.find(s => s.id!==last) || subs[0];
     if (pick) return {type:'paper', sid:pick.id, cards:[]};
   }
@@ -1073,7 +1076,7 @@ function pickNext(mode){
     const last = S.log.length ? S.log[S.log.length-1].s : null;
     const subs = live.filter(s => s.cards.some(c => st(c).st==='review'))
       .sort((a,b) => (S.settings.exams[a.id]||'9') < (S.settings.exams[b.id]||'9') ? -1 : 1);
-    const ok = subs.filter(s => !skipped.has('paper:'+s.id));
+    const ok = subs.filter(s => !out('paper:'+s.id));
     const pick = ok.find(s => s.id!==last) || ok[0];
     return pick ? {type:'paper', sid:pick.id, cards:[]} : null;
   }
@@ -2071,7 +2074,8 @@ function bindNext(){
   // × on a session in Today's sessions: drop it from today and take its minutes off today's total
   document.querySelectorAll('#view [data-drop]').forEach(b => b.onclick = () => {
     const t = todayStr(); const isNow = b.dataset.drop === 'now'; const n = isNow ? current : todayRest[+b.dataset.drop]; if (!n) return;
-    if (n.type === 'paper') skipped.add('paper:' + n.sid); else n.cards.forEach(id => skipped.add(id));
+    const ids = n.type === 'paper' ? ['paper:' + n.sid] : n.cards;
+    S.settings.dropped = {d: t, ids: [...droppedToday(), ...ids]};
     const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, doneOn(t));
     const keep = isNow ? null : current; if (isNow) { current = null; resetTimer(); }
     setOverride(t, Math.max(doneOn(t), base - (n.mins || 45))); if (keep) { current = keep; render(); } });
