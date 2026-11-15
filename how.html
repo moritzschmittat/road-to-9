@@ -9,7 +9,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Manrope:wght@400;600;800&display=swap">
+<script>try{if(localStorage.getItem('r9-theme')==='day')document.documentElement.dataset.mode='day'}catch(e){}</script>
 <style>
 :root{--bg:#eef2f5;--surface:#fff;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6}
 @media (prefers-color-scheme:dark){:root{--bg:#0c1218;--surface:#141c24;--ink:#e6edf3;--muted:#9aa8b4;--line:#26323d;--accent:#b6f738}}
@@ -65,6 +66,17 @@ th{color:var(--muted);font-weight:600;font-size:13px}
 .fcleg{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
 .fcleg .k{display:inline-block;width:22px;height:0;border-top:3px solid var(--accent);vertical-align:middle;margin-right:8px}
 .fcleg .k.none{border-top:2.5px dashed #7d8b99}
+
+/* Day: same look as the planner in Day mode (setting stored on this device as 'r9-theme') */
+:root[data-mode="day"]{--bg:#eef2f5;--surface:#fff;--sunk:#e4e9ee;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6;--accent-ink:#fff;
+  --red:#c73636;--red-soft:#fbe5e5;--green:#23925a;--green-soft:#ddf3e6;--amber:#9a6200;--amber-soft:#fdf0d6;color-scheme:light}
+:root[data-mode="day"],:root[data-mode="day"] body{background:#eef2f5}
+:root[data-mode="day"] h1,:root[data-mode="day"] h2,:root[data-mode="day"] .brandlink{font-family:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:600;letter-spacing:-.01em}
+:root[data-mode="day"] .card,:root[data-mode="day"] .stat{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 2px rgba(19,32,43,.05)}
+:root[data-mode="day"] .brandlink .mark{filter:none}
+:root[data-mode="day"] .steps li::before{color:#fff}
+:root[data-mode="day"] .btn{background:var(--accent)!important;color:#fff!important}
+:root[data-mode="day"] .fc .none-l{fill:#566775}
 </style>
 </head>
 <body>
