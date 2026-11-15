@@ -2529,6 +2529,14 @@ function weekHTML(){
 
 const paperRow = q => `<div class="paprow"><input class="pn" value="${esc(q.n)}" aria-label="Paper name"><label class="pd"><span>Mock</span><input class="pm" type="date" value="${q.mock||''}" aria-label="Mock date"></label><label class="pd"><span>Exam</span><input class="pe" type="date" value="${q.exam||''}" aria-label="Exam date"></label><button class="x" data-rmpaper="1" aria-label="Remove paper" title="Remove paper">×</button></div>`;
 /* plan view */
+// The daily routine check (Duolingo and so on) was built for Casper. It stays for anyone who already uses it,
+// and is hidden for everyone else.
+const routineAllowed = () => !!S.settings.routine || Object.keys(S.habits||{}).length > 0;
+function routineSettingsHTML(s){ return `
+      <label class="small" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
+      <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions about your day, answered at the bottom of Study. Leave a box empty to skip it.</p>
+      ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div>
+`; }
 function renderPlan(){
   const s = S.settings; const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const order = [1,2,3,4,5,6,0];
@@ -2536,9 +2544,7 @@ function renderPlan(){
   $('#view').innerHTML = `
     <section class="panel"><h2>You</h2><div class="you3"><div>
       <input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" placeholder="First name or nickname" aria-label="First name or nickname"></div><div>
-      <label class="small" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
-      <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions about your day, answered at the bottom of Study. Leave a box empty to skip it.</p>
-      ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div>
+      ${routineAllowed() ? routineSettingsHTML(s) : ''}
       </div><div>
       <div class="seg themeseg" role="group" aria-label="Appearance">${[['night','Night'],['day','Day']].map(([v,l]) => `<button type="button" data-theme-set="${v}" aria-pressed="${(s.theme||'night')===v}">${l}</button>`).join('')}</div>
       </div></div></section>
@@ -2591,8 +2597,8 @@ function renderPlan(){
   const collect = () => {
     const nm = ($('#uname').value || '').trim().slice(0, 30);
     if (nm) s.name = nm;   // an empty name is never saved; the old one stays
-    s.routine = $('#uroutine').checked;
-    s.habitQ = Object.fromEntries(HABITS.map(([k]) => [k, (($('#uhab-' + k) || {}).value || '').trim().slice(0, 80)]));
+    if ($('#uroutine')) s.routine = $('#uroutine').checked;
+    if ($('#uroutine')) s.habitQ = Object.fromEntries(HABITS.map(([k]) => [k, (($('#uhab-' + k) || {}).value || '').trim().slice(0, 80)]));
     s.subjects = [...document.querySelectorAll('[data-subj]')].filter(x => x.checked).map(x => x.dataset.subj);
     order.forEach(d => s.week[d] = Math.max(0, +$('#wk'+d).value||0));
     s.mocks = {from:$('#mf').value, to:$('#mt').value, target:+$('#mn').value||0};
