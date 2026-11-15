@@ -425,9 +425,11 @@ details.sx[open] .wk-t{-webkit-line-clamp:unset;display:block}
 .sd-pts .code{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;padding-top:1px}
 .tl{align-items:flex-start}
 .addrow{align-items:center;gap:8px}
-.tlist .tl{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m t" "m a";gap:6px 10px}
+.tlist .tl{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m x" "t a";gap:6px 10px}
 .tlist .tl > details.sx{grid-area:m}
-.tlist .tl-min{grid-area:t;align-self:start;justify-self:end;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tlist .tl-x{grid-area:x;align-self:start;justify-self:end;width:26px;height:26px;margin:-4px -6px 0 0;border:0;border-radius:50%;background:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.tlist .tl-x:hover{background:var(--sunk);color:var(--ink)}
+.tlist .tl-min{grid-area:t;align-self:end;justify-self:start;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .tlist .tl-act{grid-area:a;align-self:end;justify-self:end}
 .tlist .tl-act:empty{display:none}
 .tlist details.sx summary > :first-child::after{content:" ▸";color:var(--muted)}
@@ -799,8 +801,11 @@ const DEFAULT_PAPERS = {
   fm:[['Paper 1 (non-calculator)','2027-06-11'],['Paper 2 (calculator)','2027-06-17']],
   phys:[['Paper 3: Breadth in physics','2027-05-25'],['Paper 4: Depth in physics','2027-06-18']],
   geog:[['Paper 1: Living with the physical environment','2027-05-18'],['Paper 2: Challenges in the human environment','2027-05-26'],['Paper 3: Geographical applications','2027-06-10']],
+  hist:[['Paper 1: Understanding the modern world','2027-05-20'],['Paper 2: Shaping the nation','2027-05-28']],
+  rs:[['Paper 1: The study of religions','2027-05-13'],['Paper 2: Thematic studies','2027-05-21']],
   englit:[['Paper 1: Poetry and modern prose','2027-05-12'],['Paper 2: Modern drama and literary heritage','2027-05-19']],
   englang:[['Paper 1','2027-05-24']],
+  fre:[['Paper 1: Listening','2027-05-26'],['Paper 2: Reading and writing','2027-05-26'],['Paper 3: Speaking','']],
   ger:[['Paper 1: Listening','2027-05-10'],['Paper 2: Reading and writing','2027-05-10'],['Paper 3: Speaking','']],
   spa:[['Paper 1: Listening','2027-06-09'],['Paper 2: Reading and writing','2027-06-09'],['Paper 3: Speaking','']]
 };
@@ -1415,11 +1420,11 @@ function todayListHTML(info){
   todayRest = mixDay(restOfToday(left), startKind(today, current));
   todayPlanned = doneOn(today) + (current ? (current.mins || 45) : 0) + todayRest.reduce((a, n) => a + (n.mins || 45), 0);
   if (!done.length && !current && !todayRest.length && info.target===0) return '';
-  const row = (n, cls, extra) => { const L = sessLabel(n); const parts = L.k.split(' · '); const mins = parts.pop(); const kind = /^Revise/.test(parts[0]||'') ? '' : parts.join(' · ');
-    return `<li class="tl ${cls}"><details class="sx"><summary>${kind ? `<div class="wk-k">${esc(kind)}</div>` : ''}<div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div></summary>${sessDetail(n)}</details><span class="tl-min">${esc(mins)}</span><div class="tl-act">${extra||''}</div></li>`; };
+  const row = (n, cls, extra, drop) => { const L = sessLabel(n); const parts = L.k.split(' · '); const mins = parts.pop(); const kind = /^Revise/.test(parts[0]||'') ? '' : parts.join(' · ');
+    return `<li class="tl ${cls}"><details class="sx"><summary>${kind ? `<div class="wk-k">${esc(kind)}</div>` : ''}<div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div></summary>${sessDetail(n)}</details>${drop ? `<button class="tl-x" ${drop} aria-label="Remove from today" title="Remove from today">×</button>` : ''}<span class="tl-min">${esc(mins)}</span><div class="tl-act">${extra||''}</div></li>`; };
   const items = done.map(l => row(l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, 'done', `<span class="tl-tag">✓ ${l.r && l.r.length ? l.r.map(x => `<i class="rag ${lvClass(x)}"></i>`).join('') : ''}</span>`))
-    .concat(current ? [row(current, 'now', '<span class="tl-tag now">Now</span>')] : [])
-    .concat(todayRest.map((n, i) => row(n, '', `<button class="btn small" data-pick="${i}">Do this now</button>`)));
+    .concat(current ? [row(current, 'now', '<span class="tl-tag now">Now</span>', 'data-drop="now"')] : [])
+    .concat(todayRest.map((n, i) => row(n, '', `<button class="btn small" data-pick="${i}">Do this now</button>`, `data-drop="${i}"`)));
   return `<section class="panel tlist"><div class="row" style="justify-content:space-between"><h2>Today's sessions</h2><span class="small muted">${fmtMin(doneOn(today))} of ${fmtMin(todayPlanned)}</span></div>
     <ol class="tl-list">${items.join('')}</ol>
     <div class="row" style="justify-content:flex-end">
@@ -1573,8 +1578,11 @@ const ICON_PATHS = {
   fm:'<path d="M17.5 5H6.5l6 7-6 7h11"/>',
   phys:'<circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9.2" ry="3.6"/><ellipse cx="12" cy="12" rx="9.2" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.2" ry="3.6" transform="rotate(120 12 12)"/>',
   geog:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z"/>',
+  hist:'<path d="M6.5 3h11M6.5 21h11"/><path d="M8 3c0 4.5 4 5.6 4 9s-4 4.5-4 9M16 3c0 4.5-4 5.6-4 9s4 4.5 4 9"/><path d="M9.6 18.5h4.8"/>',
+  rs:'<path d="M9.5 10.5h5V21h-5z"/><path d="M12 3.2c1.6 1.9 1.6 3.7 0 4.8-1.6-1.1-1.6-2.9 0-4.8z"/><path d="M6.5 21h11"/>',
   englit:'<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>',
   englang:'<path d="M4 20l1.1-4.3L16 4.8l3.2 3.2L8.3 18.9z"/><path d="M14 6.8l3.2 3.2"/><path d="M13 20h7"/>',
+  fre:'<path d="M3.5 4.5h17v11.5H9.5L5 20v-4H3.5z"/><text x="12" y="12.6" text-anchor="middle" font-size="6.6" font-weight="800" fill="currentColor" stroke="none" font-family="Manrope, system-ui, sans-serif">FR</text>',
   ger:'<path d="M3.5 4.5h17v11.5H9.5L5 20v-4H3.5z"/><text x="12" y="12.6" text-anchor="middle" font-size="6.6" font-weight="800" fill="currentColor" stroke="none" font-family="Manrope, system-ui, sans-serif">DE</text>',
   spa:'<path d="M3.5 4.5h17v11.5H9.5L5 20v-4H3.5z"/><text x="12" y="12.6" text-anchor="middle" font-size="6.6" font-weight="800" fill="currentColor" stroke="none" font-family="Manrope, system-ui, sans-serif">ES</text>'
 };
@@ -2060,6 +2068,13 @@ function bindNext(){
   document.querySelectorAll('#view [data-addsess]').forEach(b => b.onclick = () => { const t = todayStr(); const keep = current;
     const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, doneOn(t));
     setOverride(t, base + (+b.dataset.addsess || 45)); if (keep) { current = keep; render(); } });
+  // × on a session in Today's sessions: drop it from today and take its minutes off today's total
+  document.querySelectorAll('#view [data-drop]').forEach(b => b.onclick = () => {
+    const t = todayStr(); const isNow = b.dataset.drop === 'now'; const n = isNow ? current : todayRest[+b.dataset.drop]; if (!n) return;
+    if (n.type === 'paper') skipped.add('paper:' + n.sid); else n.cards.forEach(id => skipped.add(id));
+    const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, doneOn(t));
+    const keep = isNow ? null : current; if (isNow) { current = null; resetTimer(); }
+    setOverride(t, Math.max(doneOn(t), base - (n.mins || 45))); if (keep) { current = keep; render(); } });
   on('ovundo2', () => setOverride(todayStr(), null));
   document.querySelectorAll('#view [data-taught]').forEach(b => b.onclick = () => unpark(b.dataset.taught));
   on('parklater', () => { S.settings.laterAsked = todayStr(); save(); });
