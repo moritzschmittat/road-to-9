@@ -614,7 +614,7 @@ body.signedout .top .brand{visibility:hidden}
 .invlinks li code{font-family:var(--f-mono);font-size:13px;overflow-wrap:anywhere}
 .invlinks li.used{opacity:.6}
 @media (min-width:800px){ .invlinks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))} }
-.you3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 28px;align-items:start}
+.you3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 28px;align-items:center}
 @media (max-width:800px){ .you3{grid-template-columns:1fr} }
 .acctgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 @media (max-width:700px){.acctgrid{grid-template-columns:1fr}}
@@ -773,13 +773,13 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 
 <div class="wrap">
   <header class="top">
-    <div class="row" style="gap:14px"><a class="brand" href="#next" aria-label="Road to 9"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><span>Road to <b>9</b></span></a></div>
+    <div class="row" style="gap:14px"><a class="brand" href="#study" aria-label="Road to 9"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-a)" stroke="var(--mark-a)" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="var(--mark-b)" stroke="var(--mark-b)"/></g></svg><span>Road to <b>9</b></span></a></div>
     <div class="hdrmeta" id="hdrmeta"></div>
     <nav aria-label="Views" id="mainnav">
-      <a href="#next" id="nav-next">Study</a>
+      <a href="#study" id="nav-next">Study</a>
       <a href="#groups" id="nav-groups">Groups</a>
-      <a href="#home" id="nav-home">Stats</a>
-      <a href="#plan" id="nav-plan">Settings</a>
+      <a href="#stats" id="nav-home">Stats</a>
+      <a href="#settings" id="nav-plan">Settings</a>
     </nav>
     <div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div>
   </header>
@@ -1371,7 +1371,7 @@ function routineHTML(){
   const today = todayStr(); const nights = Array.from({length:14}, (_,i) => addDays(today, i-13));
   const lastWeek = nights.slice(-7);
   const hs = activeHabits();
-  if (!hs.length) return `<section class="panel"><h2>Daily routine</h2><p class="small muted" style="margin:0">Add up to three yes/no questions in <a href="#plan">Settings</a>, for example about sleep or reading.</p></section>`;
+  if (!hs.length) return `<section class="panel"><h2>Daily routine</h2><p class="small muted" style="margin:0">Add up to three yes/no questions in <a href="#settings">Settings</a>, for example about sleep or reading.</p></section>`;
   const rows = hs.map(([k, q]) => {
     const yes = lastWeek.filter(d => (S.habits[d]||{})[k]===1).length; const st = habitStreak(k);
     return `<div class="hgrid-row"><div class="hname"><b>${esc(q)}</b><span class="small muted">${yes} of last 7 days${st>1?` · ${st} in a row`:''}</span></div>
@@ -1870,7 +1870,7 @@ function renderHome(){
       ${stackHTML(ptCounts(CURRICULUM.flatMap(x => x.cards)))}
       <div class="legend">${(pc => [[3,'l3'],[2.5,'l25'],[2,'l2'],[1.5,'l15'],[1,'l1']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
       <div class="sprog">${CURRICULUM.map(sb => { const k = counts(sb); const wk = S.log.filter(l => l.d>=weekAgo && (l.s===sb.id || l.c.some(id => CARD[id] && CARD[id].sid===sb.id))).length;
-        return `<a class="sp" href="#topics-${sb.id}"><span class="nm">${icon(sb.id,17)}${esc(sb.name)}</span>${stackHTML(ptCounts(sb.cards))}<span class="pp"><span>${workHTML(workOf(sb.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(sb.cards))}<small class="ppl">confident</small></span></span></a>`; }).join('')}</div></section>
+        return `<a class="sp" href="#study-${sb.id}"><span class="nm">${icon(sb.id,17)}${esc(sb.name)}</span>${stackHTML(ptCounts(sb.cards))}<span class="pp"><span>${workHTML(workOf(sb.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(sb.cards))}<small class="ppl">confident</small></span></span></a>`; }).join('')}</div></section>
   </div>
   ${timelineHTML()}
   ${journalHTML()}
@@ -1884,7 +1884,20 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':
 let current = null;   // {type, cards, phase:'work'|'rate', ratings:{}}
 let timer = {total:45*60, left:45*60, running:false, h:null, end:0};
 
-function route(){ return (location.hash||'#next').slice(1) || 'next'; }
+// Address bar names match the tabs: #study, #groups, #stats, #settings, #study-<subject>.
+// Inside, the views keep their old names; old links (#next, #home, #plan, #topics-…) still work and are renamed.
+const HASH_IN = {study:'next', stats:'home', settings:'plan', groups:'groups', subjects:'topics'};
+const HASH_OLD = {next:'study', home:'stats', plan:'settings', topics:'subjects'};
+function route(){
+  let h = (location.hash||'').slice(1);
+  if (!h) return 'next';
+  if (HASH_OLD[h] || h.startsWith('topics-')){   // an old link: show the new name in the address bar
+    h = h.startsWith('topics-') ? 'study-' + h.slice(7) : HASH_OLD[h];
+    history.replaceState(null, '', location.pathname + location.search + '#' + h);
+  }
+  if (h.startsWith('study-')) return 'topics-' + h.slice(6);
+  return HASH_IN[h] || h;
+}
 function headerMeta(){
   const today = todayStr(); const s = S.settings;
   const m1 = CURRICULUM.map(x => mockFirst(x.id)).filter(Boolean).sort()[0] || (s.mocks && s.mocks.from);
@@ -1903,7 +1916,7 @@ function render(){
   if (r==='home') renderHome();
   else if (r==='groups') renderGroups();
   else if (r.startsWith('topics-') && SUBJ[r.split('-')[1]]) renderTopics(r.split('-')[1]);
-  else if (r.startsWith('topics')){ history.replaceState(null, '', location.pathname + location.search + '#next'); $('#nav-next').setAttribute('aria-current','page'); renderNext(); const el = document.getElementById('subjects'); if (el) el.scrollIntoView(); }
+  else if (r.startsWith('topics')){ history.replaceState(null, '', location.pathname + location.search + '#study'); $('#nav-next').setAttribute('aria-current','page'); renderNext(); const el = document.getElementById('subjects'); if (el) el.scrollIntoView(); }
   else if (r==='plan') renderPlan();
   else renderNext();
   setSync(syncMsg);
@@ -1971,7 +1984,7 @@ function paperHTML(){
       <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>
     <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>
     <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Choose a different topic</button>
-      <a class="btn ghost" style="text-decoration:none" href="#topics-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
+      <a class="btn ghost" style="text-decoration:none" href="#study-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
 }
 
 function sessionHTML(){
@@ -2068,7 +2081,7 @@ function parkedPanel(){
 function setupPanel(){
   if (!S.settings.subjects.length) return `<section class="panel setup"><h2>Welcome${S.settings.name ? ', ' + esc(S.settings.name) : ''}! Choose your subjects</h2>
     <p class="small muted" style="margin:0">Pick the subjects you take in Settings, then rate the topics. After that the planner tells you what to do every day.</p>
-    <div class="row"><a class="btn primary" style="text-decoration:none" href="#plan">Choose subjects</a></div></section>`;
+    <div class="row"><a class="btn primary" style="text-decoration:none" href="#settings">Choose subjects</a></div></section>`;
   return '';
 }
 
@@ -2252,7 +2265,7 @@ function studyNow(id){
   current = p.type==='review' ? {type:'review', cards:[id], mins:p.mins, cm:{[id]:p.mins}, phase:'work', ratings:{}, pr:{}, chosen:true}
                               : {type:'learn', cards:[id], mins:p.mins, phase:'work', ratings:{}, pr:{}, chosen:true};
   choosing = false; resetTimer();
-  if (location.hash !== '#next') location.hash = '#next'; else render();
+  if (location.hash !== '#study') location.hash = '#study'; else render();
   window.scrollTo({top:0});
 }
 function applyPoint(k, v){
@@ -2313,18 +2326,18 @@ function subjectsHTML(){
   return `<section class="panel subjpanel" id="subjects"><div class="subjhead"><h2>Subjects</h2>
       <div class="legend">${LV.map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div></div>
       ${(() => { const todo = CURRICULUM.map(s => ({s, n: s.cards.filter(c => cs(c.id).st==='unrated').length})).filter(x => x.n);
-        return todo.length ? `<p class="ratenote">Still to rate, so they can be planned: ${todo.map(x => `<a href="#topics-${x.s.id}">${esc(x.s.name)} ${x.n}</a>`).join(', ')}</p>` : ''; })()}
-      <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#topics-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
+        return todo.length ? `<p class="ratenote">Still to rate, so they can be planned: ${todo.map(x => `<a href="#study-${x.s.id}">${esc(x.s.name)} ${x.n}</a>`).join(', ')}</p>` : ''; })()}
+      <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#study-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
         <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · <b class="torate">${k.x} to rate</b>`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
 }
 function renderTopics(sid){
   let html='';
   const prevBoard = document.querySelector('.board'); const keepX = prevBoard && prevBoard.dataset.sid===sid ? prevBoard.scrollLeft : 0; const keepY = window.scrollY;
-  if (!sid || !SUBJ[sid]){ location.hash = '#topics'; return; }
+  if (!sid || !SUBJ[sid]){ location.hash = '#subjects'; return; }
   {
     const s = SUBJ[sid]; const k = counts(s);
     const secs = []; s.cards.forEach(c => { let g = secs[secs.length-1]; if (!g || g.name!==c.sec){ g = {name:c.sec, cards:[]}; secs.push(g); } g.cards.push(c); });
-    html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#topics">← Back to Study</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
+    html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#subjects">← Back to Study</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
       <p class="small muted" style="margin:4px 0 0">Exam board: ${esc(s.board)}${s.spec?` · <a href="${esc(s.spec)}" target="_blank" rel="noopener">Specification</a>`:''}</p></div>
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
       <div class="key">${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
@@ -2433,12 +2446,11 @@ function renderPlan(){
   const hist = S.log.slice(-8).reverse();
   $('#view').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0 4px"><h1 style="font-size:28px;margin:0">Settings</h1><span class="small muted" id="savedmsg" role="status">Changes save automatically</span></div>
     <section class="panel"><h2>You</h2><div class="you3"><div>
-      <label class="small muted" for="uname">First name or nickname (shown to friends in your groups and on your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label></div><div>
+      <input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" placeholder="First name or nickname" aria-label="First name or nickname"></div><div>
       <label class="small" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
       <div id="uhabs" ${s.routine ? '' : 'hidden'}><p class="small muted" style="margin:2px 0 0">Up to three yes/no questions about your day, answered at the bottom of Study. Leave a box empty to skip it.</p>
       ${HABITS.map(([k, ph], i) => `<input id="uhab-${k}" value="${esc((s.habitQ||{})[k] || '')}" maxlength="80" placeholder="e.g. ${esc(ph)}" aria-label="Routine question ${i+1}" style="margin-top:6px">`).join('')}</div>
       </div><div>
-      <div class="small muted">Appearance</div>
       <div class="seg themeseg" role="group" aria-label="Appearance">${[['night','Night'],['day','Day']].map(([v,l]) => `<button type="button" data-theme-set="${v}" aria-pressed="${(s.theme||'night')===v}">${l}</button>`).join('')}</div>
       </div></div></section>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
@@ -2593,7 +2605,7 @@ function renderContinue(tokenHash, type){
     const {data, error} = await sb.auth.verifyOtp({token_hash: tokenHash, type: invite ? 'invite' : 'magiclink'});
     if (error || !data.session){ $('#goon').disabled = false;
       m.innerHTML = '⚠ This link has already been used or has run out. <a href="./">Ask for a new link</a>.'; return; }
-    history.replaceState(null, '', location.pathname + location.search + (DELETE_CONFIRMED ? '#plan' : '#next'));
+    history.replaceState(null, '', location.pathname + location.search + (DELETE_CONFIRMED ? '#settings' : '#study'));
     startApp(data.session.user);
     sb.auth.onAuthStateChange((ev, session) => { if (ev === 'SIGNED_OUT' && USER){ USER = null; renderLogin(''); } });
   };
@@ -2673,7 +2685,7 @@ function startApp(user){
   try { S = normalise(JSON.parse(localStorage.getItem(LS)||'null')); } catch(e){ S = fresh(); }
   lastSnap = clone(S);
   $('#footacct').innerHTML = `<button id="footsignout">Sign out</button>`; $('#footsignout').onclick = () => signOut();
-  if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + (DELETE_CONFIRMED ? '#plan' : '#next'));
+  if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + (DELETE_CONFIRMED ? '#settings' : '#study'));
   if (location.search) history.replaceState(null, '', location.pathname + location.hash);   // drop ?join= once signed in
   render(); connect(); startPresence();
 }
@@ -2773,7 +2785,7 @@ function renderOnboarding(){
       const i = ob.i||0;
       return i+1 < CURRICULUM.length ? go('rate', i+1) : go('time');
     }
-    s.onboarded = true; s.ob = {step:'done', i:0}; s.startedOn = todayStr(); location.hash = '#next'; save();
+    s.onboarded = true; s.ob = {step:'done', i:0}; s.startedOn = todayStr(); location.hash = '#study'; save();
   };
   document.querySelectorAll('[data-obr]').forEach(b => b.onclick = () => { const v = b.dataset.v; rateChunk(b.dataset.obr, isNaN(+v) ? v : +v); });
   document.querySelectorAll('[data-obp]').forEach(b => b.onclick = () => applyPoint(b.dataset.obp, +b.dataset.v));
