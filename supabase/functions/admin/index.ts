@@ -109,6 +109,19 @@ Deno.serve(async (req) => {
       return reply({ messages: data ?? [] });
     }
 
+    case "errors": {
+      // Errors from students' browsers (no user, no typed text): newest first.
+      const { data, error } = await svc.from("client_errors").select("id, at, msg, src, line, ua, ver").order("id", { ascending: false }).limit(300);
+      if (error) return reply({ error: error.message }, 500);
+      return reply({ errors: data ?? [] });
+    }
+
+    case "clearerrors": {
+      const { error } = await svc.from("client_errors").delete().gte("id", 0);
+      if (error) return reply({ error: error.message }, 400);
+      return reply({ ok: true });
+    }
+
     case "done": {
       const { error } = await svc.from("messages").update({ done_at: body.undo ? null : new Date().toISOString() }).eq("id", Number(body.id));
       if (error) return reply({ error: error.message }, 400);

@@ -2767,6 +2767,22 @@ async function signOut(){
   await sb.auth.signOut().catch(() => {});
   location.hash = ''; location.reload();
 }
+/* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
+   Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
+const APP_VER = '%%BUILD%%';
+let errSent = 0; const errSeen = new Set();
+function reportError(msg, src, line){
+  try {
+    if (!USER || !sb || errSent >= 5) return;
+    msg = String(msg || '?').replace(/[^\s@]+@[^\s@]+/g, '[email]').replace(/\d{6,}/g, '[n]').slice(0, 300);
+    const key = msg + '|' + line; if (errSeen.has(key)) return; errSeen.add(key); errSent++;
+    src = String(src || '').replace(/^.*\//, '').slice(0, 200);
+    const ua = (navigator.userAgent.match(/(iPhone|iPad|Android|Macintosh|Windows|Linux)/) || ['?'])[0] + ' ' + ((navigator.userAgent.match(/(Edg|Chrome|Firefox|Safari)\/[\d.]+/) || [''])[0]);
+    sb.rpc('log_client_error', {p_msg: msg, p_src: src, p_line: line || null, p_ua: ua.slice(0, 120), p_ver: APP_VER}).then(() => {}, () => {});
+  } catch(e){}
+}
+window.addEventListener('error', e => reportError(e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', e => reportError('Unhandled: ' + ((e.reason && (e.reason.message || e.reason)) || '?'), '', null));
 /* While Road to 9 is open and on screen, tell the server "still here" once a minute (only a timestamp; the admin page shows who is online). */
 let presenceTimer = null;
 function startPresence(){

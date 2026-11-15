@@ -37,5 +37,7 @@ out = app.replace('/*CURRICULUM*/[]', json.dumps(cur, ensure_ascii=False, separa
 if url and key:
     out = out.replace('%%SUPABASE_URL%%', url).replace('%%SUPABASE_KEY%%', key)
 assert '/*CURRICULUM*/' not in out
+import datetime
+out = out.replace('%%BUILD%%', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M'))
 (root / 'index.html').write_text(out, encoding='utf-8')
 print('index.html', len(out) // 1024, 'KB', '(connected)' if url and key else '(no Supabase config yet)')

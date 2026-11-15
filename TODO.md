@@ -21,5 +21,5 @@
 - [ ] ICO fee check; processor terms (Supabase, GitHub, SiteGround, Google); solicitor review before charging.
 - [x] Study groups and "Need help?" (14 Nov 2026).
 - [x] RGS subjects added 15 Nov 2026: French, History, RS, Latin, Classical Greek. Latin/Greek: check which prose and verse options RGS takes.
-- [ ] DPIA addendum for study groups (names, studying status and very strong topics shared inside groups) and for "online now" on the admin page (presence table, last-seen time only, since 15 Nov 2026).
+- [ ] DPIA addendum for study groups (names, studying status and very strong topics shared inside groups) and for "online now" on the admin page (presence table, last-seen time only, since 15 Nov 2026), error reports (client_errors, no user), mock marks and topics that cost marks (inside the planner).
 - [ ] Groups across different exam boards: match by subject only (today: same specification, by topic).

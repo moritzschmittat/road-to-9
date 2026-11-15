@@ -157,6 +157,12 @@ main{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-st
       <div id="msgs"></div>
     </div>
 
+    <div class="card" id="errcard" hidden>
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Errors</h2><button class="ghost" id="errclear">Clear all</button></div>
+      <p class="muted small" style="margin:4px 0 6px">Things that broke in a student's browser. Only the error, where in the code, the browser and the app version. Never who it was.</p>
+      <div id="errs"></div>
+    </div>
+
     <div class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">Students</h2><button class="ghost" id="refresh">Refresh</button></div>
       <p class="muted small">Account details only. Ratings, sessions, journals and to-dos stay private to each student.</p>
@@ -211,12 +217,23 @@ async function load(){
     show('panel'); msg('listMsg', r.error); return;
   }
   ME = r.me; USERS = r.users; show('panel'); draw();
-  loadMsgs();
+  loadMsgs(); loadErrs();
   const t = await call('totals');
   if (!t.error) $('totals').innerHTML = [['Studied today', t.today_min], ['Last 7 days', t.week_min], ['Ever', t.ever_min]]
     .map(([k, m]) => `<div class="stat"><b>${hrs(m)}</b><span class="small muted">${k}</span></div>`).join('') + `<div class="stat"><b>${t.students}</b><span class="small muted">Students who've studied</span></div>`;
 }
 
+async function loadErrs(){
+  const r = await call('errors'); if (r.error) return;
+  $('errcard').hidden = !r.errors.length;
+  // same error grouped: how often, last time, which browsers
+  const g = new Map();
+  r.errors.forEach(e => { const k = e.msg + '|' + (e.src || '') + ':' + (e.line || ''); const x = g.get(k) || {e, n: 0, ua: new Set(), last: e.at}; x.n++; if (e.ua) x.ua.add(e.ua); if (e.at > x.last) x.last = e.at; g.set(k, x); });
+  $('errs').innerHTML = [...g.values()].sort((a, b) => b.last.localeCompare(a.last)).map(x => `<div class="user"><div><div class="who" style="font-family:ui-monospace,monospace;font-size:13px">${esc(x.e.msg)}</div>
+    <div class="meta">${x.n}× · last ${when(x.last)}${x.e.src ? ' · ' + esc(x.e.src) + (x.e.line ? ':' + x.e.line : '') : ''} · ${esc([...x.ua].join(', '))}${x.e.ver ? ' · version ' + esc(x.e.ver) : ''}</div></div></div>`).join('');
+  document.querySelector('#errcard h2').textContent = `Errors (${r.errors.length})`;
+}
+$('errclear').onclick = async () => { const r = await call('clearerrors'); if (!r.error) loadErrs(); };
 async function loadMsgs(){
   const r = await call('messages'); if (r.error) return;
   const open = r.messages.filter(m => !m.done_at).length;
