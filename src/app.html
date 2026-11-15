@@ -810,7 +810,9 @@ const DEFAULT_PAPERS = {
   englang:[['Paper 1','2027-05-24']],
   fre:[['Paper 1: Listening','2027-05-26'],['Paper 2: Reading and writing','2027-05-26'],['Paper 3: Speaking','']],
   ger:[['Paper 1: Listening','2027-05-10'],['Paper 2: Reading and writing','2027-05-10'],['Paper 3: Speaking','']],
-  spa:[['Paper 1: Listening','2027-06-09'],['Paper 2: Reading and writing','2027-06-09'],['Paper 3: Speaking','']]
+  spa:[['Paper 1: Listening','2027-06-09'],['Paper 2: Reading and writing','2027-06-09'],['Paper 3: Speaking','']],
+  lat:[['Paper 1: Language','2027-05-11'],['Prose literature','2027-05-18'],['Verse literature','2027-06-07']],
+  grk:[['Paper 1: Language','2027-05-12'],['Prose literature','2027-05-24'],['Verse literature','2027-06-08']]
 };
 const defaultPapers = () => { const o = {}; ALL_SUBJECTS.forEach(s => o[s.id] = (DEFAULT_PAPERS[s.id]||[['Paper 1','']]).map(([n, exam]) => ({n, mock:'', exam}))); return o; };
 function defaultSettings(){
@@ -1164,6 +1166,14 @@ const LEARN = {
         ['Study','20 min · Re-read the key scenes or notes. Learn five quotes and what each one shows.'],
         ['Write','15 min · One timed analytical paragraph answering a likely exam question on this.'],
         ['Rate','5 min · Check it against the assessment objectives, then rate.']],
+  words:[['Learn','15 min · Learn this group of words with flashcards, from Latin or Greek into English. Say them out loud.'],
+         ['Test','10 min · Test yourself both ways without looking. Re-learn the ones you missed.'],
+         ['Use','15 min · Translate a short unseen passage. Underline every word from this group.'],
+         ['Rate','5 min · Test the missed words once more, then rate.']],
+  settext:[['Read','10 min · Read the passage in the original with the translation beside it.'],
+           ['Translate','15 min · Cover the translation and translate it yourself. Mark it against the translation.'],
+           ['Style','15 min · Pick three phrases. Write what the author does (word order, sound, imagery) and why it works.'],
+           ['Rate','5 min · Rate how well you could translate and comment on it tomorrow.']],
   skill:[['Model','10 min · Read the mark scheme and one strong model answer for this question type.'],
          ['Practise','25 min · Timed practice of this question type.'],
          ['Mark','10 min · Mark it against the mark scheme. Write down two targets for next time.']]
@@ -1175,6 +1185,8 @@ const REVIEW = {
   vocab:'Test yourself on the vocabulary without looking, then say five sentences out loud.',
   grammar:'Write five sentences that use this rule. Check them.',
   text:'Write five quotes and one theme point from memory. Check them.',
+  words:'Test yourself on these words both ways without looking. Re-learn the misses.',
+  settext:'Translate one paragraph of the passage from memory, then check it.',
   skill:'Plan one answer to this question type in 10 minutes. Compare with the mark scheme.'
 };
 
@@ -1586,6 +1598,8 @@ const ICON_PATHS = {
   geog:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z"/>',
   hist:'<path d="M6.5 3h11M6.5 21h11"/><path d="M8 3c0 4.5 4 5.6 4 9s-4 4.5-4 9M16 3c0 4.5-4 5.6-4 9s4 4.5 4 9"/><path d="M9.6 18.5h4.8"/>',
   rs:'<path d="M9.5 10.5h5V21h-5z"/><path d="M12 3.2c1.6 1.9 1.6 3.7 0 4.8-1.6-1.1-1.6-2.9 0-4.8z"/><path d="M6.5 21h11"/>',
+  lat:'<path d="M7.5 4h10.5a2 2 0 0 1 0 4H17v10a2 2 0 0 1-2 2H5.5a2 2 0 0 1 0-4h2z"/><path d="M7.5 16V4"/><path d="M10.5 9.5h3.5M10.5 12.5h3.5"/>',
+  grk:'<path d="M3.5 8.5 12 4l8.5 4.5z"/><path d="M4.5 19.5h15M6.5 10.5v7M10 10.5v7M14 10.5v7M17.5 10.5v7"/>',
   englit:'<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>',
   englang:'<path d="M4 20l1.1-4.3L16 4.8l3.2 3.2L8.3 18.9z"/><path d="M14 6.8l3.2 3.2"/><path d="M13 20h7"/>',
   fre:'<path d="M3.5 4.5h17v11.5H9.5L5 20v-4H3.5z"/><text x="12" y="12.6" text-anchor="middle" font-size="6.6" font-weight="800" fill="currentColor" stroke="none" font-family="Manrope, system-ui, sans-serif">FR</text>',
