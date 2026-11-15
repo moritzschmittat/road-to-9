@@ -14,7 +14,7 @@
 
 ## Parked
 - [x] Nightly Drive backup running since 14 Nov 2026 (3am, 30 days kept, "Road to 9 backups" folder).
-      Still worth doing once: open one file with tools/backup_decrypt.py to prove the key works.
+      Restore test passed 15 Nov 2026 (users 3, planners 2, invites 59). Key rotated that day; it lives only in Supabase and Moritz's password manager.
 - [x] SMTP_PASS set (14 Nov 2026): student messages now also arrive by email.
 - [ ] Delete accounts unused for 12 months, with a warning email 2 weeks before (Moritz to confirm period).
 - [ ] Public study-time counter once there are about 10 students.
