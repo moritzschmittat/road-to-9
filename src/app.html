@@ -302,6 +302,13 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .thist{margin-top:8px;padding:10px;border-radius:8px;background:var(--sunk);display:flex;flex-direction:column;gap:8px}
 .htodo{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;white-space:pre-wrap}
 .htodo b{display:block}
+.mocksub{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.mocksub summary{cursor:pointer;font-weight:700;display:flex;gap:8px;align-items:center}
+.mocksub[open] summary{margin-bottom:10px}
+.mockpct{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mocklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 16px;margin-bottom:12px}
+.mockt{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer;padding:3px 0}
+.mockt input{width:18px;height:18px;flex-shrink:0}
 .hspark{display:flex;align-items:flex-end;justify-content:flex-start;gap:3px;height:28px}
 .hspark i{flex:0 0 10px}
 .hspark i{width:10px;border-radius:2px;display:block}
@@ -316,6 +323,7 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .hn b{display:block;color:var(--ink);font-weight:700}
 @media (max-width:700px){ .board{grid-auto-flow:row;grid-auto-columns:auto;overflow:visible} }
 /* progress percentages */
+.pct.warn{color:var(--lv25)}
 .pct{font-family:var(--f-display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
 .pct small{font-size:.6em;margin-left:1px;color:var(--muted)}
 .pct.big{font-size:44px;line-height:1}
@@ -429,6 +437,7 @@ details.howto > :not(summary){position:absolute;right:0;bottom:40px;width:min(52
 @media (max-width:640px){ .qsmall-wrap{justify-items:start} .qsmall{text-align:left} .qsmall-wrap .chips{justify-content:flex-start!important} }
 /* rate-these-topics box: full width, red frame until everything is rated */
 .panel.setup{border:2px solid var(--lv3);margin:0 0 44px}
+.panel.setup.mockp{border-color:var(--accent);margin:14px 0 24px}
 #lemail,#jemail{text-align:center}
 .tip{position:relative;display:inline-block;vertical-align:middle;margin-left:10px}
 .tip summary{list-style:none;cursor:pointer;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--f-body);font-size:12px;font-weight:800;color:var(--muted)}
@@ -1881,7 +1890,7 @@ function renderHome(){
       ${stackHTML(ptCounts(CURRICULUM.flatMap(x => x.cards)))}
       <div class="legend">${(pc => [[3,'l3'],[2.5,'l25'],[2,'l2'],[1.5,'l15'],[1,'l1']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
       <div class="sprog">${CURRICULUM.map(sb => { const k = counts(sb); const wk = S.log.filter(l => l.d>=weekAgo && (l.s===sb.id || l.c.some(id => CARD[id] && CARD[id].sid===sb.id))).length;
-        return `<a class="sp" href="#study-${sb.id}"><span class="nm">${icon(sb.id,17)}${esc(sb.name)}</span>${stackHTML(ptCounts(sb.cards))}<span class="pp"><span>${workHTML(workOf(sb.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(sb.cards))}<small class="ppl">confident</small></span></span></a>`; }).join('')}</div></section>
+        return `<a class="sp" href="#study-${sb.id}"><span class="nm">${icon(sb.id,17)}${esc(sb.name)}</span>${stackHTML(ptCounts(sb.cards))}<span class="pp"><span>${workHTML(workOf(sb.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(sb.cards))}<small class="ppl">confident</small></span>${(r => r && r.pct!=null ? `<span title="${progressOf(sb.cards) - r.pct >= 20 ? 'Your ratings look higher than your mock mark: rate a bit more strictly' : 'Your last mock mark'}">${pctHTML(r.pct, progressOf(sb.cards) - r.pct >= 20 ? 'warn' : '')}<small class="ppl">mock</small></span>` : '')((S.settings.mockRes||{})[sb.id])}</span></a>`; }).join('')}</div></section>
   </div>
   ${timelineHTML()}
   ${journalHTML()}
@@ -1951,7 +1960,7 @@ function renderNext(){
   const s = S.settings;
   let html = '';
 
-  html = setupPanel() + parkedPanel() + html;
+  html = setupPanel() + mockPanel() + parkedPanel() + html;
   html += '<div class="cols"><div class="main">';
   if (choosing) html += chooserHTML();
   if (!current){
@@ -2090,6 +2099,38 @@ function parkedPanel(){
     <div class="parklist">${bySubj.map(g => `<details><summary>${icon(g.sb.id,15)}${esc(g.sb.name)} · ${g.cs.length}</summary><div class="row">${g.cs.map(c => `<button class="btn small" data-taught="${c.id}">${esc(c.n)}</button>`).join('')}</div></details>`).join('')}</div>
     <div class="row"><button class="btn small ghost" id="parklater">Not yet, ask again in 2 weeks</button></div></section>`;
 }
+/* ---------- after the mocks: how did it go, and which topics cost marks? ----------
+   Self-ratings tend to be generous. Once a subject's last mock paper is over, the student enters the mark (optional)
+   and ticks the topics that cost marks; those drop to "weak" so the planner brings them forward. */
+const mockRes = () => S.settings.mockRes || (S.settings.mockRes = {});
+function mockOver(sid){
+  const ds = paperDates(sid, null, 'mock'); const last = ds.length ? ds[ds.length-1] : (S.settings.mocks && S.settings.mocks.to) || null;
+  if (!last || todayStr() <= last) return null;
+  return diff(last, todayStr()) <= 60 ? last : null;   // ask for up to two months after the mock
+}
+function mockPending(){
+  return CURRICULUM.filter(sb => { const r = mockRes()[sb.id]; const last = mockOver(sb.id); return last && !(r && r.d >= last); });
+}
+function mockPanel(){
+  const list = mockPending(); if (!list.length) return '';
+  return `<section class="panel setup mockp"><h2>How did your mocks go?</h2>
+    <p class="small muted" style="margin:0">Tick the topics that cost you marks. They move to weak, so they come up again soon.</p>
+    ${list.map(sb => `<details class="mocksub" data-msid="${sb.id}"><summary>${icon(sb.id,16)}${esc(sb.name)}</summary>
+      <label class="small mockpct">Mark <span class="minf"><input type="number" min="0" max="100" inputmode="numeric" data-mpct="${sb.id}" placeholder="–"><i>%</i></span> <span class="muted">(optional)</span></label>
+      <div class="mocklist">${sb.cards.filter(c => cs(c.id).st!=='off').map(c => `<label class="mockt"><input type="checkbox" data-mlost="${c.id}"><i class="rag ${lvClass(cs(c.id).lvl)}"></i><span>${esc(c.n)}</span></label>`).join('')}</div>
+      <div class="row"><button class="btn primary small" data-msave="${sb.id}">Save</button><button class="btn ghost small" data-mskip="${sb.id}">I didn’t sit this mock</button></div></details>`).join('')}</section>`;
+}
+function saveMock(sid, skip){
+  const box = document.querySelector(`.mocksub[data-msid="${sid}"]`); const today = todayStr();
+  const pctIn = box && box.querySelector(`[data-mpct="${sid}"]`); const pct = pctIn && pctIn.value !== '' ? Math.max(0, Math.min(100, Math.round(+pctIn.value))) : null;
+  const lost = skip || !box ? [] : [...box.querySelectorAll('[data-mlost]:checked')].map(x => x.dataset.mlost);
+  lost.forEach(id => { const c = CARD[id]; if (!c) return;
+    c.p.forEach((_, j) => { const v = ptLvl(c, j); if (v == null || v < 2.5) S.pts[pk(id, j)] = 2.5; });   // stronger than weak → weak
+    setRating(id, deriveR(c.p.map((_, j) => ptLvl(c, j))));
+    const h = S.rh[id] || []; if (h.length && h[h.length-1].d === today) h[h.length-1].mock = 1; });
+  mockRes()[sid] = {d: today, pct: skip ? null : pct, lost, skip: !!skip};
+  current = null; save();
+}
 function setupPanel(){
   if (!S.settings.subjects.length) return `<section class="panel setup"><h2>Welcome${S.settings.name ? ', ' + esc(S.settings.name) : ''}! Choose your subjects</h2>
     <p class="small muted" style="margin:0">Pick the subjects you take in Settings, then rate the topics. After that the planner tells you what to do every day.</p>
@@ -2148,6 +2189,8 @@ function bindNext(){
   on('ovundo2', () => setOverride(todayStr(), null));
   document.querySelectorAll('#view [data-taught]').forEach(b => b.onclick = () => unpark(b.dataset.taught));
   on('parklater', () => { S.settings.laterAsked = todayStr(); save(); });
+  document.querySelectorAll('#view [data-msave]').forEach(b => b.onclick = () => saveMock(b.dataset.msave, false));
+  document.querySelectorAll('#view [data-mskip]').forEach(b => b.onclick = () => saveMock(b.dataset.mskip, true));
   on('skipday', () => { stopTimer(); const t = todayStr(), inf = dayInfo(t), dn = doneOn(t);
     if (inf.target > 0 && dn < inf.target) setOverride(t, dn);              // stop short of today's goal
     else { current = null; window.__anyway = false; render(); } });         // goal already met: just end the extra session
@@ -2291,7 +2334,7 @@ function applyPoint(k, v){
 let openHist = new Set();
 function topicHistory(id){
   const c = CARD[id]; const ev = [];
-  (S.rh[id]||[]).forEach(e => ev.push({d:e.d, at:e.d+'~', k: e.v==='later' ? 'later' : e.v==='off' ? 'off' : 'manual', v: typeof e.v==='number' ? e.v : null}));
+  (S.rh[id]||[]).forEach(e => ev.push({d:e.d, at:e.d+'~', k: e.v==='later' ? 'later' : e.v==='off' ? 'off' : e.mock ? 'mock' : 'manual', v: typeof e.v==='number' ? e.v : null}));
   const sess = S.log.filter(l => (l.c||[]).includes(id));
   const ptsOf = obj => obj ? c.p.map((_,j) => obj[pk(id,j)] ?? null) : null;
   sess.forEach((l, n) => { const i = l.c.indexOf(id);
@@ -2308,7 +2351,7 @@ function topicHistory(id){
 }
 function historyHTML(id){
   const ev = topicHistory(id).filter(e => e.k!=='manual'); const x = cs(id);   // ratings changed on the Subjects board aren't listed
-  const label = e => e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
+  const label = e => e.k==='mock' ? 'Lost marks in the mock: moved to weak' : e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
     e.k==='learn' ? 'After ' + (e.m ? e.m + ' min ' : '') + (e.relearn ? 'revising again' : 'revision') : e.k==='quick' ? 'After 5 min quick refresher' : 'After ' + (e.m ? e.m + ' min ' : '') + 'refresher';
   const next = x.st==='review' ? (x.trk && !x.left ? 'All refreshers done' : `Next refresher ${fmtShort(x.due)}`) : x.st==='learning' ? 'Next: revise again' : x.st==='new' ? 'Next: revise' : '';
   return `<div class="thist">
