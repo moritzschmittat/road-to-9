@@ -2407,7 +2407,7 @@ function renderPlan(){
   const s = S.settings; const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const order = [1,2,3,4,5,6,0];
   const hist = S.log.slice(-8).reverse();
-  $('#view').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0 4px"><h1 style="font-size:28px;margin:0">Settings</h1><button class="btn primary" id="saveplan">Save settings</button></div>
+  $('#view').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0 4px"><h1 style="font-size:28px;margin:0">Settings</h1><span class="small muted" id="savedmsg" role="status">Changes save automatically</span></div>
     <section class="panel"><h2>You</h2><div class="you3"><div>
       <label class="small muted" for="uname">First name or nickname (shown to friends in your groups and on your invite links)<input id="uname" value="${esc(s.name||'')}" maxlength="30" autocomplete="given-name" style="margin-top:4px"></label></div><div>
       <label class="small" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="uroutine" style="width:18px;height:18px;flex:0 0 auto" ${s.routine ? 'checked' : ''}> Daily routine check</label>
@@ -2453,19 +2453,19 @@ function renderPlan(){
         : `<p class="small" style="margin:8px 0">Deleting removes your account and everything you've saved, for good. To make sure it's really you, we first email you a confirmation link. Export your progress first if you want a copy.</p>
         <div class="row"><button class="btn danger" id="delreq">Email me a confirmation link</button></div>`}
         <div id="delmsg" class="small" role="status"></div></details></section>`;
-  document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { s.periods.splice(+b.dataset.del,1); save(); });
-  const bindRm = root => root.querySelectorAll('[data-rmpaper]').forEach(b => b.onclick = () => b.closest('.paprow').remove());
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { collect(); s.periods.splice(+b.dataset.del,1); save(); });
+  const bindRm = root => root.querySelectorAll('[data-rmpaper]').forEach(b => b.onclick = () => { b.closest('.paprow').remove(); autosave(false); });
   bindRm(document);
   document.querySelectorAll('[data-addpaper]').forEach(b => b.onclick = () => { const rows = b.parentElement.querySelector('.paprows');
-    rows.insertAdjacentHTML('beforeend', paperRow({n:'Paper ' + (rows.children.length+1), mock:'', exam:''})); bindRm(rows); rows.lastElementChild.querySelector('.pn').focus(); });
-  $('#addp').onclick = () => { const t=todayStr(); s.periods.unshift({name:'New holiday', from:t, to:t, target:135}); save(); };
+    rows.insertAdjacentHTML('beforeend', paperRow({n:'Paper ' + (rows.children.length+1), mock:'', exam:''})); bindRm(rows); rows.lastElementChild.querySelector('.pn').focus(); autosave(false); });
+  $('#addp').onclick = () => { collect(); const t=todayStr(); s.periods.unshift({name:'New holiday', from:t, to:t, target:135}); save(); };
   document.querySelectorAll('[data-theme-set]').forEach(b => b.onclick = () => { S.settings.theme = b.dataset.themeSet; applyTheme(S.settings.theme);
     document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x===b)); save(true); });
   const ur = $('#uroutine'); if (ur) ur.onchange = () => { $('#uhabs').hidden = !ur.checked; if (ur.checked) $('#uhab-duo').focus(); };
-  $('#saveplan').onclick = () => {
+  // Settings save as you go: typing saves after a short pause, ticks and dates save at once.
+  const collect = () => {
     const nm = ($('#uname').value || '').trim().slice(0, 30);
-    if (!nm){ $('#uname').focus(); $('#uname').setCustomValidity('Add your first name or a nickname.'); $('#uname').reportValidity(); $('#uname').oninput = e => e.target.setCustomValidity(''); return; }
-    s.name = nm;
+    if (nm) s.name = nm;   // an empty name is never saved; the old one stays
     s.routine = $('#uroutine').checked;
     s.habitQ = Object.fromEntries(HABITS.map(([k]) => [k, (($('#uhab-' + k) || {}).value || '').trim().slice(0, 80)]));
     s.subjects = [...document.querySelectorAll('[data-subj]')].filter(x => x.checked).map(x => x.dataset.subj);
@@ -2475,8 +2475,15 @@ function renderPlan(){
     document.querySelectorAll('.papsub').forEach(box => { const sid = box.dataset.sid;
       s.papers[sid] = [...box.querySelectorAll('.paprows .paprow')].map(r => ({n: r.querySelector('.pn').value.trim() || 'Paper', mock: r.querySelector('.pm').value, exam: r.querySelector('.pe').value}));
       s.exams[sid] = examFirst(sid, s); });
-    current = null; save(); setSync('Settings saved');
+    if (!timer.running) current = null;   // replan, but never drop a session that's running
   };
+  let saveT = null;
+  const autosave = full => { clearTimeout(saveT); collect(); save(!full); setSync('Settings saved');
+    const m = $('#savedmsg'); if (m) m.textContent = '✓ Saved'; };
+  const skipAuto = el => !el.closest || el.closest('#deldetails, .missbox, #invpanel, #backup') || el.matches('[data-theme-set]');
+  $('#view').addEventListener('input', e => { if (skipAuto(e.target)) return; clearTimeout(saveT); saveT = setTimeout(() => autosave(false), 600); });
+  $('#view').addEventListener('change', e => { if (skipAuto(e.target)) return; autosave(e.target.matches('[data-subj]')); });
+  $('#uname').addEventListener('blur', e => { const el = e.target; if (!el.value.trim()){ el.setCustomValidity('Add your first name or a nickname.'); el.reportValidity(); el.value = s.name || ''; el.setCustomValidity(''); } });
   bindBackup();
   bindAccount(); loadInvites(); bindMissing();
   const u = $('#undo'); if (u) u.onclick = () => {
