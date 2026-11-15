@@ -303,6 +303,7 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .hspark i.lv-1{background:var(--lv1)}.hspark i.lv-15{background:var(--lv15)}.hspark i.lv-2{background:var(--lv2)}.hspark i.lv-25{background:var(--lv25)}.hspark i.lv-3{background:var(--lv3)}
 .hlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .hlist li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:2px 8px;font-size:12.5px;align-items:baseline}
+.hlist li:not(.same):not(:first-child){border-top:1px solid var(--line);padding-top:6px}
 .hd{color:var(--muted)}
 .hv{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
 .hpts{grid-column:2/-1;display:inline-flex;gap:3px;align-items:center}.hpts small{color:var(--muted);margin-left:4px;font-size:11px}
@@ -2299,12 +2300,12 @@ function topicHistory(id){
 function historyHTML(id){
   const ev = topicHistory(id); const x = cs(id);
   const label = e => e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
-    e.k==='learn' ? (e.relearn ? 'Revise again' : 'Revise') + (e.m ? ' · ' + e.m + ' min' : '') : e.k==='quick' ? 'Quick refresher · 5 min' : 'Refresher' + (e.m ? ' · ' + e.m + ' min' : '');
+    e.k==='learn' ? 'After ' + (e.m ? e.m + ' min ' : '') + (e.relearn ? 'revising again' : 'revision') : e.k==='quick' ? 'After 5 min quick refresher' : 'After ' + (e.m ? e.m + ' min ' : '') + 'refresher';
   const pts = ev.filter(e => e.v!=null);
   const spark = pts.length ? `<div class="hspark" aria-hidden="true">${pts.map(e => `<i class="${lvClass(e.v)}" style="height:${(4 - (e.v - 1)) * 5 + 6}px" title="${esc(fmtShort(e.d))}: ${LVNAME[snap(e.v)]}"></i>`).join('')}</div>` : '';
   const next = x.st==='review' ? (x.trk && !x.left ? 'All refreshers done' : `Next refresher ${fmtShort(x.due)}`) : x.st==='learning' ? 'Next: revise again' : x.st==='new' ? 'Next: revise' : '';
   return `<div class="thist">${spark}
-    <ol class="hlist">${ev.map(e => `<li><span class="hd">${esc(fmtShort(e.d))}</span><span class="hk">${esc(label(e))}</span>${e.v!=null ? `<span class="hv"><i class="rag ${lvClass(e.v)}"></i>${LVNAME[snap(e.v)]}</span>` : '<span></span>'}${e.pts && e.pts.some(v => v!=null) && CARD[id].p.length > 1 ? `<span class="hpts">${e.pts.map((v,j) => `<i class="rag ${v==null ? 'lv-x' : lvClass(v)}" title="${esc(CARD[id].p[j].c||'')}"></i>`).join('')}<small>spec points</small></span>` : ''}${e.note ? `<p class="hn">${esc(e.note)}</p>` : ''}</li>`).join('') || '<li class="muted small">Nothing yet.</li>'}</ol>
+    <ol class="hlist">${ev.map((e, i) => `<li${i && ev[i-1].d===e.d ? ' class="same"' : ''}><span class="hd">${i && ev[i-1].d===e.d ? '' : esc(fmtShort(e.d))}</span><span class="hk">${esc(label(e))}</span>${e.v!=null ? `<span class="hv"><i class="rag ${lvClass(e.v)}"></i>${LVNAME[snap(e.v)]}</span>` : '<span></span>'}${e.pts && e.pts.some(v => v!=null) && CARD[id].p.length > 1 ? `<span class="hpts">${e.pts.map((v,j) => `<i class="rag ${v==null ? 'lv-x' : lvClass(v)}" title="${esc(CARD[id].p[j].c||'')}"></i>`).join('')}<small>spec points</small></span>` : ''}${e.note ? `<p class="hn">${esc(e.note)}</p>` : ''}</li>`).join('') || '<li class="muted small">Nothing yet.</li>'}</ol>
     ${S.todo[id] ? `<div class="small htodo"><b>To-do:</b> ${esc(S.todo[id])}</div>` : ''}${next ? `<div class="small muted">${esc(next)}</div>` : ''}</div>`;
 }
 function chunkHTML(c){
