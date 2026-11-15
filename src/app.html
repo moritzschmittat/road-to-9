@@ -119,9 +119,12 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 .steps b{display:block}
 .steps span{color:var(--muted);font-size:14px}
 
-.timer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--sunk);border-radius:12px;padding:12px 14px}
+.timer{display:flex;align-items:center;gap:14px;flex-wrap:nowrap;background:var(--sunk);border-radius:12px;padding:12px 14px}
 .clock{font-family:var(--f-mono);font-weight:700;font-size:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;min-width:4.2ch}
-.bar{flex:1 1 120px;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:80px}
+.bar{flex:1 1 40px;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:24px}
+.timer .row{flex-shrink:0}
+.todoin{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--sunk);border-left:3px solid var(--lv2)}
+.todoin p{margin:4px 0 0;white-space:pre-wrap}
 .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .5s linear}
 .btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;font-size:15px;background:var(--sunk);color:var(--ink)}
 .btn.primary{background:var(--accent);color:var(--accent-ink)}
@@ -2016,7 +2019,8 @@ function sessionHTML(){
     body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try each topic from memory first, then open its spec points to check.</li></ul></details>
       <div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
       <h3>${esc(c.n)}</h3>
-      ${c.p.length ? `<details class="more"><summary>Show the ${c.p.length} spec point${c.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(c)}</details>` : ''}</div>`).join('')}</div>`;
+      ${c.p.length ? `<details class="more"><summary>Show the ${c.p.length} spec point${c.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(c)}</details>` : ''}
+      ${S.todo[c.id] ? `<div class="todoin"><div class="eyebrow">Your to-do from last time</div><p>${esc(S.todo[c.id])}</p></div>` : ''}</div>`).join('')}</div>`;
   }
   const mm = Math.floor(timer.left/60), ss = timer.left%60;
   const timerBlock = `<div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
@@ -2038,7 +2042,7 @@ function sessionHTML(){
       <div class="row end"><button class="btn ghost" id="back">Back</button><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div></div>`;
   }
   const todos = cards.filter(c => S.todo[c.id]);
-  const todoBlock = cur.phase==='work' && todos.length ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
+  const todoBlock = cur.phase==='work' && todos.length && cur.type==='learn' ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
   return `<section class="session">${head}${cur.phase==='work' ? body + todoBlock + helpHTML(cards) + timerBlock : ''}${foot}</section>`;
 }
 
