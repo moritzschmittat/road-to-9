@@ -212,6 +212,7 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 @media (max-width:640px){.grid7{grid-template-columns:repeat(4,minmax(0,1fr))}}
 input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-width:0;width:100%}
 .periods{display:grid;gap:8px}
+.cols{margin-top:14px}   /* Study lines up with the other tabs, which start with a 14px panel margin */
 /* iOS Safari gives date boxes a built-in minimum width, so they spilled out of the card on phones */
 input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;width:100%;box-sizing:border-box}
 input[type=date]::-webkit-date-and-time-value{text-align:center;margin:0}
@@ -516,7 +517,7 @@ h1 .itile{width:46px;height:46px;margin-right:0}
 .sbody{display:grid;gap:16px}
 .rategrid{display:grid;gap:12px}
 @media (min-width:1000px){
-  .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}   /* session full width, today below (Moritz, 14 Nov) */
+  .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start;margin-top:14px}   /* session full width, today below (Moritz, 14 Nov) */
   .side .panel:first-child{margin-top:0}
   .sbody{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px}
   .multi{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
