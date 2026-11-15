@@ -729,6 +729,10 @@ html[data-theme="dark"] body{background:radial-gradient(1100px 560px at 50% -12%
 }
 .netpill.ok{background:var(--lime);color:#050c14;box-shadow:0 6px 18px -8px rgba(182,247,56,.7)}
 .netpill.ok i{background:#050c14;box-shadow:0 0 0 3px rgba(5,12,20,.18)}
+.netpill{padding:4px 10px 4px 7px;gap:6px;font-size:11px}   /* smaller badge (Moritz, 15 Nov) */
+.netpill i{width:8px;height:8px;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.netpill.ok i{box-shadow:0 0 0 2px rgba(5,12,20,.18)}
+.netpill.ok{box-shadow:0 4px 12px -8px rgba(182,247,56,.7)}
 #view{max-width:1240px;margin:0 auto;min-height:calc(100vh - 190px);display:flex;flex-direction:column;justify-content:center;padding-block:12px}
 body.signedout #view,body.onboarding #view{min-height:calc(100vh - 150px)}
 .login{margin:0 auto}
