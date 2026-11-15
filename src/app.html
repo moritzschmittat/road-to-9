@@ -212,6 +212,10 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 @media (max-width:640px){.grid7{grid-template-columns:repeat(4,minmax(0,1fr))}}
 input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-width:0;width:100%}
 .periods{display:grid;gap:8px}
+/* iOS Safari gives date boxes a built-in minimum width, so they spilled out of the card on phones */
+input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;width:100%;box-sizing:border-box}
+input[type=date]::-webkit-date-and-time-value{text-align:center;margin:0}
+@media (max-width:520px){ .prow input[type=date]{padding-left:6px;padding-right:6px;font-size:15px} }
 .prow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) 92px 32px;gap:6px;align-items:center}
 .prow .x,.paprow .x{border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
 .exams{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,150px);gap:6px 10px;align-items:center}
