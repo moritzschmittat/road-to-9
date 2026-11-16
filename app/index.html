@@ -61,6 +61,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .netpill.ok{background:var(--lv1)}
 .netpill.off{background:var(--lv3)}
 .netpill.saving{background:var(--lv25);color:#13202b}
+.netpill.demo{background:#1f45d6}
+.demobar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:center;padding:10px 16px;background:#1f45d6;color:#fff;font-size:14px;text-align:center}
+.demobar .btn.ghost{color:#fff;border-color:rgba(255,255,255,.5);background:transparent}
+.demobar .btn.primary{background:#b6f738;color:#050c14;border-color:#b6f738}
+.demobtns{display:inline-flex;gap:8px}
+body.demo #deldetails{display:none}
+.demobar a.btn{text-decoration:none}
+@media (max-width:640px){.demobar{position:static;font-size:13px;padding:8px 12px;gap:6px 10px}}
 .netpill.saving i{background:#13202b;box-shadow:none;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.netpill.saving i{animation:none}}
@@ -897,6 +905,10 @@ function defaultSettings(){
 
 /* ---------- state ---------- */
 let LS = 'roadto9:signedout';
+// Test drive (roadto9.com/app/?demo): a made-up student, Sam. Everything stays inside this page:
+// nothing is saved on the device (so a real planner on the same computer is never touched) and nothing is sent anywhere.
+const DEMO = new URLSearchParams(location.search).has('demo');
+const lsSet = v => { if (DEMO) return; try { localStorage.setItem(LS, v); } catch(e){} };
 // Came back from the "confirm deletion" email link? (read before the address is tidied up)
 const DELETE_CONFIRMED = new URLSearchParams(location.search).get('delete') === 'confirm';
 var lastSnap = null;
@@ -905,7 +917,7 @@ function fresh(){ return {v:1, updated:0, cards:{}, pts:{}, habits:{}, hist:{}, 
 function applyTheme(t){
   const day = t==='day';
   document.documentElement.setAttribute('data-theme', day ? 'light' : 'dark');
-  try { localStorage.setItem('r9-theme', day ? 'day' : 'night'); } catch(e){}
+  if (!DEMO) try { localStorage.setItem('r9-theme', day ? 'day' : 'night'); } catch(e){}
 }
 function normalise(x){
   const f = fresh();
@@ -1297,7 +1309,7 @@ function merge(a, b){
   return out;
 }
 function setState(st){ syncState = st; const el = document.getElementById('netpill'); if (!el) return;
-  const L = {ok:['Online · synced','ok'], saving:['Online · saving…','saving'], local:['Offline · this device only','off'], error:['Not synced · retrying','off']}[st];
+  const L = {ok:['Online · synced','ok'], saving:['Online · saving…','saving'], local:['Offline · this device only','off'], error:['Not synced · retrying','off'], demo:['Test drive','demo']}[st];
   el.className = 'netpill ' + L[1]; el.querySelector('b').textContent = L[0]; }
 function pushOnline(){
   if (!dbRef){ return; }
@@ -1305,7 +1317,7 @@ function pushOnline(){
   setSync('Saving…');
   writing = writing.then(async () => {
       const snap = await dbRef.get();                 // pick up anything another device saved in the meantime
-      if (snap.exists){ const merged = merge(S, normalise(snap.data())); if (!same(merged, S)){ S = merged; lastSnap = clone(S); try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} render(); } }
+      if (snap.exists){ const merged = merge(S, normalise(snap.data())); if (!same(merged, S)){ S = merged; lastSnap = clone(S); lsSet(JSON.stringify(S)); render(); } }
       await dbRef.set(clone(S));
     }).then(() => { pendingSync = false; retryMs = 4000; setState('ok'); setSync('✓ Saved online at ' + hhmm() + ' · syncs to your other devices'); })
     .catch(e => {
@@ -1326,8 +1338,9 @@ function save(quiet){
   try { S.hist = Object.assign({}, S.hist, {[todayStr()]: progressSnapshot()}); } catch(e){}
   stamp(); lastSnap = clone(S);
   S.updated = Date.now();
-  try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){}
-  if (dbRef) pushOnline(); else { setState('local'); setSync('⚠ Saved on this device only' + noDbReason); }
+  lsSet(JSON.stringify(S));
+  if (DEMO){ setState('demo'); setSync('Test drive: nothing is saved'); }
+  else if (dbRef) pushOnline(); else { setState('local'); setSync('⚠ Saved on this device only' + noDbReason); }
   if (!quiet) render();
 }
 window.addEventListener('online', () => { if (pendingSync) pushOnline(); });
@@ -1335,7 +1348,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function applyRemote(remote, confirmed){
   const merged = merge(S, remote);
   const changed = !same(merged, S);
-  if (changed){ S = merged; lastSnap = clone(S); try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} render(); }
+  if (changed){ S = merged; lastSnap = clone(S); lsSet(JSON.stringify(S)); render(); }
   // only send something up if this device really has newer entries than the cloud
   if (confirmed && !pendingSync && localIsAhead(merged, remote)) pushOnline();
   else if (!pendingSync){ setState('ok'); setSync('✓ Synced at ' + hhmm()); }
@@ -2673,6 +2686,7 @@ function renderLogin(msg){
   };
 }
 async function callFn(name, body){
+  if (DEMO) return {error: 'Not in the test drive. In your own account this works.'};
   if (!sb || !sb.functions) return {error: 'Not available.'};
   const {data, error} = await sb.functions.invoke(name, {body});
   if (error){ let t = 'Something went wrong. Try again later.'; try { t = (await error.context.json()).error || t; } catch(e){} return {error: t}; }
@@ -2779,6 +2793,7 @@ function bindAccount(){
   };
 }
 async function signOut(){
+  if (DEMO){ location.href = '/'; return; }
   if (pendingSync && !confirm('Some changes haven’t reached the online copy yet. Sign out anyway and lose them?')) return;
   try { localStorage.removeItem(LS); } catch(e){}   // nothing left behind on a shared computer
   if (liveChannel) sb.removeChannel(liveChannel);
@@ -2787,7 +2802,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-16 19:01';
+const APP_VER = '2026-11-16 22:41';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
@@ -2811,11 +2826,13 @@ function startPresence(){
 function startApp(user){
   USER = user; LS = 'roadto9:' + user.id;
   document.body.classList.remove('signedout');
-  try { S = normalise(JSON.parse(localStorage.getItem(LS)||'null')); } catch(e){ S = fresh(); }
+  if (DEMO) S = demoState();
+  else try { S = normalise(JSON.parse(localStorage.getItem(LS)||'null')); } catch(e){ S = fresh(); }
   lastSnap = clone(S);
-  $('#footacct').innerHTML = `<button id="footsignout">Sign out</button>`; $('#footsignout').onclick = () => signOut();
+  $('#footacct').innerHTML = `<button id="footsignout">${DEMO ? 'Leave the test drive' : 'Sign out'}</button>`; $('#footsignout').onclick = () => signOut();
   if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + (DELETE_CONFIRMED ? '#settings' : '#study'));
-  if (location.search) history.replaceState(null, '', location.pathname + location.hash);   // drop ?join= once signed in
+  if (location.search && !DEMO) history.replaceState(null, '', location.pathname + location.hash);   // drop ?join= once signed in
+  if (DEMO){ demoBanner(); render(); setState('demo'); setSync('Test drive: nothing is saved'); return; }
   render(); connect(); startPresence();
 }
 /* ---------- onboarding: welcome → subjects → rate every topic → study time ---------- */
@@ -2945,8 +2962,96 @@ function renderTermsGate(){
     ${TERMS_TICK}<div class="obnav"><span></span><button class="btn primary" id="obnext">Continue</button></div><div id="obmsg" class="small" role="status"></div></div>`;
   $('#obnext').onclick = () => { if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to confirm you’re 13 or over and agree to the Terms of use.'; return; } acceptTerms(); save(); render(); };
 }
+
+/* ---------- test drive ---------- */
+const DEMO_USER = {id: 'demo-sam', email: 'sam@example.com'};
+// Stand-in for the server: answers like Supabase, keeps nothing, sends nothing. A small study group of made-up friends.
+function demoClient(){
+  const t0 = Date.now(), ago = d => new Date(t0 - d*864e5).toISOString();
+  const pickIds = (sid, n, from) => (ALL_SUBJECTS.find(x => x.id===sid) || {cards:[]}).cards.slice(from, from+n).map(c => c.id);
+  const bio = ALL_SUBJECTS.find(x => x.id==='bio');
+  const rows = {
+    groups: [{id:'demo-g1', name:'Biology buddies', code:'DEMO-ONLY', created_by:'demo-ana', created_at: ago(12)}],
+    group_members: ['demo-sam','demo-ana','demo-leo','demo-maya'].map(u => ({group_id:'demo-g1', user_id:u, joined_at: ago(10)})),
+    shares: [
+      {user_id:'demo-ana', name:'Ana', strong: pickIds('bio', 6, 2), studying: bio ? {sid:'bio', cid: bio.cards[7].id, until: new Date(t0 + 35*6e4).toISOString()} : null},
+      {user_id:'demo-leo', name:'Leo', strong: pickIds('chem', 5, 0), studying: null},
+      {user_id:'demo-maya', name:'Maya', strong: [], studying: null}],
+  };
+  const NO = {message: 'Not in the test drive. In your own account this works.'};
+  const q = table => { let one = false, write = false;
+    const res = () => Promise.resolve(write ? {data: null, error: table==='shares' || table==='progress' ? null : NO} : {data: one ? null : (rows[table] || []), error: null});
+    const b = {select(){ return b; }, eq(){ return b; }, order(){ return b; }, limit(){ return b; }, in(){ return b; }, gte(){ return b; },
+      maybeSingle(){ one = true; return b; }, single(){ one = true; return b; },
+      upsert(){ write = true; return b; }, insert(){ write = true; return b; }, update(){ write = true; return b; }, delete(){ write = true; return b; },
+      then(ok, bad){ return res().then(ok, bad); }};
+    return b; };
+  const ch = {on(){ return ch; }, subscribe(){ return ch; }};
+  return {from: q, rpc: name => Promise.resolve(/^(touch_presence|log_client_error)$/.test(name) ? {data:null, error:null} : {data:null, error:NO}),
+    channel: () => ch, removeChannel(){}, functions: {invoke: () => Promise.resolve({data:null, error:NO})},
+    auth: {getSession: () => Promise.resolve({data:{session:{user:DEMO_USER}}}), onAuthStateChange(){}, signOut: () => Promise.resolve({}),
+      signInWithOtp: () => Promise.resolve({error:NO}), verifyOtp: () => Promise.resolve({error:NO})}};
+}
+// Sam: five subjects rated honestly, then three and a half weeks of following the plan, worked out by the real planner day by day
+// (the same way the week forecast is), so every refresher, chart and number in the test drive is what the app really does.
+function demoState(){
+  const real = todayStr(), start = addDays(real, -24);
+  const h = k => hash(k) / 4294967296;                               // steady "random" 0..1, the same on every visit
+  const lv = v => Math.min(3, Math.max(1, Math.round(v*2)/2));
+  S = normalise(fresh());
+  Object.assign(S.settings, {name:'Sam', subjects:['bio','chem','maths','fre','hist'], onboarded:true, ob:{step:'done', i:0}, startedOn:start,
+    week:{0:120,1:90,2:90,3:90,4:90,5:60,6:120},
+    terms:{v:TERMS_V, at: start + 'T17:00:00.000Z'}});
+  applySubjects();
+  const base = {bio:2.1, chem:2.4, maths:1.8, fre:2.3, hist:2.7};
+  FORCE_DAY = start;
+  CURRICULUM.forEach(sub => sub.cards.forEach(c => {
+    c.p.forEach((_, i) => S.pts[pk(c.id,i)] = lv(base[sub.id] + (h(c.id + '#' + i) - .5) * 1.6));
+    const r = deriveR(c.p.map((_, i) => S.pts[pk(c.id,i)]));
+    S.cards[c.id] = {st:'new', lvl:r}; S.rh[c.id] = [{d:start, v:r}]; }));
+  const NOTES = [t => `Made a one-page summary of ${t}. The diagram helped most.`, t => `Did the practice questions on ${t}. Got stuck on the last two, so I checked the mark scheme.`,
+    t => `Flashcards for ${t}. Getting quicker.`, t => `Explained ${t} out loud without notes. Mostly fine.`];
+  const TODOS = ['Redo the last practice question', 'Learn the key definitions by heart', 'Try one exam question on this', 'Draw the diagram from memory'];
+  const keepSkip = skipped, keepSkipDay = skipDay;
+  try {
+    for (let d = start; d < real; d = addDays(d, 1)){
+      FORCE_DAY = d; skipped = new Set(); skipDay = d;
+      if (h('off' + d) < .12){ S.hist[d] = progressSnapshot(); continue; }   // the odd day off, like anyone
+      let left = dayInfo(d).target, k = 0;
+      for (let guard = 0; left > 0 && guard < 12; guard++){
+        const n = pickNext(); if (!n || n.type==='paper') break;
+        if (n.type==='learn' && left < 20) break;
+        const mins = n.type==='learn' ? Math.min(n.mins || 45, left) : (n.mins || 10);
+        const wasRel = n.type==='learn' && cs(n.cards[0]).st==='learning';
+        const at = d + 'T' + pad(16 + k) + ':' + pad(10 + (hash(d) % 40)) + ':00.000Z'; k++;
+        const prev = {}, prevPts = {}, r = [];
+        n.cards.forEach(id => { const c = CARD[id];
+          c.p.forEach((_, i) => { const key = pk(id,i), old = S.pts[key] != null ? S.pts[key] : 2.5, x = h(key + d);
+            prevPts[key] = S.pts[key] != null ? S.pts[key] : null;
+            S.pts[key] = n.type==='learn' ? lv(old - (x < .2 ? 0 : x < .6 ? .5 : 1)) : lv(old + (x < .15 ? .5 : x < .55 ? 0 : -.5)); });
+          const lvl = deriveR(c.p.map((_, i) => S.pts[pk(id,i)])) || 2; r.push(lvl);
+          prev[id] = S.cards[id] ? JSON.parse(JSON.stringify(S.cards[id])) : null;
+          rateCard(id, toR3(lvl), n.type, d, lvl);
+          if (n.type==='learn' && lvl >= 2 && h('todo' + id) < .5) S.todo[id] = TODOS[hash(id) % TODOS.length]; else if (n.type!=='learn') delete S.todo[id]; });
+        if (h('note' + at) < .45) S.notes[at] = NOTES[hash(at) % NOTES.length](CARD[n.cards[0]].g || CARD[n.cards[0]].n);
+        S.log.push({d, at, t:n.type, s:CARD[n.cards[0]].sid, c:n.cards, r, mins, cm:n.cm, prev, prevPts, ...(wasRel ? {relearn:true} : {})});
+        n.cards.forEach(id => skipped.add(id)); left -= mins;
+      }
+      S.hist[d] = progressSnapshot();
+    }
+  } finally { FORCE_DAY = null; skipped = keepSkip; skipDay = keepSkipDay; }
+  S.hist[real] = progressSnapshot();
+  return S;
+}
+function demoBanner(){
+  document.body.classList.add('demo');
+  document.body.insertAdjacentHTML('afterbegin', `<div class="demobar" role="note"><span><b>Test drive.</b> This is Sam, a made-up student. Try anything: nothing you do is saved.</span>
+    <span class="demobtns"><button class="btn small ghost" id="demoreset">Start again</button><a class="btn small primary" href="/#join">Get an invite</a></span></div>`);
+  $('#demoreset').onclick = () => { location.hash = '#study'; location.reload(); };
+}
 window.addEventListener('hashchange', () => { if (USER) render(); });
 (async function boot(){
+  if (DEMO){ sb = demoClient(); startApp(DEMO_USER); return; }
   if (!window.supabase || SB_URL.startsWith('%%')){ renderLogin('⚠ The site isn’t connected to its database yet.'); return; }
   sb = window.supabase.createClient(SB_URL, SB_KEY, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
   const errHash = /error_description=([^&]+)/.exec(location.hash);

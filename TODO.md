@@ -33,3 +33,4 @@
 - [x] Google Search Console: roadto9.com verified (file google300b1ac831ebb8ae.html, keep it), sitemap submitted.
 - [ ] Edge functions (admin, invite, backup email) still link to roadto9.com/ and rely on the forward; point them at /app/ next time they are deployed.
 - [ ] Check Search Console in a few weeks: which pages are indexed, which searches find the site.
+- [x] Test drive at roadto9.com/demo (app/?demo): Sam, a made-up student, simulated by the real planner; nothing saved or sent. 16 Nov 2026.

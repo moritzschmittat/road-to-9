@@ -150,6 +150,7 @@ ORG = {'@context': 'https://schema.org', '@type': 'Organization', 'name': 'Road 
 
 FAQ = [
     ('Is Road to 9 free?', 'Yes. It is free for students taking their GCSEs in summer 2027.'),
+    ('Can I try it first?', 'Yes. Take a test drive at roadto9.com/demo: you get the planner of Sam, a made-up student, and can try everything. There is nothing to sign up for and nothing you do is saved.'),
     ('How do I join?', 'Road to 9 is invite only for now. Every student has three invite links to pass on, so ask a friend who uses it. Or email hello@roadto9.com and tell us which school year and exam boards you are in.'),
     ('Which subjects and exam boards does it cover?', f'{len(SUBJ)} subjects so far, including Edexcel International GCSE sciences, maths and languages, AQA humanities and OCR Latin and Classical Greek. The subjects page lists every board and course code. If yours is missing, tell us.'),
     ('Does it replace my notes, textbooks or lessons?', 'No. Road to 9 plans what to revise and when. You still revise from your own notes, textbooks, revision guides and past papers.'),
@@ -161,7 +162,10 @@ FAQ = [
 
 
 def home():
-    faq_html = ''.join(f'<details><summary>{e(q)}</summary><p>{e(a)}</p></details>' for q, a in FAQ)
+    ids = {'Can I try it first?': 'try', 'How do I join?': 'join'}
+    faq_html = ''.join(f'<details{f" id={ids[q]}" if q in ids else ""}><summary>{e(q)}</summary><p>{e(a)}</p></details>' for q, a in FAQ)
+    # roadto9.com/#join (the test drive's "Get an invite") opens that answer
+    faq_html += "<script>(function(){var d=location.hash&&document.getElementById(location.hash.slice(1));if(d&&d.tagName==='DETAILS'){d.open=true;d.scrollIntoView()}})();</script>"
     faq_ld = {'@context': 'https://schema.org', '@type': 'FAQPage',
               'mainEntity': [{'@type': 'Question', 'name': q, 'acceptedAnswer': {'@type': 'Answer', 'text': a}} for q, a in FAQ]}
     site_ld = {'@context': 'https://schema.org', '@type': 'WebSite', 'name': 'Road to 9', 'url': SITE + '/'}
@@ -171,8 +175,8 @@ def home():
     <p class="eyebrow">GCSE revision planner</p>
     <h1>We do the planning.<br><span class="hl">You do the learning.</span></h1>
     <p class="lead">Road to 9 tells you what to revise each day, weakest topics first, and brings every topic back just before you would forget it.</p>
-    <div class="btns"><a class="btn primary" href="/app/" data-signin>Sign in</a><a class="btn" href="/how.html">How it works</a></div>
-    <p class="note">Free for GCSE 2027 · invite only for now · works on phone and laptop</p>
+    <div class="btns"><a class="btn primary" href="/demo/">Take a test drive</a><a class="btn" href="/how.html">How it works</a></div>
+    <p class="note">Try it now with a made-up student, no sign-up · free for GCSE 2027 · works on phone and laptop</p>
   </div>
   <div class="shot"><img src="/img/session.png" width="1200" height="676" alt="A Road to 9 revision session: the topic, its spec points, a 45 minute timer and the rest of today's sessions"></div>
 </div></section>
@@ -294,7 +298,7 @@ def subject_page(sid):
     <p class="muted">Not studying some of these topics? Schools choose different options in some subjects. In Road to 9 you switch those topics off and they leave your plan.</p>
   </div>
   <div class="cta"><h2>Let Road to 9 plan it for you</h2><p>Rate the spec points once, and every day you get a short list of sessions for {e(s["name"])} and your other subjects, weakest first, with refreshers before you forget.</p>
-    <div class="btns"><a class="btn primary" href="/app/" data-signin>Sign in</a><a class="btn" href="/how.html">How it works</a></div></div>
+    <div class="btns"><a class="btn primary" href="/demo/">Take a test drive</a><a class="btn" href="/how.html">How it works</a></div></div>
 </div>
 <div style="height:72px"></div>'''
     return page(f'/subjects/{slug}.html', f'{title} · Road to 9',
@@ -333,6 +337,9 @@ def parents():
   <h2>Study groups</h2>
   <p>Students can make a small study group with friends using a code they share in person. Inside a group they can choose to show which topics they could help with, or that they are studying right now. All of this is off until they switch it on, and there is still no messaging.</p>
 
+  <h2>See it for yourself</h2>
+  <p>Take a <a href="/demo/">test drive</a>: it opens the planner of Sam, a made-up student, right in your browser. Nothing to sign up for, and nothing you do is saved.</p>
+
   <h2>Who we are</h2>
   <p>Road to 9 started as a dad building a revision plan for his son's GCSEs. It worked well enough that his son's friends wanted it too. It is run by Schmittat Ltd (company no. 09452378), registered with the Information Commissioner's Office. It is free for students taking GCSEs in 2027. Questions or worries: <a href="mailto:hello@roadto9.com">hello@roadto9.com</a>.</p>
 </div>'''
@@ -352,6 +359,13 @@ def hand(name, title, desc, active):
     return page(f'/{name}.html', title, desc, f'<div class="wrap narrow prose">\n{content}</div>', active=active)
 
 
+def demo_redirect():
+    d = root / 'demo'; d.mkdir(exist_ok=True)
+    (d / 'index.html').write_text('<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="robots" content="noindex">'
+        '<title>Road to 9 · Test drive</title><meta http-equiv="refresh" content="0;url=/app/?demo#study">'
+        '<script>location.replace("/app/?demo#study")</script></head><body><a href="/app/?demo#study">Open the test drive</a></body></html>\n', encoding='utf-8')
+
+
 def not_found():
     body = '''
 <div class="wrap narrow prose" style="padding-top:72px">
@@ -364,6 +378,7 @@ def not_found():
 
 pages = [home(), subjects_index(), *[subject_page(s) for _, ids in GROUPS for s in ids], parents(), *[hand(*h) for h in HAND]]
 not_found()
+demo_redirect()
 urls = ''.join(f'<url><loc>{SITE}{p}</loc><lastmod>{TODAY}</lastmod></url>' for p in pages)
 (root / 'sitemap.xml').write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n', encoding='utf-8')
 (root / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /admin.html\n\nSitemap: {SITE}/sitemap.xml\n', encoding='utf-8')
