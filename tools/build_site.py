@@ -53,6 +53,10 @@ FORWARD = ("<script>(function(){var q=location.search,h=location.hash;"
            "||/^#(study|stats|settings|groups|subjects|topics|next|home|plan)\\b/.test(h))location.replace('/app/'+q+h);})();</script>")
 THEME = "<script>try{if(localStorage.getItem('r9-theme')==='day')document.documentElement.dataset.mode='day'}catch(e){}</script>"
 # Signed in on this device? Then the button opens the planner instead of asking to sign in.
+MODE = ("<script>(function(){var r=document.documentElement,bs=document.querySelectorAll('[data-mode-set]');"
+        "function show(){var d=r.dataset.mode==='day';bs.forEach(function(b){b.setAttribute('aria-pressed',(b.dataset.modeSet==='day')===d)})}"
+        "bs.forEach(function(b){b.onclick=function(){var d=b.dataset.modeSet==='day';if(d)r.dataset.mode='day';else delete r.dataset.mode;"
+        "try{localStorage.setItem('r9-theme',d?'day':'night')}catch(e){}show()}});show()})();</script>")
 SIGNED = ("<script>try{if(Object.keys(localStorage).some(function(k){return /^sb-.*-auth-token$/.test(k)}))"
           "document.querySelectorAll('[data-signin]').forEach(function(a){a.textContent='Open my planner'})}catch(e){}</script>")
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
@@ -88,6 +92,10 @@ def page(path, title, desc, body, *, active=None, jsonld=None, forward=False, in
 <header class="top"><div class="wrap">
   <a class="brand" href="/">{MARK}<span>Road to <b>9</b></span></a>
   <nav aria-label="Main">{nav}</nav>
+  <div class="mode" role="group" aria-label="Day or night">
+    <button type="button" data-mode-set="day" aria-label="Day" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
+    <button type="button" data-mode-set="night" aria-label="Night" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button>
+  </div>
   <a class="btn small primary signin" href="/app/" data-signin>Sign in</a>
 </div></header>
 <main>
@@ -98,7 +106,7 @@ def page(path, title, desc, body, *, active=None, jsonld=None, forward=False, in
   <a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a>
   <a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a>
 </div></footer>
-{SIGNED}
+{SIGNED}{MODE}
 </body>
 </html>
 '''
@@ -333,6 +341,17 @@ def parents():
                 body, active='/parents.html')
 
 
+HAND = [('how', 'How Road to 9 works', 'How Road to 9 plans GCSE revision: rate every spec point, revise each topic once, then short refreshers at growing gaps before you forget. The science behind it.', '/how.html'),
+        ('terms', 'Terms of use · Road to 9', 'The terms of use for Road to 9, the GCSE revision planner run by Schmittat Ltd.', None),
+        ('privacy', 'Privacy · Road to 9', 'What Road to 9 keeps about students, why, who can see it and how to delete it. Written for teenagers.', None)]
+
+
+def hand(name, title, desc, active):
+    content = (root / 'src' / 'pages' / f'{name}.html').read_text(encoding='utf-8')
+    content = content.split('-->', 1)[1] if content.startswith('<!--') else content
+    return page(f'/{name}.html', title, desc, f'<div class="wrap narrow prose">\n{content}</div>', active=active)
+
+
 def not_found():
     body = '''
 <div class="wrap narrow prose" style="padding-top:72px">
@@ -343,10 +362,8 @@ def not_found():
     return page('/404.html', 'Page not found · Road to 9', 'This page could not be found.', body, index=False)
 
 
-pages = [home(), subjects_index(), *[subject_page(s) for _, ids in GROUPS for s in ids], parents()]
+pages = [home(), subjects_index(), *[subject_page(s) for _, ids in GROUPS for s in ids], parents(), *[hand(*h) for h in HAND]]
 not_found()
-# Pages kept by hand that should also be found
-pages += ['/how.html', '/privacy.html', '/terms.html']
 urls = ''.join(f'<url><loc>{SITE}{p}</loc><lastmod>{TODAY}</lastmod></url>' for p in pages)
 (root / 'sitemap.xml').write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n', encoding='utf-8')
 (root / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /admin.html\n\nSitemap: {SITE}/sitemap.xml\n', encoding='utf-8')

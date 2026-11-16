@@ -1,68 +1,36 @@
 <!doctype html>
-<html lang="en-GB" data-theme="dark">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>try{if(localStorage.getItem('r9-theme')==='day')document.documentElement.dataset.mode='day'}catch(e){}</script>
 <title>Privacy · Road to 9</title>
 <meta name="description" content="What Road to 9 keeps about students, why, who can see it and how to delete it. Written for teenagers.">
+
 <link rel="canonical" href="https://roadto9.com/privacy.html">
-<meta property="og:image" content="https://roadto9.com/img/og.png">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Manrope:wght@400;600;800&display=swap">
-<script>try{if(localStorage.getItem('r9-theme')==='day')document.documentElement.dataset.mode='day'}catch(e){}</script>
-<style>
-:root{--bg:#eef2f5;--surface:#fff;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6}
-@media (prefers-color-scheme:dark){:root{--bg:#0c1218;--surface:#141c24;--ink:#e6edf3;--muted:#9aa8b4;--line:#26323d;--accent:#b6f738}}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Manrope,system-ui,sans-serif}
-main{max-width:720px;margin:0 auto;padding:32px 16px 64px}
-h1{font-family:Sora,system-ui,sans-serif;font-size:40px;line-height:1.1;margin:0 0 6px}
-h1 span{color:var(--accent)}
-h2{font-family:Sora,system-ui,sans-serif;font-size:24px;margin:32px 0 6px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:18px}
-a{color:var(--accent)}
-.muted{color:var(--muted)}
-ul{padding-left:20px}
+<meta property="og:type" content="website"><meta property="og:site_name" content="Road to 9">
+<meta property="og:title" content="Privacy · Road to 9"><meta property="og:description" content="What Road to 9 keeps about students, why, who can see it and how to delete it. Written for teenagers.">
+<meta property="og:url" content="https://roadto9.com/privacy.html"><meta property="og:image" content="https://roadto9.com/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050c14">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="/site.css">
 
-:root{--bg:#f3f6f9;--surface:#fff;--ink:#0a1a2b;--muted:#5a6b7c;--line:#dfe6ed;--accent:#0f3561;--lime:#b6f738}
-@media (prefers-color-scheme:dark){:root{--bg:#050c14;--surface:#0c1724;--ink:#eaf0f6;--muted:#97a8ba;--line:#1c2d40;--accent:#b6f738}}
-h1,h2{font-family:Sora,system-ui,sans-serif;font-weight:650;letter-spacing:-.02em}
-h1 span{color:var(--accent)}
-.card{border-radius:18px;box-shadow:0 1px 2px rgba(10,26,43,.04),0 10px 30px -12px rgba(10,26,43,.12)}
-.brandlink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:Sora,system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:-.02em}
-.brandlink span{color:var(--ink)}.brandlink b{color:var(--accent)}
-.brandlink .mark{width:28px;height:28px}
-
-:root{--bg:#050c14;--surface:rgba(14,27,42,.78);--ink:#eaf0f6;--muted:#9cadbf;--line:rgba(255,255,255,.09);--accent:#b6f738;--accent-ink:#050c14;--sunk:rgba(255,255,255,.06);
-  --red:#ef6a6a;--red-soft:#3a1d20;--green:#7fdc6a;--green-soft:#16301c;--amber:#f0b23c;--amber-soft:#3a2c12;color-scheme:dark}
-html{background:#050c14}
-body{background:radial-gradient(1100px 560px at 50% -12%,rgba(182,247,56,.10),transparent 62%),radial-gradient(900px 700px at 0% 100%,rgba(31,90,150,.22),transparent 60%),#050c14;background-attachment:fixed;min-height:100vh}
-.card,.stat{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 30px 80px -40px rgba(0,0,0,.8)}
-.brandlink span{color:var(--ink)}.brandlink b,h1 span{color:var(--accent)}
-.brandlink .mark{filter:drop-shadow(0 0 10px rgba(182,247,56,.35))}
-input[type=email]{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.13)!important;color:var(--ink)}
-.btn{background:var(--accent)!important;color:#050c14!important}
-.btn[style*="--red"]{background:var(--red)!important;color:#fff!important}
-.ghost{color:var(--ink);border-color:rgba(255,255,255,.16)}
-.tag.you{background:rgba(255,255,255,.08)}
-
-/* Day: same look as the planner in Day mode (setting stored on this device as 'r9-theme') */
-:root[data-mode="day"]{--bg:#eef2f5;--surface:#fff;--sunk:#e4e9ee;--ink:#13202b;--muted:#566775;--line:#d3dbe2;--accent:#1f45d6;--accent-ink:#fff;
-  --red:#c73636;--red-soft:#fbe5e5;--green:#23925a;--green-soft:#ddf3e6;--amber:#9a6200;--amber-soft:#fdf0d6;color-scheme:light}
-:root[data-mode="day"],:root[data-mode="day"] body{background:#eef2f5}
-:root[data-mode="day"] h1,:root[data-mode="day"] h2,:root[data-mode="day"] .brandlink{font-family:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:600;letter-spacing:-.01em}
-:root[data-mode="day"] .card,:root[data-mode="day"] .stat{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 2px rgba(19,32,43,.05)}
-:root[data-mode="day"] .brandlink .mark{filter:none}
-:root[data-mode="day"] .steps li::before{color:#fff}
-:root[data-mode="day"] .btn{background:var(--accent)!important;color:#fff!important}
-:root[data-mode="day"] .fc .none-l{fill:#566775}
-</style>
 </head>
 <body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="/"><svg viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b></span></a>
+  <nav aria-label="Main"><a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a></nav>
+  <div class="mode" role="group" aria-label="Day or night">
+    <button type="button" data-mode-set="day" aria-label="Day" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
+    <button type="button" data-mode-set="night" aria-label="Night" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button>
+  </div>
+  <a class="btn small primary signin" href="/app/" data-signin>Sign in</a>
+</div></header>
 <main>
-  <p><a class="brandlink" href="/"><svg class="mark" viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b></span></a></p>
+<div class="wrap narrow prose">
+
   <h1>Privacy at Road to <span>9</span></h1>
   <p class="muted">In plain English. Last updated 15 November 2026.</p>
 
@@ -180,7 +148,13 @@ input[type=email]{background:rgba(255,255,255,.05)!important;border-color:rgba(2
   <p>You can ask to see, correct or delete your data at any time (you can also delete it yourself in
   Settings). Email <a href="mailto:hello@roadto9.com">hello@roadto9.com</a>. If you're unhappy with how
   we handle your data, you can complain to the Information Commissioner's Office (ico.org.uk).</p>
-  <p class="muted" style="margin-top:32px"><a href="how.html">How Road to 9 works</a> · <a href="terms.html">Terms of use</a> · <a href="privacy.html">Privacy note</a> · <a href="mailto:hello@roadto9.com">hello@roadto9.com</a></p>
+</div>
 </main>
+<footer><div class="wrap">
+  <span class="grow">© Schmittat Ltd · company no. 09452378</span>
+  <a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a>
+  <a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a>
+</div></footer>
+<script>try{if(Object.keys(localStorage).some(function(k){return /^sb-.*-auth-token$/.test(k)}))document.querySelectorAll('[data-signin]').forEach(function(a){a.textContent='Open my planner'})}catch(e){}</script><script>(function(){var r=document.documentElement,bs=document.querySelectorAll('[data-mode-set]');function show(){var d=r.dataset.mode==='day';bs.forEach(function(b){b.setAttribute('aria-pressed',(b.dataset.modeSet==='day')===d)})}bs.forEach(function(b){b.onclick=function(){var d=b.dataset.modeSet==='day';if(d)r.dataset.mode='day';else delete r.dataset.mode;try{localStorage.setItem('r9-theme',d?'day':'night')}catch(e){}show()}});show()})();</script>
 </body>
 </html>
