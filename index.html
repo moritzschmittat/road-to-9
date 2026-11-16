@@ -114,7 +114,7 @@ nav a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow
 .allrow button{border:0;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;cursor:pointer}
 @media (max-width:520px){.points li.rated{grid-template-columns:auto auto minmax(0,1fr)} .points li.rated .pr{grid-column:3}}
 .multi{display:grid;gap:12px}
-.mcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:8px}
+.mcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:8px;align-content:start}
 .mcard h3{font-size:18px}
 .mcard .points li{font-size:14px}
 details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
@@ -128,6 +128,11 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 .clock{font-family:var(--f-mono);font-weight:700;font-size:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;min-width:4.2ch}
 .bar{flex:1 1 40px;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:24px}
 .timer .row{flex-shrink:0}
+details.reveal summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none;display:inline-flex;align-items:baseline;gap:6px}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸';font-size:12px;transition:transform .15s}
+details.reveal[open] summary::before{transform:rotate(90deg)}
+details.reveal[open] summary{margin-bottom:10px}
 .todoin{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--sunk);border-left:3px solid var(--lv2)}
 .todoin p{margin:4px 0 0;white-space:pre-wrap}
 .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .5s linear}
@@ -2053,15 +2058,17 @@ function sessionHTML(){
       <details class="howto"><summary title="How to spend the ${cur.mins || 45} minutes"><span class="q" aria-hidden="true">?</span><span class="sr">How to spend the ${cur.mins || 45} minutes</span></summary><ol class="steps">${((cur.mins||45) <= SHORT_REV ? LEARN_SHORT : (cur.mins||45) < 45 ? LEARN_AGAIN : (LEARN[first.k]||LEARN.content)).map(([a,b]) => `<li><div><b>${esc(a)}</b><span>${esc(b)}</span></div></li>`).join('')}</ol></details>`;
   } else {
     const totalMin = cards.reduce((a,c) => a + (cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)), 0);
-    head = `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topic${cards.length>1?'s':''} · ${totalMin} min</span></div></div>`;
-    const __unused = ` min each</span></div>
-`;
+    const one = cards.length === 1;
+    // One topic: same layout as a revise session (title, subject top right, section), spec points hidden until tried.
+    head = one
+      ? `<div class="head"><div class="toprow"><h2 class="topic">${esc(first.n)}</h2><div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div></div><div class="sec">${esc(first.sec)}</div></div>`
+      : `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topics · ${totalMin} min</span></div></div>`;
     const kinds = [...new Set(cards.map(c => c.k))];
-    body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try each topic from memory first, then open its spec points to check.</li></ul></details>
-      <div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
+    body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try ${one ? 'the topic' : 'each topic'} from memory first, then open its spec points to check.</li></ul></details>
+      ${one ? (first.p.length ? `<details class="reveal"><summary>Show the ${first.p.length} spec point${first.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(first)}</details>` : '') : `<div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
       <h3>${esc(c.n)}</h3>
-      ${c.p.length ? `<details class="more"><summary>Show the ${c.p.length} spec point${c.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(c)}</details>` : ''}
-      ${S.todo[c.id] ? `<div class="todoin"><div class="eyebrow">Your to-do from last time</div><p>${esc(S.todo[c.id])}</p></div>` : ''}</div>`).join('')}</div>`;
+      ${c.p.length ? `<details class="reveal"><summary>Show the ${c.p.length} spec point${c.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(c)}</details>` : ''}
+      ${S.todo[c.id] ? `<div class="todoin"><div class="eyebrow">Your to-do from last time</div><p>${esc(S.todo[c.id])}</p></div>` : ''}</div>`).join('')}</div>`}`;
   }
   const mm = Math.floor(timer.left/60), ss = timer.left%60;
   const timerBlock = `<div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
@@ -2083,7 +2090,7 @@ function sessionHTML(){
       <div class="row end"><button class="btn ghost" id="back">Back</button><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div></div>`;
   }
   const todos = cards.filter(c => S.todo[c.id]);
-  const todoBlock = cur.phase==='work' && todos.length && cur.type==='learn' ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
+  const todoBlock = cur.phase==='work' && todos.length && (cur.type==='learn' || cards.length === 1) ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
   return `<section class="session">${head}${cur.phase==='work' ? body + todoBlock + helpHTML(cards) + timerBlock : ''}${foot}</section>`;
 }
 
@@ -2772,7 +2779,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-15 21:38';
+const APP_VER = '2026-11-16 09:08';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
