@@ -128,12 +128,7 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 .clock{font-family:var(--f-mono);font-weight:700;font-size:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;min-width:4.2ch}
 .bar{flex:1 1 40px;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:24px}
 .timer .row{flex-shrink:0}
-details.reveal summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none;display:inline-flex;align-items:baseline;gap:6px}
-details.reveal summary::-webkit-details-marker{display:none}
-details.reveal summary::before{content:'▸';font-size:12px;transition:transform .15s}
-details.reveal[open] summary::before{transform:rotate(90deg)}
-details.reveal[open] summary{margin-bottom:10px}
-.todoin{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--sunk);border-left:3px solid var(--lv2)}
+.todoin{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lv2)}
 .todoin p{margin:4px 0 0;white-space:pre-wrap}
 .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .5s linear}
 .btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;font-size:15px;background:var(--sunk);color:var(--ink)}
@@ -368,7 +363,7 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .jbox textarea,.jedit{width:100%;font:inherit;font-size:15px;line-height:1.45;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);resize:vertical;min-height:72px}
 .todobox{display:flex;flex-direction:column;gap:4px;margin-top:10px}
 .todobox textarea{width:100%;font:inherit;font-size:14px;line-height:1.45;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical;min-height:52px}
-.todoshow{margin:12px 0 4px;padding:12px 14px;border-radius:10px;background:var(--sunk);border-left:4px solid var(--lv2)}
+.todoshow{margin:12px 0 4px;padding:12px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--lv2)}
 .todoitem p{margin:4px 0 6px;white-space:pre-wrap;line-height:1.5;font-size:15px}
 .todoitem b{font-size:13px}
 .jday{font-weight:700;font-size:13px;margin:14px 0 8px}
@@ -2064,10 +2059,10 @@ function sessionHTML(){
       ? `<div class="head"><div class="toprow"><h2 class="topic">${esc(first.n)}</h2><div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div></div><div class="sec">${esc(first.sec)}</div></div>`
       : `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topics · ${totalMin} min</span></div></div>`;
     const kinds = [...new Set(cards.map(c => c.k))];
-    body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try ${one ? 'the topic' : 'each topic'} from memory first, then open its spec points to check.</li></ul></details>
-      ${one ? (first.p.length ? `<details class="reveal"><summary>Show the ${first.p.length} spec point${first.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(first)}</details>` : '') : `<div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
+    body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try ${one ? 'the topic' : 'each topic'} from memory first, then check yourself against the spec points.</li></ul></details>
+      ${one ? (first.p.length ? '<div>' + pointsHTML(first) + '</div>' : '') : `<div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
       <h3>${esc(c.n)}</h3>
-      ${c.p.length ? `<details class="reveal"><summary>Show the ${c.p.length} spec point${c.p.length>1?'s':''} (after you've tried)</summary>${pointsHTML(c)}</details>` : ''}
+      ${c.p.length ? pointsHTML(c) : ''}
       ${S.todo[c.id] ? `<div class="todoin"><div class="eyebrow">Your to-do from last time</div><p>${esc(S.todo[c.id])}</p></div>` : ''}</div>`).join('')}</div>`}`;
   }
   const mm = Math.floor(timer.left/60), ss = timer.left%60;
@@ -2779,7 +2774,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-16 09:08';
+const APP_VER = '2026-11-16 09:20';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
