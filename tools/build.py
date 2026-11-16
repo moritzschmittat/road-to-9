@@ -1,4 +1,5 @@
-"""Build the site: src/app.html + data/curriculum.json + config.json  ->  index.html
+"""Build the app: src/app.html + data/curriculum.json + config.json  ->  app/index.html
+(the public site around it is built by tools/build_site.py, which this runs at the end)
 
     python3 tools/build.py
 
@@ -39,5 +40,10 @@ if url and key:
 assert '/*CURRICULUM*/' not in out
 import datetime
 out = out.replace('%%BUILD%%', datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M'))
-(root / 'index.html').write_text(out, encoding='utf-8')
-print('index.html', len(out) // 1024, 'KB', '(connected)' if url and key else '(no Supabase config yet)')
+(root / 'app').mkdir(exist_ok=True)
+(root / 'app' / 'index.html').write_text(out, encoding='utf-8')
+print('app/index.html', len(out) // 1024, 'KB', '(connected)' if url and key else '(no Supabase config yet)')
+
+# the public website (home, subjects, parents, sitemap)
+import runpy
+runpy.run_path(str(root / 'tools' / 'build_site.py'), run_name='__main__')

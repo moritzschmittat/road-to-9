@@ -8,9 +8,9 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIn
 <title>Road to 9</title>
 <meta name="description" content="Road to 9: the GCSE revision planner. We do the planning, you do the learning.">
 <meta name="robots" content="noindex">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="Road to 9">
 <meta name="application-name" content="Road to 9">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -813,7 +813,7 @@ body.signedout #view{min-height:calc(100vh - 90px)}
     <div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div>
   </header>
   <main id="view"></main>
-  <footer class="foot small muted" id="foot"><span>© Schmittat Ltd · company no. 09452378</span><a href="how.html">How it works</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a><span id="footacct"></span></footer>
+  <footer class="foot small muted" id="foot"><span>© Schmittat Ltd · company no. 09452378</span><a href="/how.html">How it works</a><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a><span id="footacct"></span></footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 
@@ -2690,7 +2690,7 @@ async function loadInvites(note){
 }
 function drawInvites(r, note){
   const box = $('#invbody'); if (!box) return;
-  const url = c => `${location.origin}/?join=${c}`;
+  const url = c => `${location.origin}/app/?join=${c}`;
   const left = r.links.filter(l => !l.used).length;
   const panel = $('#invpanel'); if (panel) panel.hidden = !left && !r.admin;   // all links used: the card goes away
   box.classList.remove('muted');
@@ -2737,7 +2737,7 @@ async function renderJoin(code){
       <label class="obterms"><input type="checkbox" id="j13"> <span>I’m 13 or over.</span></label>
       <button class="btn primary" type="submit">Email me my sign-in link</button></form>
     <div id="jmsg" class="small" role="status"></div>
-    <p class="small muted">We only use your email to send you sign-in links. If you’re under 18, check with a parent or carer before you join. See the <a href="terms.html">Terms of use</a> and <a href="privacy.html">Privacy note</a>.</p>${back}`;
+    <p class="small muted">We only use your email to send you sign-in links. If you’re under 18, check with a parent or carer before you join. See the <a href="/terms.html">Terms of use</a> and <a href="/privacy.html">Privacy note</a>.</p>${back}`;
   $('#joinform').onsubmit = async ev => {
     ev.preventDefault(); const m = $('#jmsg');
     if (!$('#j13').checked){ m.textContent = 'Road to 9 is for students aged 13 and over.'; return; }
@@ -2764,7 +2764,7 @@ function bindAccount(){
   const so = $('#signout'); if (so) so.onclick = () => signOut();
   const rq = $('#delreq'); if (rq) rq.onclick = async () => {
     const m = $('#delmsg'); m.textContent = 'Sending…';
-    const {error} = await sb.auth.signInWithOtp({email: USER.email, options: {shouldCreateUser: false, emailRedirectTo: location.origin + '/?delete=confirm'}});
+    const {error} = await sb.auth.signInWithOtp({email: USER.email, options: {shouldCreateUser: false, emailRedirectTo: location.origin + '/app/?delete=confirm'}});
     m.textContent = error ? '⚠ Couldn’t send the email: ' + error.message : '✓ Check your inbox. The link in the email brings you back here to finish. It works for 15 minutes.';
   };
   const del = $('#delacct'); if (del) del.onclick = async () => {
@@ -2823,7 +2823,7 @@ function startApp(user){
 const TERMS_V = '2026-11-13.2';
 const termsOK = () => !!(S.settings.terms && S.settings.terms.v === TERMS_V);
 function acceptTerms(){ S.settings.terms = {v: TERMS_V, at: new Date().toISOString()}; }
-const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I’m 13 or over, I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
+const TERMS_TICK = `<label class="obterms"><input type="checkbox" id="obterms"> <span>I’m 13 or over, I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a> and have read the <a href="/privacy.html" target="_blank" rel="noopener">Privacy note</a>. If I’m under 18, a parent or carer knows I’m using Road to 9.</span></label>`;
 // Rating speed for the time estimate: about 3 spec points a minute.
 // about 6 seconds per colour picker (one per spec point)
 const rateMins = sid => { const sb = ALL_SUBJECTS.find(x => x.id===sid); return sb ? Math.max(1, Math.ceil(sb.cards.reduce((a, c) => a + c.p.length, 0) * 6 / 60)) : 0; };
@@ -2844,7 +2844,7 @@ function renderAdminHome(){
   document.body.classList.add('onboarding');
   $('#view').innerHTML = `<div class="ob"><h1>Road to <span style="color:var(--accent)">9</span> admin</h1>
     <p class="lead">You’re signed in as <b>${esc(USER.email)}</b>. This account runs Road to 9, so it has no planner of its own.</p>
-    <div class="row"><a class="btn primary" href="admin.html" style="text-decoration:none">Open the admin page</a></div>
+    <div class="row"><a class="btn primary" href="/admin.html" style="text-decoration:none">Open the admin page</a></div>
     <p class="small muted" style="margin-top:18px"><button class="linkbtn" id="adplanner">Set up a planner for this account anyway</button></p></div>`;
   $('#adplanner').onclick = () => { window.__adminPlanner = true; render(); };
 }
