@@ -27,3 +27,9 @@
 - [x] RGS subjects added 15 Nov 2026: French, History, RS, Latin, Classical Greek. Latin/Greek: check which prose and verse options RGS takes.
 - [x] DPIA addendum (signed by Moritz 15 Nov 2026, "online now" kept for now) for study groups (names, studying status and very strong topics shared inside groups) and for "online now" on the admin page (presence table, last-seen time only, since 15 Nov 2026), error reports (client_errors, no user), mock marks and topics that cost marks (inside the planner).
 - [ ] Groups across different exam boards: match by subject only (today: same specification, by topic).
+
+## Website (live 16 Nov 2026)
+- [x] Public site at roadto9.com (tools/build_site.py), app moved to /app; old links forward from / to /app/.
+- [x] Google Search Console: roadto9.com verified (file google300b1ac831ebb8ae.html, keep it), sitemap submitted.
+- [ ] Edge functions (admin, invite, backup email) still link to roadto9.com/ and rely on the forward; point them at /app/ next time they are deployed.
+- [ ] Check Search Console in a few weeks: which pages are indexed, which searches find the site.
