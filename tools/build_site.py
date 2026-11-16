@@ -148,6 +148,7 @@ FAQ = [
     ('Does it work on my phone?', 'Yes. It runs in the browser on phones, tablets and laptops, so there is nothing to install. Your plan follows you between devices.'),
     ('What happens to my data?', 'We keep your email, an optional first name and your planner. Nobody else can see your planner. No ads, no tracking, and you can download or delete everything in Settings.'),
     ('Why "Road to 9"?', 'Grade 9 is the top GCSE grade. The plan is built to get every topic as strong as it can be before the exam.'),
+    ('Who makes Road to 9?', 'It started as a dad building a revision plan for his son\'s GCSEs. It worked well enough that his friends wanted it too, so it became Road to 9. It is run by Schmittat Ltd, a small UK company.'),
 ]
 
 
@@ -325,7 +326,7 @@ def parents():
   <p>Students can make a small study group with friends using a code they share in person. Inside a group they can choose to show which topics they could help with, or that they are studying right now. All of this is off until they switch it on, and there is still no messaging.</p>
 
   <h2>Who we are</h2>
-  <p>Road to 9 is run by Schmittat Ltd (company no. 09452378), registered with the Information Commissioner's Office. It is free for students taking GCSEs in 2027. Questions or worries: <a href="mailto:hello@roadto9.com">hello@roadto9.com</a>.</p>
+  <p>Road to 9 started as a dad building a revision plan for his son's GCSEs. It worked well enough that his son's friends wanted it too. It is run by Schmittat Ltd (company no. 09452378), registered with the Information Commissioner's Office. It is free for students taking GCSEs in 2027. Questions or worries: <a href="mailto:hello@roadto9.com">hello@roadto9.com</a>.</p>
 </div>'''
     return page('/parents.html', 'For parents and teachers · Road to 9',
                 'What Road to 9 does for GCSE students, what data it keeps, and how it keeps students safe: no ads, no messaging, no tracking.',
