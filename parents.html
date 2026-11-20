@@ -21,7 +21,7 @@
 <body>
 <header class="top"><div class="wrap">
   <a class="brand" href="/"><svg viewBox="50 -55 730 730" aria-hidden="true"><g stroke-linejoin="round" stroke-width="14"><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#1f5a96" stroke="#1f5a96" transform="rotate(180 413 305)"/><path d="M333,270 L410,163 L655,163 Q765,163 765,255 Q765,285 742,313 L527,525 Q497,555 460,555 L232,555 L310,470 L460,470 L640,270 Z" fill="#a8ea2c" stroke="#a8ea2c"/></g></svg><span>Road to <b>9</b></span></a>
-  <nav aria-label="Main"><a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html" aria-current=page>For parents</a></nav>
+  <nav aria-label="Main"><a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html" aria-current=page>Parents</a><a href="/demo/" class=navtry>Test drive</a></nav>
   <div class="mode" role="group" aria-label="Day or night">
     <button type="button" data-mode-set="day" aria-label="Day" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
     <button type="button" data-mode-set="night" aria-label="Night" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button>
@@ -68,7 +68,7 @@
 </main>
 <footer><div class="wrap">
   <span class="grow">© Schmittat Ltd · company no. 09452378</span>
-  <a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a>
+  <a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a><a href="/demo/">Test drive</a>
   <a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a>
 </div></footer>
 <script>try{if(Object.keys(localStorage).some(function(k){return /^sb-.*-auth-token$/.test(k)}))document.querySelectorAll('[data-signin]').forEach(function(a){a.textContent='Open my planner'})}catch(e){}</script><script>(function(){var r=document.documentElement,bs=document.querySelectorAll('[data-mode-set]');function show(){var d=r.dataset.mode==='day';bs.forEach(function(b){b.setAttribute('aria-pressed',(b.dataset.modeSet==='day')===d)})}bs.forEach(function(b){b.onclick=function(){var d=b.dataset.modeSet==='day';if(d)r.dataset.mode='day';else delete r.dataset.mode;try{localStorage.setItem('r9-theme',d?'day':'night')}catch(e){}show()}});show()})();</script>

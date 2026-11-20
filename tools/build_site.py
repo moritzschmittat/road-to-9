@@ -62,12 +62,12 @@ SIGNED = ("<script>try{if(Object.keys(localStorage).some(function(k){return /^sb
           "document.querySelectorAll('[data-signin]').forEach(function(a){a.textContent='Open my planner'})}catch(e){}</script>")
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap">')
-NAV = [('/how.html', 'How it works'), ('/subjects/', 'Subjects'), ('/parents.html', 'For parents')]
+NAV = [('/how.html', 'How it works'), ('/subjects/', 'Subjects'), ('/parents.html', 'Parents'), ('/demo/', 'Test drive')]
 
 
 def page(path, title, desc, body, *, active=None, jsonld=None, forward=False, index=True):
     url = SITE + path
-    nav = ''.join(f'<a href="{h}"{" aria-current=page" if h == active else ""}>{t}</a>' for h, t in NAV)
+    nav = ''.join(f'<a href="{h}"{" aria-current=page" if h == active else ""}{" class=navtry" if h == "/demo/" else ""}>{t}</a>' for h, t in NAV)
     ld = ''.join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in (jsonld or []))
     out = f'''<!doctype html>
 <html lang="en-GB">
@@ -104,7 +104,7 @@ def page(path, title, desc, body, *, active=None, jsonld=None, forward=False, in
 </main>
 <footer><div class="wrap">
   <span class="grow">© Schmittat Ltd · company no. 09452378</span>
-  <a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a>
+  <a href="/how.html">How it works</a><a href="/subjects/">Subjects</a><a href="/parents.html">For parents</a><a href="/demo/">Test drive</a>
   <a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a>
 </div></footer>
 {SIGNED}{MODE}
@@ -357,7 +357,9 @@ HAND = [('how', 'How Road to 9 works', 'How Road to 9 plans GCSE revision: rate 
 def hand(name, title, desc, active):
     content = (root / 'src' / 'pages' / f'{name}.html').read_text(encoding='utf-8')
     content = content.split('-->', 1)[1] if content.startswith('<!--') else content
-    return page(f'/{name}.html', title, desc, f'<div class="wrap narrow prose">\n{content}</div>', active=active)
+    cta = ('<div class="cta"><h2>See it for yourself</h2><p>Take a test drive: the planner of Sam, a made-up student, opens right in your browser. '
+           'Nothing to sign up for, and nothing you do is saved.</p><div class="btns"><a class="btn primary" href="/demo/">Take a test drive</a></div></div>')
+    return page(f'/{name}.html', title, desc, f'<div class="wrap narrow prose">\n{content}{cta}</div>', active=active)
 
 
 def demo_redirect():
