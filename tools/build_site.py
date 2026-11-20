@@ -30,6 +30,7 @@ QUAL = {
     'geog':    ('AQA GCSE Geography', '8035', 'aqa-gcse-geography', 'https://www.aqa.org.uk/subjects/geography/gcse/geography-8035/assessment-resources'),
     'hist':    ('AQA GCSE History', '8145', 'aqa-gcse-history', 'https://www.aqa.org.uk/subjects/history/gcse/history-8145/assessment-resources'),
     'rs':      ('AQA GCSE Religious Studies A', '8062', 'aqa-gcse-religious-studies-a', 'https://www.aqa.org.uk/subjects/religious-studies/gcse/religious-studies-a-8062/assessment-resources'),
+    'pe':      ('AQA GCSE Physical Education', '8582', 'aqa-gcse-physical-education', 'https://www.aqa.org.uk/subjects/physical-education/gcse/physical-education-8582/assessment-resources'),
     'englit':  ('Edexcel International GCSE English Literature', '4ET1', 'edexcel-igcse-english-literature', 'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-english-literature-2016.coursematerials.html'),
     'englang': ('Edexcel International GCSE English Language B', '4EB1', 'edexcel-igcse-english-language-b', 'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-english-language-b-2016.coursematerials.html'),
     'fre':     ('Edexcel International GCSE French', '4FR1', 'edexcel-igcse-french', 'https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/international-gcse-french-2017.coursematerials.html'),
@@ -39,7 +40,7 @@ QUAL = {
     'grk':     ('OCR GCSE Classical Greek', 'J292', 'ocr-gcse-classical-greek', 'https://www.ocr.org.uk/qualifications/past-paper-finder/'),
 }
 GROUPS = [('Sciences and maths', ['bio', 'chem', 'phys', 'maths', 'fm', 'cs']),
-          ('Humanities', ['geog', 'hist', 'rs']),
+          ('Humanities and PE', ['geog', 'hist', 'rs', 'pe']),
           ('English', ['englit', 'englang']),
           ('Languages', ['fre', 'ger', 'spa', 'lat', 'grk'])]
 KIND_TAG = {'skill': 'Skill', 'words': 'Vocabulary', 'settext': 'Set text'}
@@ -152,7 +153,7 @@ FAQ = [
     ('Is Road to 9 free?', 'Yes. It is free for students taking their GCSEs in summer 2027.'),
     ('Can I try it first?', 'Yes. Take a test drive at roadto9.com/demo: you get the planner of Sam, a made-up student, and can try everything. There is nothing to sign up for and nothing you do is saved.'),
     ('How do I join?', 'Road to 9 is invite only for now. Every student has three invite links to pass on, so ask a friend who uses it. Or email hello@roadto9.com and tell us which school year and exam boards you are in.'),
-    ('Which subjects and exam boards does it cover?', f'{len(SUBJ)} subjects so far, including Edexcel International GCSE sciences, maths and languages, AQA humanities and OCR Latin and Classical Greek. The subjects page lists every board and course code. If yours is missing, tell us.'),
+    ('Which subjects and exam boards does it cover?', f'{len(SUBJ)} subjects so far, including Edexcel International GCSE sciences, maths and languages, AQA humanities and PE, and OCR Latin and Classical Greek. The subjects page lists every board and course code. If yours is missing, tell us.'),
     ('Does it replace my notes, textbooks or lessons?', 'No. Road to 9 plans what to revise and when. You still revise from your own notes, textbooks, revision guides and past papers.'),
     ('Does it work on my phone?', 'Yes. It runs in the browser on phones, tablets and laptops, so there is nothing to install. Your plan follows you between devices.'),
     ('What happens to my data?', 'We keep your email, an optional first name and your planner. Nobody else can see your planner. No ads, no tracking, and you can download or delete everything in Settings.'),
