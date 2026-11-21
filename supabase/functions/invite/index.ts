@@ -1,13 +1,15 @@
 // Road to 9 · friend invites (Supabase Edge Function "invite").
 // Every student has 3 one-use invite links. They pass a link on themselves (WhatsApp, text, in person).
+// A few accounts may invite without limit: app_metadata.unlimited_invites = true, which only the server key can set.
 // The friend opens it, types their own email and asks for a sign-in link. Road to 9 never emails anyone
 // on someone else's say-so and never stores a friend's address before the friend gives it.
 // Runs on Supabase's servers: it holds the master key; the website never does.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const PER_STUDENT = 3;
+const UNUSED_MAX = 5;   // unlimited accounts: at most this many unused links at a time
 const ORIGINS = ["https://roadto9.com", "https://www.roadto9.com"];
-const SITE = "https://roadto9.com/";
+const SITE = "https://roadto9.com/app/";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32 characters: no 0/O or 1/I mix-ups
 const CODE = /^[A-Z2-9]{5}-[A-Z2-9]{5}$/;
@@ -99,6 +101,7 @@ Deno.serve(async (req) => {
   const { data: { user } } = token ? await svc.auth.getUser(token) : { data: { user: null } };
   if (!user || !user.email_confirmed_at) return reply({ error: "Not signed in." }, 401);
   const isAdmin = admins.includes((user.email ?? "").toLowerCase());
+  const unlimited = user.app_metadata?.unlimited_invites === true;
 
   const list = async () => {
     const { data } = await svc.from("invites").select("code, used_at, created_at").eq("inviter", user.id).order("created_at");
@@ -107,15 +110,20 @@ Deno.serve(async (req) => {
 
   if (body.action === "status" || body.action === "more") {
     let mine = await list();
-    // Everyone gets 3 links in total, made the first time they look. Admins can make more.
-    const want = body.action === "more" && isAdmin ? mine.length + 1 : Math.max(mine.length, PER_STUDENT);
+    // Everyone gets 3 links in total, made the first time they look. Admins can make more, and so can
+    // accounts allowed to invite without limit (always one unused link ready, never more than UNUSED_MAX waiting).
+    const unused = mine.filter((i) => !i.used_at).length;
+    if (body.action === "more" && unlimited && !isAdmin && unused >= UNUSED_MAX) return reply({ error: `You have ${unused} links waiting. Send those first.` }, 400);
+    let want = Math.max(mine.length, PER_STUDENT);
+    if (body.action === "more" && (isAdmin || (unlimited && unused < UNUSED_MAX))) want = mine.length + 1;
+    if (unlimited && !unused) want = Math.max(want, mine.length + 1);
     if (want > mine.length) {
       const rows = Array.from({ length: want - mine.length }, () => ({ inviter: user.id, code: newCode() }));
       const { error } = await svc.from("invites").insert(rows);
       if (error) return reply({ error: "Couldn't make your invite links. Try again." }, 500);
       mine = await list();
     }
-    return reply({ admin: isAdmin, links: mine.map((i) => ({ code: i.code, used: !!i.used_at })) });
+    return reply({ admin: isAdmin, more: isAdmin || unlimited, links: mine.map((i) => ({ code: i.code, used: !!i.used_at })) });
   }
 
   return reply({ error: "Unknown action." }, 400);

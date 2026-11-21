@@ -2577,7 +2577,7 @@ function renderPlan(){
       <div class="seg themeseg" role="group" aria-label="Appearance">${[['night','Night'],['day','Day']].map(([v,l]) => `<button type="button" data-theme-set="${v}" aria-pressed="${(s.theme||'night')===v}">${l}</button>`).join('')}</div>
       </div></div></section>
     <section class="panel" id="invpanel"><h2>Invite friends</h2>
-      <p class="small muted" style="margin:0">Road to 9 is invite only. You have 3 invite links and each works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
+      <p class="small muted" style="margin:0">Road to 9 is invite only. Each invite link works once. Send one to a friend yourself, however you normally talk to them; Road to 9 doesn’t contact anyone for you. When they open it they see your name${s.name ? ` (${esc(s.name)})` : ''} and type their own email. For friends aged 13 or over who are revising for GCSEs.</p>
       <div id="invbody" class="small muted" style="margin-top:8px">Loading…</div></section>
     <section class="panel"><h2>Your subjects</h2><p class="small muted" style="margin:0">Tick the subjects you take. Only these are planned. </p>
       <div class="subjpick">${ALL_SUBJECTS.map(x => `<label><input type="checkbox" data-subj="${x.id}" ${s.subjects.includes(x.id) ? 'checked' : ''}><span>${icon(x.id,16)} <b>${esc(x.name)}</b><small>${esc(x.board)}</small></span></label>`).join('')}</div><div class="missbox"><label class="small" for="msgtext">Missing a subject or exam board? Tell us which one and we’ll add it.</label>
@@ -2709,11 +2709,11 @@ function drawInvites(r, note){
   const box = $('#invbody'); if (!box) return;
   const url = c => `${location.origin}/app/?join=${c}`;
   const left = r.links.filter(l => !l.used).length;
-  const panel = $('#invpanel'); if (panel) panel.hidden = !left && !r.admin;   // all links used: the card goes away
+  const panel = $('#invpanel'); if (panel) panel.hidden = !left && !r.more && !r.admin;   // all links used: the card goes away (unless more can be made)
   box.classList.remove('muted');
   box.innerHTML = `<ul class="invlinks">${r.links.map(l => `<li class="${l.used ? 'used' : ''}"><code>${esc(url(l.code).replace(/^https?:\/\//, ''))}</code>${l.used ? '<span class="small muted">used ✓</span>'
       : `<span class="row" style="gap:6px"><button class="btn small" data-copy="${esc(url(l.code))}">Copy</button>${navigator.share ? `<button class="btn small ghost" data-share="${esc(url(l.code))}">Share</button>` : ''}</span>`}</li>`).join('')}</ul>
-    <p class="small muted" style="margin:6px 0 0">${left ? `${left} of ${r.links.length} links left.` : 'You’ve used all your invite links.'}${r.admin ? ' <button class="linkbtn" id="invmore">Make another link</button>' : ''}</p>
+    <p class="small muted" style="margin:6px 0 0">${r.more && !r.admin ? `You can invite as many friends as you like. ${left} link${left === 1 ? '' : 's'} ready to send.` : left ? `${left} of ${r.links.length} links left.` : 'You’ve used all your invite links.'}${(r.admin || r.more) ? ' <button class="linkbtn" id="invmore">Make another link</button>' : ''}</p>
     <div id="invmsg" class="small" role="status">${note ? esc(note) : ''}</div>`;
   box.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
     try { await navigator.clipboard.writeText(b.dataset.copy); $('#invmsg').textContent = '✓ Copied. Paste it into a message to your friend.'; }
@@ -2805,7 +2805,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-20 17:55';
+const APP_VER = '2026-11-21 10:50';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {

@@ -31,6 +31,7 @@
 ## Website (live 16 Nov 2026)
 - [x] Public site at roadto9.com (tools/build_site.py), app moved to /app; old links forward from / to /app/.
 - [x] Google Search Console: roadto9.com verified (file google300b1ac831ebb8ae.html, keep it), sitemap submitted.
-- [ ] Edge functions (admin, invite, backup email) still link to roadto9.com/ and rely on the forward; point them at /app/ next time they are deployed.
+- [ ] Edge functions (admin, backup email) still link to roadto9.com/ and rely on the forward; point them at /app/ next time they are deployed. (invite done 21 Nov.)
 - [ ] Check Search Console in a few weeks: which pages are indexed, which searches find the site.
 - [x] Test drive at roadto9.com/demo (app/?demo): Sam, a made-up student, simulated by the real planner; nothing saved or sent. 16 Nov 2026.
+- [x] Unlimited invites per account: app_metadata.unlimited_invites = true (server key only). On for Casper, 21 Nov 2026. Up to 5 unused links waiting at a time.
