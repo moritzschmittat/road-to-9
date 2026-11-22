@@ -139,6 +139,14 @@ details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
 .todoin{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lv2)}
 .todoin p{margin:4px 0 0;white-space:pre-wrap}
 .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .5s linear}
+.tclock{display:flex;flex-direction:column;line-height:1.1;flex-shrink:0}
+.tlabel{font-size:12px;color:var(--muted);white-space:nowrap;margin-top:2px}
+.timer.done .bar i{background:var(--lv1)}
+.timer.done .tlabel{color:var(--lv1);font-weight:700}
+.minsrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:14px 0 4px}
+.minsrow label{font-weight:700}
+.mstep{display:inline-flex;align-items:center;gap:6px}
+.mstep input{width:4.5em;text-align:center;font:inherit;font-weight:700;padding:6px 4px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 .btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;font-size:15px;background:var(--sunk);color:var(--ink)}
 .btn.primary{background:var(--accent);color:var(--accent-ink)}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
@@ -985,7 +993,8 @@ function spreadDue(c, today, left){
 const SHORT_REV = 20, RE_REV = 30;
 const learnMin = id => { const x = cs(id); return x.st==='learning' ? RE_REV : x.st==='new' && band(x.lvl)==='g' ? SHORT_REV : 45; };
 const fmtMin = m => { m = Math.round(m||0); if (m < 60) return m + ' min'; const h = Math.floor(m/60), r = m%60; return h + 'h' + (r ? ' ' + r + 'm' : ''); };
-const sessMins = l => l.mins != null ? l.mins : (l.t==='learn' || l.t==='paper') ? 45 : (l.c||[]).length*8;
+const sessMins = l => l.mins != null ? l.mins : (l.t==='learn' || l.t==='paper') ? 45 : (l.c||[]).length*8;   // minutes actually studied
+const planMins = l => l.plan != null ? l.plan : sessMins(l);   // minutes the plan gave it: planning only ever uses these
 const band = l => l==null ? 'x' : (l<=1.5 ? 'g' : (l<2.5 ? 'a' : 'r'));
 const bandName = {r:'Red', a:'Amber', g:'Green', x:'Not rated'};
 /* five-colour scale shown everywhere: 1 very strong, 1.5 strong, 2 ok, 2.5 weak, 3 very weak */
@@ -1094,6 +1103,7 @@ function baseDayInfo(d){
   return {target:t, label: t===0 ? (s.dayOffNote[wd]||'Day off') : (wd===0||wd===6 ? 'Weekend' : 'School day'), kind: wd===0||wd===6 ? 'weekend':'school', off:t===0};
 }
 const doneOn = d => S.log.filter(l => l.d===d).reduce((a,l) => a + sessMins(l), 0);   // minutes studied that day
+const planDoneOn = d => S.log.filter(l => l.d===d).reduce((a,l) => a + planMins(l), 0);   // the plan's minutes for what's done that day (studying longer or shorter never moves the plan)
 
 /* ---------- the scheduler ---------- */
 let skipped = new Set(); let skipDay = todayStr();
@@ -1117,7 +1127,7 @@ function pickNext(mode){
   const maxOver = due.length ? diff(st(due[0]).due, today) : 0;
 
   // time left today (if the goal is already met, plan one more 45-minute block)
-  let left = dayInfo(today).target - doneOn(today); if (left < 15) left = 45;
+  let left = dayInfo(today).target - planDoneOn(today); if (left < 15) left = 45;
   let rlist = due;
   if (mode==='refresh' && !due.length){   // nothing due: pull forward the next refreshers
     rlist = all.filter(c => st(c).st==='review').sort((a,b) => st(a).due < st(b).due ? -1 : 1);
@@ -1125,7 +1135,7 @@ function pickNext(mode){
   }
   const pack = cap => { const pick = [], cm = {}; let m = 0; for (const c of rlist){ const x = refMin(c.id); if (pick.length && m + x > cap) continue; pick.push(c); cm[c.id] = x; m += x; if (m >= cap - 3) break; } return {type:'review', cards:pick.map(c=>c.id), mins:m, cm}; };
   // keep learning moving: once refreshers have taken half of today's time, switch to learning unless they're badly overdue
-  const refToday = S.log.filter(l => l.d===today && (l.t==='review' || l.t==='quick')).reduce((a,l) => a + sessMins(l), 0);
+  const refToday = S.log.filter(l => l.d===today && (l.t==='review' || l.t==='quick')).reduce((a,l) => a + planMins(l), 0);
   const reviewHeavy = refToday >= Math.max(30, dayInfo(today).target*0.5) && maxOver < 14 && (relearn.length || fresh_.length);
   // refreshers due: a block of up to 45 minutes (or whatever time is left), most overdue first
   if (mode==='refresh') return pack(20);
@@ -1200,7 +1210,7 @@ function pace(){
   const reviewNeed = Math.round(refMins/45);
   const end = live.reduce((m,s)=> examLast(s.id) > m ? examLast(s.id) : m, today);
   let cap = 0; for (let d=today; d<end; d=addDays(d,1)) cap += dayInfo(d).target;
-  cap -= Math.min(doneOn(today), dayInfo(today).target);
+  cap -= Math.min(planDoneOn(today), dayInfo(today).target);
   return {need: Math.round(learnNeed)+reviewNeed, learnNeed:Math.round(learnNeed), reviewNeed, cap, end, unrated};
 }
 
@@ -1505,9 +1515,9 @@ function restOfToday(n){
 let todayPlanned = null;   // minutes of everything listed for today: done + now + still to do
 function todayListHTML(info){
   const today = todayStr(); const done = S.log.filter(l => l.d===today);
-  const left = Math.max(0, info.target - doneOn(today) - (current ? (current.mins || 45) : 0));
+  const left = Math.max(0, info.target - planDoneOn(today) - (current ? (current.mins || 45) : 0));
   todayRest = mixDay(restOfToday(left), startKind(today, current));
-  todayPlanned = doneOn(today) + (current ? (current.mins || 45) : 0) + todayRest.reduce((a, n) => a + (n.mins || 45), 0);
+  todayPlanned = planDoneOn(today) + (current ? (current.mins || 45) : 0) + todayRest.reduce((a, n) => a + (n.mins || 45), 0);
   if (!done.length && !current && !todayRest.length && info.target===0) return '';
   const row = (n, cls, extra, drop) => { const L = sessLabel(n); const parts = L.k.split(' · '); const mins = parts.pop(); const kind = /^(Revise|Refresher|Quick refresher)/.test(parts[0]||'') ? '' : parts.join(' · ');
     // one little box per spec point, coloured by how confident the student is now (a point never rated on its own takes the topic's level; grey = not rated); a gap between topics
@@ -1825,7 +1835,7 @@ function pushShare(now){
 }
 // "Show when I'm studying": from Start until Finish and rate (or leaving the session)
 function syncStudying(){
-  const on = current && current.phase==='work' && (timer.running || timer.left < timer.total);
+  const on = current && current.phase==='work' && (timer.running || timer.used > 0);
   if (on && !studyingSince){
     studyingSince = {sid: current.type==='paper' ? current.sid : CARD[current.cards[0]].sid, cid: current.type==='paper' ? null : current.cards[0], paper: current.type==='paper' || undefined,
       until: new Date(Date.now() + (timer.total + 30*60) * 1000).toISOString()};
@@ -1894,15 +1904,15 @@ function renderGroups(){
 function renderHome(){
   const today = todayStr(); const info = dayInfo(today); const s = S.settings;
   const [q, who] = quoteOf(today);
-  const n = current ? current : (info.target===0 || doneOn(today)>=info.target ? null : pickNext());
+  const n = current ? current : (info.target===0 || planDoneOn(today)>=info.target ? null : pickNext());
   let nextTxt;
-  if (!n) nextTxt = info.target===0 ? `<h2 class="hn-t">${esc(info.label)}. Day off.</h2><p class="muted" style="margin:0">Nothing planned today.</p>` : doneOn(today)>=info.target && info.target>0 ? `<h2 class="hn-t">Today's goal is done.</h2><p class="muted" style="margin:0">Nice work. More is optional.</p>` : `<h2 class="hn-t">Rate your topics to get started.</h2>`;
+  if (!n) nextTxt = info.target===0 ? `<h2 class="hn-t">${esc(info.label)}. Day off.</h2><p class="muted" style="margin:0">Nothing planned today.</p>` : planDoneOn(today)>=info.target && info.target>0 ? `<h2 class="hn-t">Today's goal is done.</h2><p class="muted" style="margin:0">Nice work. More is optional.</p>` : `<h2 class="hn-t">Rate your topics to get started.</h2>`;
   else if (n.type==='paper') nextTxt = `<div class="eyebrow">Past paper · 45 min</div><h2 class="hn-t">${esc(SUBJ[n.sid].name)}</h2>`;
   else { const c = CARD[n.cards[0]]; nextTxt = n.type==='learn' ? `<div class="eyebrow">Revise · ${n.mins || 45} min</div><div class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</div><h2 class="hn-t">${esc(c.n)}</h2>` : `<div class="eyebrow">${esc(sessLabel(n).k)}</div><h2 class="hn-t">${esc([...new Set(n.cards.map(id => SUBJ[CARD[id].sid].name))].join(', '))}</h2>`; }
   const mon = mondayOf(today); const m0 = today.slice(0,8)+'01'; const mEnd = addDays(addDays(m0, 32).slice(0,8)+'01', -1);
   const end = Object.values(s.exams).sort().slice(-1)[0] || '2027-06-18';
   const lastEx = Object.values(s.exams).sort().slice(-1)[0];
-  const stDay = {planned: info.target, done: doneOn(today), left: Math.max(0, info.target-doneOn(today))};
+  const stDay = {planned: info.target, done: doneOn(today), left: Math.max(0, info.target-planDoneOn(today))};
   const tot = {l3:0,l25:0,l2:0,l15:0,l1:0,x:0,later:0,off:0,due:0}; CURRICULUM.forEach(sb => { const k = counts(sb); Object.keys(tot).forEach(z => tot[z]+=k[z]); });
   const allPts = CURRICULUM.reduce((a,sb) => a + sb.cards.reduce((b,c) => b + (cs(c.id).st==='off' ? 0 : c.p.length), 0), 0);
   const greenPts = CURRICULUM.reduce((a,sb) => a + sb.cards.reduce((b,c) => b + (cs(c.id).st==='off' ? 0 : c.p.filter((_,i) => { const v = ptLvl(c,i); return v!=null && v<=1.5; }).length), 0), 0);
@@ -1932,7 +1942,21 @@ function renderHome(){
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let current = null;   // {type, cards, phase:'work'|'rate', ratings:{}}
-let timer = {total:45*60, left:45*60, running:false, h:null, end:0};
+let timer = {total:45*60, used:0, base:0, t0:0, running:false, h:null, rang:false};   // counts up; total = the planned time
+const clockText = s => s >= 3600 ? `${Math.floor(s/3600)}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}` : `${pad(Math.floor(s/60))}:${pad(s%60)}`;
+function timerHTML(){
+  const done = timer.used >= timer.total;
+  return `<div class="timer ${done ? 'done' : ''}"><div class="tclock"><div class="clock" id="clock">${clockText(timer.used)}</div><div class="tlabel" id="tlabel">${done ? 'Planned time done ✓' : `of ${Math.round(timer.total/60)} min planned`}</div></div>
+    <div class="bar"><i id="barfill" style="width:${Math.min(100, 100*timer.used/timer.total)}%"></i></div>
+    <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running ? 'Pause' : (timer.used > 0 ? 'Resume' : 'Start')}</button></div></div>`;
+}
+// "Minutes you actually spent": filled in from the timer (or the plan if it wasn't used), changeable
+const planOf = () => current && current.mins ? current.mins : 45;
+const clampMins = v => Math.min(240, Math.max(1, Math.round(+v) || planOf()));
+const actualMins = () => current.actual != null ? current.actual : timer.used >= 30 ? clampMins(timer.used/60) : planOf();
+const minsRowHTML = () => `<div class="minsrow"><label for="actmins">Minutes you actually spent</label>
+  <span class="mstep"><button type="button" class="btn small ghost" data-mstep="-5" aria-label="5 minutes less">−5</button><input id="actmins" type="number" inputmode="numeric" min="1" max="240" value="${actualMins()}"><button type="button" class="btn small ghost" data-mstep="5" aria-label="5 minutes more">+5</button></span>
+  <span class="small muted">planned ${planOf()} min</span></div>`;
 
 // Address bar names match the tabs: #study, #groups, #stats, #settings, #study-<subject>.
 // Inside, the views keep their old names; old links (#next, #home, #plan, #topics-…) still work and are renamed.
@@ -1995,7 +2019,7 @@ function renderNext(){
   if (choosing) html += chooserHTML();
   if (!current){
     const restDay = info.target===0;
-    const reached = done>=info.target && info.target>0;
+    const reached = planDoneOn(today)>=info.target && info.target>0;
     if ((restDay || reached) && !window.__anyway){
       html += `<section class="session"><div class="head"><div class="eyebrow">${restDay?'Day off':'Done for today'}</div>
         <h2 class="topic">${info.skippedDay ? 'Skipped today.' : info.stoppedEarly ? 'Finished for today.' : restDay ? esc(info.label)+'.' : 'Goal reached.'}</h2>
@@ -2046,17 +2070,16 @@ const ppLink = sid => PAST_PAPERS[sid] ? `<a href="${PAST_PAPERS[sid]}" target="
 function paperHTML(){
   const cur = current;
   const subj = SUBJ[current.sid];
-  const mm = Math.floor(timer.left/60), ss = timer.left%60;
   return `<section class="session"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
     <details class="howto"><summary title="How to do a past-paper session"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a past-paper session</span></summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
       <li><div><b>Mark</b><span>Mark it with the mark scheme, honestly. Keep the papers in one folder so you can see your scores go up.</span></div></li>
       <li><div><b>Feed it back</b><span>Tick the topics that cost you marks below. They move to weak and come back in your next sessions.</span></div></li></ol></details>
-    <div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
-      <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>
+    ${timerHTML()}
     ${PAST_PAPERS[subj.id] ? `<p class="small" style="margin:0">${ppLink(subj.id)} and mark schemes for ${esc(subj.board)} (opens the exam board’s site)</p>` : ''}
     <details class="mocksub"><summary>After marking: which topics cost you marks?</summary>${lostListHTML(subj, 'data-plost')}</details>
     <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Paper 1 2023, 61/80, lost marks on enzymes and osmosis">${esc(cur.note||'')}</textarea></label>
+    ${minsRowHTML()}
     <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Choose a different topic</button>
       <a class="btn ghost" style="text-decoration:none" href="#study-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
 }
@@ -2087,9 +2110,7 @@ function sessionHTML(){
       ${c.p.length ? pointsHTML(c) : ''}
       ${S.todo[c.id] ? `<div class="todoin"><div class="eyebrow">Your to-do from last time</div><p>${esc(S.todo[c.id])}</p></div>` : ''}</div>`).join('')}</div>`}`;
   }
-  const mm = Math.floor(timer.left/60), ss = timer.left%60;
-  const timerBlock = `<div class="timer"><div class="clock" id="clock">${pad(mm)}:${pad(ss)}</div><div class="bar"><i id="barfill" style="width:${100-100*timer.left/timer.total}%"></i></div>
-      <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running?'Pause':(timer.left<timer.total?'Resume':'Start')}</button></div></div>`;
+  const timerBlock = timerHTML();
   let foot;
   if (cur.phase==='work'){
     foot = `<div class="row"><button class="btn primary" id="finish">Finish and rate</button>
@@ -2104,6 +2125,7 @@ function sessionHTML(){
         ${pointsHTML(c, {rate:true, pick:cur.pr})}
         <label class="todobox"><span class="eyebrow">To-do for the next refresher</span><textarea data-todo="${c.id}" rows="2" placeholder="e.g. learn the 5 kingdoms by heart, redo Q3, ask about osmosis">${esc(cur.todo && cur.todo[c.id] != null ? cur.todo[c.id] : (S.todo[c.id]||''))}</textarea></label>${cards.length===1 ? journalBox : ''}</div>`).join('')}</div>
       ${cards.length > 1 ? `<div class="rateitem">${journalBox}</div>` : ''}
+      ${minsRowHTML()}
       <div class="row end"><button class="btn ghost" id="back">Back</button><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div></div>`;
   }
   const todos = cards.filter(c => S.todo[c.id]);
@@ -2239,22 +2261,22 @@ function bindNext(){
     if (!n){ b.textContent = b.dataset.extra==='refresh' ? 'Nothing to refresh yet' : 'Nothing left to revise'; b.disabled = true; return; }
     current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}, extra:true}; resetTimer(); render(); });
   document.querySelectorAll('#view [data-addsess]').forEach(b => b.onclick = () => { const t = todayStr(); const keep = current;
-    const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, doneOn(t));
+    const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, planDoneOn(t));
     setOverride(t, base + (+b.dataset.addsess || 45)); if (keep) { current = keep; render(); } });
   // × on a session in Today's sessions: drop it from today and take its minutes off today's total
   document.querySelectorAll('#view [data-drop]').forEach(b => b.onclick = () => {
     const t = todayStr(); const isNow = b.dataset.drop === 'now'; const n = isNow ? current : todayRest[+b.dataset.drop]; if (!n) return;
     const ids = n.type === 'paper' ? ['paper:' + n.sid] : n.cards;
     S.settings.dropped = {d: t, ids: [...droppedToday(), ...ids]};
-    const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, doneOn(t));
+    const base = todayPlanned != null ? todayPlanned : Math.max(dayInfo(t).target, planDoneOn(t));
     const keep = isNow ? null : current; if (isNow) { current = null; resetTimer(); }
-    setOverride(t, Math.max(doneOn(t), base - (n.mins || 45))); if (keep) { current = keep; render(); } });
+    setOverride(t, Math.max(planDoneOn(t), base - (n.mins || 45))); if (keep) { current = keep; render(); } });
   on('ovundo2', () => setOverride(todayStr(), null));
   document.querySelectorAll('#view [data-taught]').forEach(b => b.onclick = () => unpark(b.dataset.taught));
   on('parklater', () => { S.settings.laterAsked = todayStr(); save(); });
   document.querySelectorAll('#view [data-msave]').forEach(b => b.onclick = () => saveMock(b.dataset.msave, false));
   document.querySelectorAll('#view [data-mskip]').forEach(b => b.onclick = () => saveMock(b.dataset.mskip, true));
-  on('skipday', () => { stopTimer(); const t = todayStr(), inf = dayInfo(t), dn = doneOn(t);
+  on('skipday', () => { stopTimer(); const t = todayStr(), inf = dayInfo(t), dn = planDoneOn(t);
     if (inf.target > 0 && dn < inf.target) setOverride(t, dn);              // stop short of today's goal
     else { current = null; window.__anyway = false; render(); } });         // goal already met: just end the extra session
   document.querySelectorAll('#view [data-ov]').forEach(b => b.onclick = () => setOverride(todayStr(), +b.dataset.ov));
@@ -2263,8 +2285,12 @@ function bindNext(){
   on('back', () => { current.phase='work'; render(); });
   on('swap', () => { if (current.type==='paper') skipped.add('paper:'+current.sid); current.cards.forEach(id => skipped.add(id)); current=null; render(); });
   { const nt = document.getElementById('note'); if (nt) nt.oninput = () => { if (current) current.note = nt.value; }; }
+  { const am = document.getElementById('actmins'); if (am){
+    am.oninput = () => { if (current && am.value !== '') current.actual = clampMins(am.value); };
+    am.onblur = () => { if (current) am.value = current.actual = actualMins(); };
+    document.querySelectorAll('#view [data-mstep]').forEach(b => b.onclick = () => { current.actual = clampMins(actualMins() + +b.dataset.mstep); am.value = current.actual; }); } }
   document.querySelectorAll('[data-todo]').forEach(t => t.oninput = () => { if (current){ current.todo = current.todo || {}; current.todo[t.dataset.todo] = t.value; } });
-  on('paperdone', () => { const at = new Date().toISOString(); lostMarks([...document.querySelectorAll('#view [data-plost]:checked')].map(x => x.dataset.plost), 'paper'); S.log.push({d:todayStr(), at, t:'paper', s:current.sid, c:[], r:[], prev:{}, mins:45}); keepNote(at);
+  on('paperdone', () => { const at = new Date().toISOString(); lostMarks([...document.querySelectorAll('#view [data-plost]:checked')].map(x => x.dataset.plost), 'paper'); S.log.push({d:todayStr(), at, t:'paper', s:current.sid, c:[], r:[], prev:{}, mins:actualMins(), plan:45}); keepNote(at);
     current = null; window.__anyway = false; stopTimer(); save(); window.scrollTo({top:0,behavior:'smooth'}); });
   on('later', () => { setRating(current.cards[0], 'later'); current=null; render(); });
   const keep = f => { const y = window.scrollY; f(); render(); window.scrollTo(0, y); };
@@ -2288,24 +2314,30 @@ function doSave(){
       prev[id] = S.cards[id] ? JSON.parse(JSON.stringify(S.cards[id])) : null; rateCard(id, toR3(current.ratings[id]), current.type, today, current.ratings[id]); });
     const relearnFlag = current.type==='learn' && !!prev[current.cards[0]] && prev[current.cards[0]].st==='learning';
     const at = new Date().toISOString(); keepNote(at);
-    S.log.push({d:today, at, t:current.type, s:CARD[current.cards[0]].sid, c:current.cards, r:current.cards.map(id=>current.ratings[id]), mins: current.mins, cm: current.cm, prev, prevPts, ...(relearnFlag?{relearn:true}:{})});
+    // real minutes (mins) for the stats and the history; the plan's minutes (plan) so planning is never moved by them
+    const plan = planOf(), mins = actualMins();
+    const cm = current.cm && mins !== plan ? Object.fromEntries(Object.entries(current.cm).map(([k, v]) => [k, Math.max(1, Math.round(v * mins / plan))])) : current.cm;
+    S.log.push({d:today, at, t:current.type, s:CARD[current.cards[0]].sid, c:current.cards, r:current.cards.map(id=>current.ratings[id]), mins, plan, cm, prev, prevPts, ...(relearnFlag?{relearn:true}:{})});
     current = null; window.__anyway = false; stopTimer(); save(); window.scrollTo({top:0,behavior:'smooth'});
   }
 }
 
 /* timer */
-function resetTimer(){ stopTimer(); const m = current && current.mins ? current.mins : 45; timer.total = m*60; timer.left = timer.total; }
-function stopTimer(){ if (timer.h) clearInterval(timer.h); timer.h=null; timer.running=false; }
+function resetTimer(){ stopTimer(); const m = current && current.mins ? current.mins : 45; timer.total = m*60; timer.used = 0; timer.base = 0; timer.rang = false; }
+function stopTimer(){ if (timer.running) timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000); if (timer.h) clearInterval(timer.h); timer.h=null; timer.running=false; }
 function tick(){
-  timer.left = Math.max(0, Math.round((timer.end - Date.now())/1000));
-  const c = document.getElementById('clock'); if (c) c.textContent = pad(Math.floor(timer.left/60))+':'+pad(timer.left%60);
-  const b = document.getElementById('barfill'); if (b) b.style.width = (100-100*timer.left/timer.total)+'%';
-  if (timer.left<=0){ stopTimer(); beep(); if (current){ current.phase='rate'; render(); } }
+  timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000);
+  const c = document.getElementById('clock'); if (c) c.textContent = clockText(timer.used);
+  const b = document.getElementById('barfill'); if (b) b.style.width = Math.min(100, 100*timer.used/timer.total)+'%';
+  // planned time reached: one beep, the bar turns green, and the clock keeps going for anyone who carries on
+  if (timer.used >= timer.total && !timer.rang){ timer.rang = true; beep();
+    const t = document.querySelector('#view .timer'); if (t) t.classList.add('done');
+    const l = document.getElementById('tlabel'); if (l) l.textContent = 'Planned time done ✓'; }
 }
 let wake=null;
 function toggleTimer(){
   if (timer.running){ stopTimer(); try{ wake && wake.release(); }catch(e){} render(); return; }
-  timer.running = true; timer.end = Date.now() + timer.left*1000; timer.h = setInterval(tick, 1000);
+  timer.running = true; timer.base = timer.used; timer.t0 = Date.now(); timer.rang = timer.used >= timer.total; timer.h = setInterval(tick, 1000);
   try { navigator.wakeLock && navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{}); } catch(e){}
   primeAudio(); render();
 }
@@ -2415,7 +2447,7 @@ function topicHistory(id){
 function historyHTML(id){
   const ev = topicHistory(id).filter(e => e.k!=='manual'); const x = cs(id);   // ratings changed on the Subjects board aren't listed
   const label = e => e.k==='mock' ? 'Lost marks in the mock: moved to weak' : e.k==='paperlost' ? 'Lost marks in a past paper: moved to weak' : e.k==='start' ? 'Starting rating' : e.k==='before' ? 'Before this session' : e.k==='manual' ? 'Rated on the Subjects board' : e.k==='later' ? 'Marked not taught yet' : e.k==='off' ? 'Marked off' :
-    e.k==='learn' ? 'After ' + (e.m ? e.m + ' min ' : '') + (e.relearn ? 'revising again' : 'revision') : e.k==='quick' ? 'After 5 min quick refresher' : 'After ' + (e.m ? e.m + ' min ' : '') + 'refresher';
+    e.k==='learn' ? 'After ' + (e.m ? e.m + ' min ' : '') + (e.relearn ? 'revising again' : 'revision') : e.k==='quick' ? 'After ' + (e.m || 5) + ' min quick refresher' : 'After ' + (e.m ? e.m + ' min ' : '') + 'refresher';
   const next = x.st==='review' ? (x.trk && !x.left ? 'All refreshers done' : `Next refresher ${fmtShort(x.due)}`) : x.st==='learning' ? 'Next: revise again' : x.st==='new' ? 'Next: revise' : '';
   return `<div class="thist">
     <ol class="hlist">${ev.map((e, i) => `<li${i && ev[i-1].d===e.d ? ' class="same"' : ''}><span class="hd">${i && ev[i-1].d===e.d ? '' : esc(fmtShort(e.d))}</span><span class="hk">${esc(label(e))}</span><span></span>${e.pts && e.pts.some(v => v!=null) && CARD[id].p.length > 1 ? `<span class="hpts">${e.pts.map((v,j) => `<i class="rag ${v==null ? 'lv-x' : lvClass(v)}" title="${esc(CARD[id].p[j].c||'')}"></i>`).join('')}<small>spec points</small></span>` : ''}${e.note ? `<p class="hn"><b>Journal:</b>${esc(e.note)}</p>` : ''}</li>`).join('') || '<li class="muted small">Nothing yet.</li>'}</ol>
@@ -2485,7 +2517,7 @@ function forecast(untilDay){
   try {
     for (let d = real; d <= untilDay; d = addDays(d,1)){
       FORCE_DAY = d; skipDay = d; out[d] = [];
-      let left = dayInfo(d).target - doneOn(d);
+      let left = dayInfo(d).target - planDoneOn(d);
       for (let guard=0; left>0 && guard<30; guard++){
         const n = pickNext(); if (!n) break;
         if ((n.type==='learn' || n.type==='paper') && left < Math.min(30, (n.mins||45) - 5)) break;
@@ -2527,7 +2559,7 @@ function weekHTML(){
     const info = dayInfo(d);
     const done = S.log.filter(l => l.d===d).map(l => ({n: l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, r:l.r}));
     const plan = d >= today ? (d===today ? (current ? [current] : []).concat(todayRest || []) : mixDay(fc[d]||[], startKind(d))) : [];
-    total += doneOn(d) + plan.reduce((x,n) => x + (n.mins || 45), 0);
+    total += planDoneOn(d) + plan.reduce((x,n) => x + (n.mins || 45), 0);
     const item = (n, r, planned) => { const L = sessLabel(n);
       // colour = confidence: the rating you gave if done, otherwise the topic's current level
       const v = r && r.length && r[0]!=null ? r[0] : (n.cards && n.cards.length ? cs(n.cards[0]).lvl : null);
@@ -2805,7 +2837,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-21 10:50';
+const APP_VER = '2026-11-22 18:31';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
