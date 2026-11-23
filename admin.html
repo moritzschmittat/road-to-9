@@ -259,16 +259,15 @@ function draw(){
       : u.joined ? '<span class="tag joined">joined</span>' : '<span class="tag pending">invite sent</span>';
     const meta = u.admin ? `admin · last sign-in ${when(u.last_sign_in_at)}` : [
       isOnline(u) ? '<span class="online"><i class="dot"></i>online now</span>' : u.joined ? seenText(u.seen_at) : null,
-      u.name ? esc(u.name) : null,
       `invited ${when(u.invited_at)}${u.invited_by ? ' by ' + esc(u.invited_by) : ' by you'}`,
-      u.invites_sent ? `${u.invites_sent} of 3 invite links used` : null,
+      u.invites_sent ? `${u.invites_sent} invite link${u.invites_sent === 1 ? '' : 's'} used` : null,
       u.joined ? `last sign-in ${when(u.last_sign_in_at)}` : null,
       u.joined ? (u.onboarded ? `last active ${when(u.last_saved_at)}` : 'setup not finished') : null,
     ].filter(Boolean).join(' · ');
     const acts = u.id === ME ? '' : `${u.joined ? '' : `<button class="ghost" data-resend="${u.id}">Resend invite</button>`}<button class="ghost danger" data-remove="${u.id}">Remove</button>`;
     const conf = confirmId === u.id ? `<div class="confirm"><b>Remove ${esc(u.email)}?</b> This deletes their account and all their planner data straight away. It can't be undone.
       <div class="row"><button class="btn" style="background:var(--red);color:#fff" data-yes="${u.id}">Yes, remove</button><button class="ghost" data-no="1">Cancel</button></div></div>` : '';
-    return `<div class="user"><div><div class="who">${esc(u.email)}${tag}</div><div class="meta">${meta}</div></div><div class="acts">${acts}</div>${conf}</div>`;
+    return `<div class="user"><div><div class="who">${u.name ? esc(u.name) + ' · ' : ''}${esc(u.email)}${tag}</div><div class="meta">${meta}</div></div><div class="acts">${acts}</div>${conf}</div>`;
   }).join('') : '<p class="muted">No one yet.</p>';
 }
 
