@@ -366,6 +366,11 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .tl-tag.now{color:var(--accent)}
 .tl-tag .rag{width:9px;height:9px}
 /* timeline */
+.tl-mock{stroke:var(--lv25);opacity:.9}.tl-exam{stroke:var(--ink);opacity:.45}
+.tl-mock-t{fill:var(--lv25)}.tl-exam-t{fill:var(--muted)}
+.tl-legend{display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:center;font-size:12px;color:var(--muted);margin-top:4px}
+.tl-legend i{display:inline-block;width:0;height:12px;margin-right:6px;vertical-align:-2px}
+.tl-legend i.m{border-left:1.5px dashed var(--lv25)}.tl-legend i.e{border-left:1.5px solid var(--ink);opacity:.6}
 .tl-chart{position:relative;margin-top:6px;overflow:hidden}
 .tl-chart svg{display:block;max-width:100%;font-family:var(--f-body)}
 .tl-tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:6px 9px;border-radius:7px;line-height:1.35;white-space:nowrap}
@@ -1358,6 +1363,8 @@ window.addEventListener('online', () => { if (pendingSync) pushOnline(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState==='visible' && dbRef){ dbRef.get().then(s => { if (s.exists) applyRemote(normalise(s.data()), true); }).catch(()=>{}); if (pendingSync) pushOnline(); } });
 function applyRemote(remote, confirmed){
   const merged = merge(S, remote);
+  // the school's mock dates, if this copy from the server doesn't have them yet (saved straight back)
+  if (confirmed && USER && !DEMO){ const keep = S; S = merged; if (schoolMocks(USER.email)){ save(true); render(); return; } S = keep; }
   const changed = !same(merged, S);
   if (changed){ S = merged; lastSnap = clone(S); lsSet(JSON.stringify(S)); render(); }
   // only send something up if this device really has newer entries than the cloud
@@ -1585,7 +1592,12 @@ function bindJournal(){
 let tlSubj = 'all', tlRange = 'month', tlShow = {conf:true, work:true};
 try { tlSubj = localStorage.getItem('gcse-tl-subj') || 'all'; tlRange = localStorage.getItem('gcse-tl-range') || 'month'; const sh = JSON.parse(localStorage.getItem('gcse-tl-show') || 'null'); if (sh && (sh.conf || sh.work)) tlShow = {conf:!!sh.conf, work:!!sh.work}; } catch(e){}
 const TL_LINES = [['conf','Confidence','var(--accent)'],['work','Learning done','#5aa9ff']];
-const tlEnd = () => { const t = todayStr(); if (tlRange!=='exam') return t; const e = tlSubj==='all' ? CURRICULUM.map(x => examFirst(x.id)).sort()[0] : examFirst(tlSubj); return e && e > t ? e : t; };
+const tlEnd = () => { const t = todayStr(); if (tlRange!=='exam') return t; const e = tlSubj==='all' ? CURRICULUM.map(x => examLast(x.id)).sort().pop() : examLast(tlSubj); return e && e > t ? e : t; };   // "To exams": up to the last exam
+// every mock and exam paper of the subjects shown, for a thin line each on the progress chart
+const tlPapers = () => { const out = []; (tlSubj==='all' ? CURRICULUM : [SUBJ[tlSubj]]).forEach(sb => (S.settings.papers[sb.id]||[]).forEach(q => {
+    if (q.mock) out.push({d:q.mock, k:'mock', sid:sb.id, n:q.n}); if (q.exam) out.push({d:q.exam, k:'exam', sid:sb.id, n:q.n}); }));
+  const mp = S.settings.mocks || {}; if (mp.from && !out.some(o => o.k==='mock')) out.push({d:mp.from, k:'mock', sid:null, n:'Mock exams'});
+  return out; };
 const tlMock = () => { const m = tlSubj==='all' ? CURRICULUM.map(x => mockFirst(x.id)).filter(Boolean).sort()[0] : mockFirst(tlSubj); return m; };
 const tlKey = metric => metric==='work' ? 'w_' + tlSubj : tlSubj;
 const tlNow = metric => { const cards = tlSubj==='all' ? CURRICULUM.flatMap(x => x.cards) : SUBJ[tlSubj].cards; return metric==='work' ? workOf(cards, true).pct : progressOf(cards); };
@@ -1596,7 +1608,7 @@ function timelineSeries(metric){
   const pts = []; let last = null; let ki = 0;
   const key = tlKey(metric);
   while (ki < keys.length && keys[ki] < from){ const v0 = S.hist[keys[ki]][key]; if (v0!=null) last = v0; ki++; }
-  const end = tlEnd();     // "To exams" runs the axis on to the first exam; days after today stay empty
+  const end = tlEnd();     // "To exams" runs the axis on to the last exam; days after today stay empty
   for (let d = from; d <= end; d = addDays(d,1)){
     if (d > today){ pts.push({d, v:null, future:true}); continue; }
     while (ki < keys.length && keys[ki] <= d){ const v = S.hist[keys[ki]][key]; if (v!=null) last = v; ki++; }
@@ -1622,11 +1634,19 @@ function drawTimeline(){
   const grid = [0,25,50,75,100].map(v => `<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`).join('');
   const ti = pts.findIndex(p => p.d===todayStr()); const lastI = pts.length-1;
   const toEx = tlRange==='exam';
-  const lab = (toEx ? [0, lastI] : [0, Math.floor(lastI/2), lastI]).filter((v,i,a) => a.indexOf(v)===i && (!toEx || Math.abs(x(v) - x(ti)) > 60)).map(i => `<text x="${x(i)}" y="${H-6}" text-anchor="${i===0?'start':i===lastI?'end':'middle'}" font-size="11" fill="var(--muted)">${esc(fmtShort(pts[i].d))}${i===lastI && lastI!==ti ? ' · first exam' : ''}</text>`).join('');
+  const lab = (toEx ? [0, lastI] : [0, Math.floor(lastI/2), lastI]).filter((v,i,a) => a.indexOf(v)===i && (!toEx || Math.abs(x(v) - x(ti)) > 60)).map(i => `<text x="${x(i)}" y="${H-6}" text-anchor="${i===0?'start':i===lastI?'end':'middle'}" font-size="11" fill="var(--muted)">${esc(fmtShort(pts[i].d))}${i===lastI && lastI!==ti ? ' · last exam' : ''}</text>`).join('');
   const mk = (i, label, strong, row) => { if (i < 0) return ''; const xi = x(i); const anc = xi > W - 80 ? 'end' : xi < m.l + 30 ? 'start' : 'middle'; const dx = anc==='end' ? -4 : anc==='start' ? 4 : 0;
     return `<line x1="${xi}" x2="${xi}" y1="${m.t}" y2="${H-m.b}" stroke="${strong ? 'var(--ink)' : 'var(--muted)'}" stroke-width="1" stroke-dasharray="${strong ? '0' : '3 3'}" opacity="${strong ? .5 : .8}"/><text x="${xi}" y="${m.t + 11 + (row||0)*14}" text-anchor="${anc}" font-size="11" font-weight="700" fill="var(--muted)" dx="${dx}" paint-order="stroke" stroke="var(--surface)" stroke-width="4">${label}</text>`; };
-  const mo = tlMock(); const mi = mo ? pts.findIndex(p => p.d===mo) : -1;
-  const marks = !toEx ? '' : mk(ti, 'Today', true) + (mi > ti ? mk(mi, 'Mocks', false, Math.abs(x(mi) - x(ti)) < 60 ? 1 : 0) : '') + (lastI > ti ? mk(lastI, 'Exams', false) : '');
+  // a thin line for every mock (dashed) and every exam paper, labelled once per kind
+  const idx = {}; pts.forEach((p, i) => idx[p.d] = i);
+  const papers = tlPapers().filter(o => idx[o.d] != null);
+  const days = [...new Set(papers.map(o => o.k + '|' + o.d))].map(kd => { const [k, d] = kd.split('|'); return {k, i: idx[d]}; });
+  const pline = (o) => `<line x1="${x(o.i)}" x2="${x(o.i)}" y1="${m.t + 18}" y2="${H-m.b}" class="tl-${o.k}" stroke-width="1"${o.k==='mock' ? ' stroke-dasharray="3 3"' : ''}/>`;
+  const firstOf = k => days.filter(o => o.k===k).sort((a,b) => a.i - b.i)[0];
+  const tag = (o, label) => { if (!o) return ''; const xi = x(o.i); const anc = xi > W - 60 ? 'end' : xi < m.l + 30 ? 'start' : 'middle';
+    return `<text x="${xi}" y="${m.t + 11}" text-anchor="${anc}" font-size="11" font-weight="600" class="tl-${o.k}-t">${label}</text>`; };
+  const fm = firstOf('mock'), fe = firstOf('exam'), farFromToday = o => !toEx || !o || Math.abs(x(o.i) - x(ti)) > 46;
+  const marks = days.map(pline).join('') + (farFromToday(fm) ? tag(fm, 'Mocks') : '') + (farFromToday(fe) ? tag(fe, 'Exams') : '') + (toEx ? mk(ti, 'Today', true) : '');
   const tlab = toEx && ti >= 0 ? `<text x="${x(ti)}" y="${H-6}" text-anchor="${ti===0 ? 'start' : x(ti) > W - 60 ? 'end' : 'middle'}" font-size="11" fill="var(--muted)">${esc(fmtShort(pts[ti].d))}</text>` : '';
   const shown = series.filter(sr => tlShow[sr.k]);
   // end labels: keep them apart when the two lines finish close together
@@ -1644,7 +1664,7 @@ function drawTimeline(){
     <line id="tlx" x1="0" x2="0" y1="${m.t}" y2="${H-m.b}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>
     ${shown.map(sr => `<circle class="tlpt" data-k="${sr.k}" r="5" fill="${sr.c}" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`).join('')}
     <rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="tlhit"/></svg>
-    <div class="tl-tip" id="tltip" hidden></div>`;
+    <div class="tl-tip" id="tltip" hidden></div>${days.length ? `<div class="tl-legend">${days.some(o => o.k==='mock') ? '<span><i class="m"></i>Mock</span>' : ''}${days.some(o => o.k==='exam') ? '<span><i class="e"></i>Exam</span>' : ''}<span class="muted">hover or tap a line for the paper</span></div>` : ''}`;
   const hit = document.getElementById('tlhit'), tip = document.getElementById('tltip'), vx = document.getElementById('tlx');
   const dots = [...host.querySelectorAll('.tlpt')];
   const move = ev => { const r = hit.getBoundingClientRect(); const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
@@ -1653,7 +1673,8 @@ function drawTimeline(){
     let topV = null;
     dots.forEach(dt => { const v = series.find(sr => sr.k===dt.dataset.k).pts[i].v; if (v!=null){ dt.setAttribute('cx', x(i)); dt.setAttribute('cy', y(v)); dt.setAttribute('visibility','visible'); topV = Math.max(topV ?? 0, v); } else dt.setAttribute('visibility','hidden'); });
     tip.hidden = false;
-    tip.innerHTML = `<b>${esc(fmtDay(p.d))}</b>` + (p.future ? '<br>Still to come' : shown.map(sr => { const v = sr.pts[i].v; return `<br><span style="color:${sr.c}">●</span> ${sr.l}: ${v==null ? '–' : v + '%'}`; }).join(''));
+    const onDay = papers.filter(o => o.d===p.d).map(o => `<br>${o.k==='mock' ? 'Mock' : 'Exam'}: ${esc(o.sid ? SUBJ[o.sid].name + ' ' + o.n.split(':')[0] : o.n)}`).join('');
+    tip.innerHTML = `<b>${esc(fmtDay(p.d))}</b>` + (p.future ? (onDay || '<br>Still to come') : shown.map(sr => { const v = sr.pts[i].v; return `<br><span style="color:${sr.c}">●</span> ${sr.l}: ${v==null ? '–' : v + '%'}`; }).join('') + onDay);
     tip.style.left = Math.min(x(i) + 10, W - 170) + 'px'; tip.style.top = Math.max(0, (topV!=null ? y(topV) - 64 : 20)) + 'px'; };
   hit.addEventListener('mousemove', move); hit.addEventListener('touchstart', move, {passive:true}); hit.addEventListener('touchmove', move, {passive:true});
   hit.addEventListener('mouseleave', () => { tip.hidden = true; vx.setAttribute('visibility','hidden'); dots.forEach(dt => dt.setAttribute('visibility','hidden')); });
@@ -2863,6 +2884,7 @@ function startApp(user){
   document.body.classList.remove('signedout');
   if (DEMO) S = demoState();
   else try { S = normalise(JSON.parse(localStorage.getItem(LS)||'null')); } catch(e){ S = fresh(); }
+  if (!DEMO && schoolMocks(user.email)) lsSet(JSON.stringify(S));
   lastSnap = clone(S);
   $('#footacct').innerHTML = `<button id="footsignout">${DEMO ? 'Leave the test drive' : 'Sign out'}</button>`; $('#footsignout').onclick = () => signOut();
   if (/access_token|error_description|type=/.test(location.hash)) history.replaceState(null, '', location.pathname + (DELETE_CONFIRMED ? '#settings' : '#study'));
@@ -2998,6 +3020,25 @@ function renderTermsGate(){
   $('#obnext').onclick = () => { if (!$('#obterms').checked){ $('#obmsg').textContent = 'Please tick the box to confirm you’re 13 or over and agree to the Terms of use.'; return; } acceptTerms(); save(); render(); };
 }
 
+/* ---------- school mock timetables ----------
+   Filled in for accounts at that school (by email domain), only where the student has no mock date yet,
+   and only once: anything they change in Settings stays. A subject's mock goes on its first paper. */
+const SCHOOL_MOCKS = {
+  'rgsg.co.uk': {key:'2027-01', from:'2027-01-05', to:'2027-01-15', d:{   // timetable letter of 24 Nov 2026
+    englit:'2027-01-05', ger:'2027-01-05', bio:'2027-01-06', hist:'2027-01-06', maths:'2027-01-07', pe:'2027-01-07', grk:'2027-01-07',
+    chem:'2027-01-08', geog:'2027-01-08', phys:'2027-01-11', spa:'2027-01-11', englang:'2027-01-12', cs:'2027-01-13',
+    rs:'2027-01-14', lat:'2027-01-14', fm:'2027-01-15', fre:'2027-01-15'}},
+};
+function schoolMocks(email, force){
+  const dom = String(email || '').toLowerCase().split('@')[1], t = SCHOOL_MOCKS[dom]; const st = S.settings;
+  if (!t || (!force && (st.schoolMocks || '') === dom + ':' + t.key)) return false;
+  st.mocks = st.mocks || {from:'', to:'', target:90};
+  if (!st.mocks.from && !st.mocks.to){ st.mocks.from = t.from; st.mocks.to = t.to; }
+  Object.entries(t.d).forEach(([sid, d]) => { const ps = st.papers[sid]; if (ps && ps.length && !ps.some(q => q.mock)) ps[0].mock = d; });
+  st.schoolMocks = dom + ':' + t.key;
+  return true;
+}
+
 /* ---------- test drive ---------- */
 const DEMO_USER = {id: 'demo-sam', email: 'sam@example.com'};
 // Stand-in for the server: answers like Supabase, keeps nothing, sends nothing. A small study group of made-up friends.
@@ -3038,6 +3079,7 @@ function demoState(){
     week:{0:120,1:90,2:90,3:90,4:90,5:60,6:120},
     terms:{v:TERMS_V, at: start + 'T17:00:00.000Z'}});
   applySubjects();
+  schoolMocks('sam@rgsg.co.uk');   // Sam gets a real school's January mock timetable, so the test drive shows mock lines
   const base = {bio:2.1, chem:2.4, maths:1.8, fre:2.3, hist:2.7};
   FORCE_DAY = start;
   CURRICULUM.forEach(sub => sub.cards.forEach(c => {
