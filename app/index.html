@@ -814,6 +814,10 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .session.off > :not(.sbtns):not(.skipnote){opacity:.35;pointer-events:none;filter:grayscale(1)}
 .session.off .sbtns > :not(#skipday){opacity:.35;pointer-events:none;filter:grayscale(1)}
 .skipnote{margin:0}
+.spanel{display:grid;gap:12px}
+.session > *{transition:opacity .15s ease,filter .15s ease}
+.session.dim > :not(.sbtns):not(.spanel){opacity:.35;filter:grayscale(1)}
+@media (prefers-reduced-motion:reduce){.session > *{transition:none}}
 .session .rategrid{margin:0}
 .rateitem .minsrow{margin-top:4px}
 .nextup{font-size:18px;margin:0}   /* inside the card, same as the other card titles */
@@ -2147,7 +2151,7 @@ const PAPER_HOW = `<details class="howto"><summary title="How to do a past-paper
 function paperHTML(){
   const cur = current;
   const subj = SUBJ[current.sid];
-  return `<section class="session ${TAB()==='skip' ? 'off' : ''}">${nextUpHTML()}<div class="head">
+  return `<section class="session ${sessCls()}">${nextUpHTML()}<div class="head">
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
         ${sessButtons([], true, PAPER_HOW)}
     ${PAST_PAPERS[subj.id] ? `<p class="small" style="margin:0">${ppLink(subj.id)} and mark schemes for ${esc(subj.board)} (opens the exam board’s site)</p>` : ''}
@@ -2197,7 +2201,7 @@ function sessionHTML(){
   foot = sessButtons(cards, false, howto, ratePanel);
   const todos = cards.filter(c => S.todo[c.id]);
   const todoBlock = todos.length && (cur.type==='learn' || cards.length === 1) ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
-  return `<section class="session ${TAB()==='skip' ? 'off' : ''}">${nextUpHTML()}${head}${body + todoBlock}${foot}</section>`;
+  return `<section class="session ${sessCls()}">${nextUpHTML()}${head}${body + todoBlock}${foot}</section>`;
 }
 
 // "Next up: 30 min revision" above the session ("Now: …" once the timer has started)
@@ -2212,6 +2216,7 @@ const timerOpen = () => timer.running || timer.used > 0;
 // The buttons under the topic work like tabs: each opens its own panel below, one at a time (current.tab).
 // The timer keeps running while another panel is open. "Can't study today" greys the session out and becomes Undo.
 const TAB = () => current && current.tab || null;
+const sessCls = () => TAB()==='skip' ? 'off' : ['rate','help','choose'].includes(TAB()) ? 'dim' : '';
 function sessButtons(cards, paper, howto, ratePanel){
   const started = timerOpen(), t = TAB(), off = t==='skip';   // all five look the same; the open one has a border
   const skip = off ? 'Undo' : doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today';
@@ -2222,7 +2227,7 @@ function sessButtons(cards, paper, howto, ratePanel){
     ${paper ? '' : tab('id="finish"', 'Finish and rate', 'rate') + tab('id="helpbtn"', 'Help', 'help')}
     ${tab('data-choose="1"', 'Different topic', 'choose')}
     <button class="btn tabbtn${off ? ' on' : ''}" id="skipday">${skip}</button>${howto || ''}</div>
-    ${panel}`;
+    ${panel ? `<div class="spanel">${panel}</div>` : ''}`;
 }
 
 function allRated(cards){ return cards.every(c => c.p.every((_,i) => current.pr[pk(c.id,i)]!=null)); }
@@ -2941,7 +2946,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-27 16:19';
+const APP_VER = '2026-11-27 16:23';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
