@@ -228,3 +228,10 @@ section{padding:120px 0}
 footer{padding:48px 0 64px}
 @media (max-width:860px){section{padding:80px 0}.hero{padding:56px 0 72px}.hero .grid{gap:44px}.split{gap:44px}.cta{padding:30px 24px}.card{padding:24px 22px}}
 @media (max-width:520px){.wrap{padding:0 16px}section{padding:64px 0}}
+
+/* screenshots: text on the left, picture on the right; phone in a frame; pictures inside text pages */
+@media (min-width:861px){.split.flip > .shot{order:2}}
+.shot.phone{max-width:300px;margin:36px auto 8px;border-radius:38px;border:8px solid #1a2634;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)}
+:root[data-mode="day"] .shot.phone{border-color:#cfd8e3;box-shadow:0 24px 60px -30px rgba(10,26,43,.35)}
+.prose .shot{margin:32px 0 12px}
+.prose .shot.phone{margin:36px auto 8px}

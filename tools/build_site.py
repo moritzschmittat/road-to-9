@@ -215,6 +215,34 @@ def home():
   </div>
 </div></section>
 
+<section><div class="wrap split flip">
+  <div>
+    <p class="eyebrow">After each session</p>
+    <h2>Rate it honestly, in under a minute</h2>
+    <ul class="ticks">
+      <li>Five levels for every spec point, from very weak to very strong.</li>
+      <li>Weak points come back sooner, strong ones can wait.</li>
+      <li>Leave yourself a to-do for next time, and a line in your journal.</li>
+      <li>Say how long it really took, even if it ran over.</li>
+    </ul>
+  </div>
+  {shot('rate', 1640, 1646, "Rating a topic in Road to 9: each spec point gets one of five levels, with a to-do for the next refresher, a journal line and the minutes actually spent")}
+</div></section>
+
+<section><div class="wrap split">
+  {shot('stats', 1920, 1612, "Stats in Road to 9: every subject's spec points by confidence, and a timeline of progress running on to the mocks and exams")}
+  <div>
+    <p class="eyebrow">Stats</p>
+    <h2>See how far you’ve come</h2>
+    <ul class="ticks">
+      <li>Learning done: how much of the revising and refreshing is behind you.</li>
+      <li>Confidence: how strong your own ratings are, subject by subject.</li>
+      <li>Your mocks and exams on the timeline, so you can see the time you have left.</li>
+      <li>A calendar of every day, and a journal of every session.</li>
+    </ul>
+  </div>
+</div></section>
+
 <section><div class="wrap">
   <p class="eyebrow">Subjects</p>
   <h2>{len(SUBJ)} subjects, every topic of the spec</h2>
@@ -347,6 +375,7 @@ def parents():
 
   <h2>See it for yourself</h2>
   <p>Take a <a href="/demo/">test drive</a>: it opens the planner of Sam, a made-up student, right in your browser. Nothing to sign up for, and nothing you do is saved.</p>
+  ''' + shot('phone', 780, 1328, "Road to 9 on a phone: the Study page with today's topic and its spec points").replace('class="shot"', 'class="shot phone"') + '''
 
   <h2>Who we are</h2>
   <p>Road to 9 started as a dad building a revision plan for his son's GCSEs. It worked well enough that his son's friends wanted it too. It is run by Schmittat Ltd (company no. 09452378), registered with the Information Commissioner's Office. It is free for students taking GCSEs in 2027. Questions or worries: <a href="mailto:hello@roadto9.com">hello@roadto9.com</a>.</p>
