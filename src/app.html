@@ -812,6 +812,14 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .ghelp{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 .ghelp .gswitch span{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
 .gmsg{border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:600}.gmsg.ok{background:var(--green-soft);color:var(--ink)}.gmsg.err{background:var(--red-soft);color:var(--ink)}
+.sbtns .btn.on{box-shadow:inset 0 0 0 2px var(--accent)}
+.sbtns .btn.primary.on{box-shadow:inset 0 0 0 2px rgba(5,12,20,.35)}
+.session.off > :not(.sbtns):not(.skipnote){opacity:.35;pointer-events:none;filter:grayscale(1)}
+.session.off .sbtns > :not(#skipday){opacity:.35;pointer-events:none;filter:grayscale(1)}
+.nextup.off{opacity:.35}
+.skipnote{margin:0}
+.session .rategrid{margin:0}
+.rateitem .minsrow{margin-top:4px}
 .nextup{font-size:15px;font-weight:800;letter-spacing:.02em;margin:0 0 10px;color:var(--muted)}
 .sbtns{flex-wrap:wrap;gap:8px}
 .session .chooser{margin:0}
@@ -1882,7 +1890,7 @@ function pushShare(now){
 }
 // "Show when I'm studying": from Start until Finish and rate (or leaving the session)
 function syncStudying(){
-  const on = current && current.phase==='work' && (timer.running || timer.used > 0);
+  const on = current && TAB()!=='rate' && TAB()!=='skip' && (timer.running || timer.used > 0);
   if (on && !studyingSince){
     studyingSince = {sid: current.type==='paper' ? current.sid : CARD[current.cards[0]].sid, cid: current.type==='paper' ? null : current.cards[0], paper: current.type==='paper' || undefined,
       until: new Date(Date.now() + (timer.total + 30*60) * 1000).toISOString()};
@@ -1902,9 +1910,9 @@ function helpHTML(cards){
   const ask = `<p>Your ${esc(subjNames)} teacher is always a good person to ask.${codes ? ` Take the spec point codes with you (${esc(codes)}) so they know exactly what you mean.` : ''}</p>`;
   let mates = '';
   if (!groupsReady()) mates = '';
-  else if (!G.loaded){ loadGroups().then(() => { if (G.loaded && current && helpOpen) render(); }); mates = '<p class="muted">Checking your groups…</p>'; }
+  else if (!G.loaded){ loadGroups().then(() => { if (G.loaded && TAB()==='help') render(); }); mates = '<p class="muted">Checking your groups…</p>'; }
   else {
-    if (Date.now() - G.at > 300000 && !G.loading) loadGroups(true).then(() => { if (current && helpOpen) render(); });
+    if (Date.now() - G.at > 300000 && !G.loading) loadGroups(true).then(() => { if (TAB()==='help') render(); });
     const ids = new Set(cards.map(c => c.id));
     const who = groupMates().filter(u => (G.shares[u] && G.shares[u].strong || []).some(id => ids.has(id)));
     mates = who.length
@@ -2005,7 +2013,8 @@ const clockText = s => s >= 3600 ? `${Math.floor(s/3600)}:${pad(Math.floor(s%360
 function timerHTML(){
   const done = timer.used >= timer.total;
   return `<div class="timer ${done ? 'done' : ''}"><div class="tclock"><div class="clock" id="clock">${clockText(timer.used)}</div><div class="tlabel" id="tlabel">${done ? 'Planned time done ✓' : `of ${Math.round(timer.total/60)} min planned`}</div></div>
-    <div class="bar"><i id="barfill" style="width:${Math.min(100, 100*timer.used/timer.total)}%"></i></div></div>`;
+    <div class="bar"><i id="barfill" style="width:${Math.min(100, 100*timer.used/timer.total)}%"></i></div>
+    <div class="row"><button class="btn" id="tpause">${timer.running ? 'Pause' : 'Resume'}</button></div></div>`;
 }
 // "Minutes you actually spent": filled in from the timer (or the plan if it wasn't used), changeable
 const planOf = () => current && current.mins ? current.mins : 45;
@@ -2131,7 +2140,7 @@ const PAPER_HOW = `<details class="howto"><summary title="How to do a past-paper
 function paperHTML(){
   const cur = current;
   const subj = SUBJ[current.sid];
-  return `<section class="session"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
+  return `<section class="session ${TAB()==='skip' ? 'off' : ''}"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
         ${sessButtons([], true, PAPER_HOW)}
     ${PAST_PAPERS[subj.id] ? `<p class="small" style="margin:0">${ppLink(subj.id)} and mark schemes for ${esc(subj.board)} (opens the exam board’s site)</p>` : ''}
@@ -2170,44 +2179,43 @@ function sessionHTML(){
   let foot;
   // the "?" (how to spend the time) sits at the end of the button row
   const howto = (body.match(/<details class="howto">[\s\S]*?<\/details>/) || [''])[0]; body = body.replace(howto, '');
-  if (cur.phase==='work') foot = sessButtons(cards, false, howto);
-  else {
-    const journalBox = `<label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>`;
-    foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
-      <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
-      <div class="rategrid ${cards.length===1 ? 'one' : ''}">${cards.map(c => `<div class="rateitem"><div class="t">${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</div>
+  const journalBox = `<label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>`;
+  const saveRow = `${minsRowHTML()}<div class="row end"><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div>`;
+  const one = cards.length===1;
+  const ratePanel = TAB()==='rate' ? `${one ? '' : '<div class="eyebrow">How would you do on an exam question about these tomorrow?</div>'}<div class="rategrid ${one ? 'one' : ''}">${cards.map(c => `<div class="rateitem"><div class="eyebrow">${one ? 'How would you do on an exam question about this tomorrow?' : esc(SUBJ[c.sid].name) + ' · ' + esc(c.n)}</div>
         <div class="allrow" data-id="${c.id}">Set all: ${[3,2.5,2,1.5,1].map(v => `<button class="${lvClass(v)}" data-all="${v}" title="${LVNAME[v]}">${LVNAME[v]}</button>`).join('')}</div>
         ${pointsHTML(c, {rate:true, pick:cur.pr})}
-        <label class="todobox"><span class="eyebrow">To-do for the next refresher</span><textarea data-todo="${c.id}" rows="2" placeholder="e.g. learn the 5 kingdoms by heart, redo Q3, ask about osmosis">${esc(cur.todo && cur.todo[c.id] != null ? cur.todo[c.id] : (S.todo[c.id]||''))}</textarea></label>${cards.length===1 ? journalBox : ''}</div>`).join('')}</div>
-      ${cards.length > 1 ? `<div class="rateitem">${journalBox}</div>` : ''}
-      ${minsRowHTML()}
-      <div class="row end"><button class="btn ghost" id="back">Back</button><button class="btn primary" id="save" ${allRated(cards)?'':'disabled'}>Save and show next</button>${quickNext() ? `<button class="btn" id="saveq" ${allRated(cards)?'':'disabled'}>Save + quick 5 min refresher</button>` : ''}</div></div>`;
-  }
+        <label class="todobox"><span class="eyebrow">To-do for the next refresher</span><textarea data-todo="${c.id}" rows="2" placeholder="e.g. learn the 5 kingdoms by heart, redo Q3, ask about osmosis">${esc(cur.todo && cur.todo[c.id] != null ? cur.todo[c.id] : (S.todo[c.id]||''))}</textarea></label>${one ? journalBox + saveRow : ''}</div>`).join('')}</div>
+      ${one ? '' : `<div class="rateitem">${journalBox}${saveRow}</div>`}` : '';
+  foot = sessButtons(cards, false, howto, ratePanel);
   const todos = cards.filter(c => S.todo[c.id]);
-  const todoBlock = cur.phase==='work' && todos.length && (cur.type==='learn' || cards.length === 1) ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
-  return `<section class="session">${head}${cur.phase==='work' ? body + todoBlock : ''}${foot}</section>`;
+  const todoBlock = todos.length && (cur.type==='learn' || cards.length === 1) ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
+  return `<section class="session ${TAB()==='skip' ? 'off' : ''}">${head}${body + todoBlock}${foot}</section>`;
 }
 
 // "Next up: 30 min revision" above the session ("Now: …" once the timer has started)
 function nextUpHTML(){
-  const n = current; if (n.phase!=='work') return '';
+  const n = current;
   const m = n.mins || (n.cm ? Object.values(n.cm).reduce((a,b) => a+b, 0) : 45);
   const what = n.type==='paper' ? 'past paper' : n.type==='learn' ? 'revision' : n.type==='quick' ? 'quick refresher' : 'refresher';
   const many = n.type!=='paper' && n.cards.length > 1 ? ` · ${n.cards.length} topics` : '';
-  return `<h2 class="nextup">${timerOpen() ? 'Now' : 'Next up'}: ${m} min ${what}${many}</h2>`;
+  return `<h2 class="nextup ${n.tab==='skip' ? 'off' : ''}">${timerOpen() ? 'Now' : 'Next up'}: ${m} min ${what}${many}</h2>`;
 }
 const timerOpen = () => timer.running || timer.used > 0;
-let helpOpen = false;   // the Help panel under a session's buttons
-// one row of buttons under the topic; the timer, Help and Different topic open below it
-function sessButtons(cards, paper, howto){
-  const started = timerOpen();
-  const skip = doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today';
-  return `<div class="row sbtns"><button class="btn ${started ? '' : 'primary'}" id="tgo">${timer.running ? 'Pause' : started ? 'Resume' : 'Start'}</button>
-    ${paper ? '' : `<button class="btn ${started ? 'primary' : ''}" id="finish">Finish and rate</button>
-    <button class="btn ghost" id="helpbtn" aria-expanded="${helpOpen}">Help</button>`}
-    <button class="btn ghost" data-choose="1" aria-expanded="${choosing}">Different topic</button>
-    <button class="btn ghost" id="skipday">${skip}</button>${howto || ''}</div>
-    ${started ? timerHTML() : ''}${!paper && helpOpen ? helpHTML(cards) : ''}${choosing ? chooserHTML() : ''}`;
+// The buttons under the topic work like tabs: each opens its own panel below, one at a time (current.tab).
+// The timer keeps running while another panel is open. "Can't study today" greys the session out and becomes Undo.
+const TAB = () => current && current.tab || null;
+function sessButtons(cards, paper, howto, ratePanel){
+  const started = timerOpen(), t = TAB(), off = t==='skip';
+  const skip = off ? 'Undo' : doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today';
+  const tab = (id, label, cls, k) => `<button class="btn ${cls}${t===k ? ' on' : ''}" ${id} aria-expanded="${t===k}">${label}</button>`;
+  const panel = t==='timer' ? timerHTML() : t==='rate' ? ratePanel : t==='help' ? helpHTML(cards) : t==='choose' ? chooserHTML()
+    : off ? `<p class="skipnote small muted">${current.skipOv ? 'Skipped for today. Whatever was planned moves to the front of the queue next time you study.' : 'Stopped for today. Your goal for today was already done.'}</p>` : '';
+  return `<div class="row sbtns">${tab('id="tgo"', started ? `Timer · <span id="tgoclock">${clockText(timer.used)}</span>` : 'Start', started ? '' : 'primary', 'timer')}
+    ${paper ? '' : tab('id="finish"', 'Finish and rate', started ? 'primary' : '', 'rate') + tab('id="helpbtn"', 'Help', 'ghost', 'help')}
+    ${tab('data-choose="1"', 'Different topic', 'ghost', 'choose')}
+    <button class="btn ghost${off ? ' on' : ''}" id="skipday">${skip}</button>${howto || ''}</div>
+    ${panel}`;
 }
 
 function allRated(cards){ return cards.every(c => c.p.every((_,i) => current.pr[pk(c.id,i)]!=null)); }
@@ -2319,15 +2327,20 @@ function bindNext(){
   const wp = $('#wkprev'); if (wp) wp.onclick = wk(() => weekOffset--);
   const wn = $('#wknext'); if (wn) wn.onclick = wk(() => { const lastEx = CURRICULUM.map(x => examLast(x.id)).sort().pop(); if (weekOffset < Math.max(8, Math.ceil(diff(mondayOf(todayStr()), lastEx)/7))) weekOffset++; });
   const w0 = $('#wknow'); if (w0) w0.onclick = wk(() => weekOffset = 0);
-  document.querySelectorAll('#view [data-choose]').forEach(b => b.onclick = () => { choosing = !choosing; const y = window.scrollY; render(); window.scrollTo(0, y); const el = $('#chooser'); if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'}); });
-  on('helpbtn', () => { helpOpen = !helpOpen; const y = window.scrollY; render(); window.scrollTo(0, y); });
+  document.querySelectorAll('#view [data-choose]').forEach(b => b.onclick = () => { if (current) return setTab('choose'); choosing = !choosing; const y = window.scrollY; render(); window.scrollTo(0, y); const el = $('#chooser'); if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'}); });
+  // tabs under the topic
+  const setTab = k => { const y = window.scrollY; current.tab = current.tab===k ? null : k; render(); window.scrollTo(0, y); };
+  on('helpbtn', () => setTab('help'));
+  on('tgo', () => { if (!timerOpen()){ current.tab = 'timer'; toggleTimer(); } else setTab('timer'); });
+  on('tpause', toggleTimer);
+  on('finish', () => { if (current.tab!=='rate') stopTimer(); setTab('rate'); });
   // "Do this now" on a planned box in the week calendar
   document.querySelectorAll('#view [data-wkpick]').forEach(b => b.onclick = () => {
     const n = wkPlans[+b.dataset.wkpick]; if (!n) return;
     if (current && current.type!=='paper') current.cards.forEach(id => skipped.delete(id));
     current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}}; choosing = false;
     resetTimer(); render(); window.scrollTo({top:0, behavior:'smooth'}); });
-  { const cc = $('#chclose'); if (cc) cc.onclick = () => { choosing = false; render(); };
+  { const cc = $('#chclose'); if (cc) cc.onclick = () => { choosing = false; if (current) current.tab = null; render(); };
     const chs = $('#chs'); if (chs) chs.onchange = () => { chooseSid = chs.value; render(); const c2 = $('#chc'); if (c2) c2.focus(); };
     const go = $('#chgo'); if (go) go.onclick = () => { const id = $('#chc').value; if (!CARD[id]) return;
       if (current && current.type!=='paper') current.cards.forEach(x => skipped.delete(x));
@@ -2360,13 +2373,14 @@ function bindNext(){
   on('parklater', () => { S.settings.laterAsked = todayStr(); save(); });
   document.querySelectorAll('#view [data-msave]').forEach(b => b.onclick = () => saveMock(b.dataset.msave, false));
   document.querySelectorAll('#view [data-mskip]').forEach(b => b.onclick = () => saveMock(b.dataset.mskip, true));
-  on('skipday', () => { stopTimer(); const t = todayStr(), inf = dayInfo(t), dn = planDoneOn(t);
-    if (inf.target > 0 && dn < inf.target) setOverride(t, dn);              // stop short of today's goal
-    else { current = null; window.__anyway = false; render(); } });         // goal already met: just end the extra session
+  on('skipday', () => { const t = todayStr(), y = window.scrollY;
+    const setOv = n => { const o = Object.assign({}, S.settings.overrides||{}); if (n==null) delete o[t]; else o[t] = n; S.settings.overrides = o; save(true); };
+    if (current.tab==='skip'){ if (current.skipOv) setOv(current.skipOv.was); current.tab = null; delete current.skipOv; }   // Undo
+    else { stopTimer(); const inf = dayInfo(t), dn = planDoneOn(t);
+      if (inf.target > 0 && dn < inf.target){ current.skipOv = {was: (S.settings.overrides||{})[t] ?? null}; setOv(dn); }   // stop short of today's goal
+      current.tab = 'skip'; }
+    render(); window.scrollTo(0, y); });
   document.querySelectorAll('#view [data-ov]').forEach(b => b.onclick = () => setOverride(todayStr(), +b.dataset.ov));
-  on('tgo', toggleTimer);
-  on('finish', () => { current.phase='rate'; stopTimer(); render(); window.scrollTo({top:0,behavior:'smooth'}); });
-  on('back', () => { current.phase='work'; render(); });
   on('swap', () => { if (current.type==='paper') skipped.add('paper:'+current.sid); current.cards.forEach(id => skipped.add(id)); current=null; render(); });
   { const nt = document.getElementById('note'); if (nt) nt.oninput = () => { if (current) current.note = nt.value; }; }
   { const am = document.getElementById('actmins'); if (am){
@@ -2407,11 +2421,12 @@ function doSave(){
 }
 
 /* timer */
-function resetTimer(){ helpOpen = false; stopTimer(); const m = current && current.mins ? current.mins : 45; timer.total = m*60; timer.used = 0; timer.base = 0; timer.rang = false; }
+function resetTimer(){ if (current) current.tab = null; stopTimer(); const m = current && current.mins ? current.mins : 45; timer.total = m*60; timer.used = 0; timer.base = 0; timer.rang = false; }
 function stopTimer(){ if (timer.running) timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000); if (timer.h) clearInterval(timer.h); timer.h=null; timer.running=false; }
 function tick(){
   timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000);
   const c = document.getElementById('clock'); if (c) c.textContent = clockText(timer.used);
+  const tc = document.getElementById('tgoclock'); if (tc) tc.textContent = clockText(timer.used);
   const b = document.getElementById('barfill'); if (b) b.style.width = Math.min(100, 100*timer.used/timer.total)+'%';
   // planned time reached: one beep, the bar turns green, and the clock keeps going for anyone who carries on
   if (timer.used >= timer.total && !timer.rang){ timer.rang = true; beep();
@@ -2635,7 +2650,7 @@ function weekHTML(){
   const cols = days.map(d => {
     const info = dayInfo(d);
     const done = S.log.filter(l => l.d===d).map(l => ({n: l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, r:l.r}));
-    const plan = d >= today ? (d===today ? (current ? [current] : []).concat(todayRest || []) : mixDay(fc[d]||[], startKind(d))) : [];
+    const plan = d >= today ? (d===today ? (current && TAB()!=='skip' ? [current] : []).concat(todayRest || []) : mixDay(fc[d]||[], startKind(d))) : [];
     total += planDoneOn(d) + plan.reduce((x,n) => x + (n.mins || 45), 0);
     const item = (n, r, planned, now) => { const L = sessLabel(n);
       const go = !planned ? '' : now ? '<span class="wk-now">Now</span>' : `<button class="wk-go" data-wkpick="${wkPlans.push(n) - 1}">Do this now</button>`;
