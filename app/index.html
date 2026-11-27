@@ -811,8 +811,6 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .ghelp{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 .ghelp .gswitch span{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
 .gmsg{border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:600}.gmsg.ok{background:var(--green-soft);color:var(--ink)}.gmsg.err{background:var(--red-soft);color:var(--ink)}
-.sbtns .btn.on{box-shadow:inset 0 0 0 2px var(--accent)}
-.sbtns .btn.primary.on{box-shadow:inset 0 0 0 2px rgba(5,12,20,.35)}
 .session.off > :not(.sbtns):not(.skipnote){opacity:.35;pointer-events:none;filter:grayscale(1)}
 .session.off .sbtns > :not(#skipday){opacity:.35;pointer-events:none;filter:grayscale(1)}
 .nextup.off{opacity:.35}
@@ -846,6 +844,9 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .acctgrid{gap:0 24px}
 .ggrid{gap:0 24px;margin-bottom:0}
 .wk{gap:10px}
+:root .sbtns .btn.tabbtn{background:var(--sunk);color:var(--ink);border:2px solid transparent;box-shadow:none;padding:10px 18px}
+:root[data-theme="dark"] .sbtns .btn.tabbtn{background:rgba(255,255,255,.08)}
+:root .sbtns .btn.tabbtn.on{border-color:var(--accent)}
 @media (min-width:700px){.wk{grid-template-columns:repeat(var(--wkn,4),minmax(0,1fr))}.wk-day{grid-template-columns:1fr;gap:6px;align-content:start}.wk-day ul{grid-template-columns:1fr}}
 .wkctl{gap:12px;flex-wrap:wrap;justify-content:flex-end}
 .wkzoom{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:3px 3px 3px 12px}
@@ -2213,15 +2214,15 @@ const timerOpen = () => timer.running || timer.used > 0;
 // The timer keeps running while another panel is open. "Can't study today" greys the session out and becomes Undo.
 const TAB = () => current && current.tab || null;
 function sessButtons(cards, paper, howto, ratePanel){
-  const started = timerOpen(), t = TAB(), off = t==='skip';
+  const started = timerOpen(), t = TAB(), off = t==='skip';   // all five look the same; the open one has a border
   const skip = off ? 'Undo' : doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today';
-  const tab = (id, label, cls, k) => `<button class="btn ${cls}${t===k ? ' on' : ''}" ${id} aria-expanded="${t===k}">${label}</button>`;
+  const tab = (id, label, k) => `<button class="btn tabbtn${t===k ? ' on' : ''}" ${id} aria-expanded="${t===k}">${label}</button>`;
   const panel = t==='timer' ? timerHTML() : t==='rate' ? ratePanel : t==='help' ? helpHTML(cards) : t==='choose' ? chooserHTML()
     : off ? `<p class="skipnote small muted">${current.skipOv ? 'Skipped for today. Whatever was planned moves to the front of the queue next time you study.' : 'Stopped for today. Your goal for today was already done.'}</p>` : '';
-  return `<div class="row sbtns">${tab('id="tgo"', started ? `Timer · <span id="tgoclock">${clockText(timer.used)}</span>` : 'Start', started ? '' : 'primary', 'timer')}
-    ${paper ? '' : tab('id="finish"', 'Finish and rate', started ? 'primary' : '', 'rate') + tab('id="helpbtn"', 'Help', 'ghost', 'help')}
-    ${tab('data-choose="1"', 'Different topic', 'ghost', 'choose')}
-    <button class="btn ghost${off ? ' on' : ''}" id="skipday">${skip}</button>${howto || ''}</div>
+  return `<div class="row sbtns">${tab('id="tgo"', started ? 'Timer' : 'Start', 'timer')}
+    ${paper ? '' : tab('id="finish"', 'Finish and rate', 'rate') + tab('id="helpbtn"', 'Help', 'help')}
+    ${tab('data-choose="1"', 'Different topic', 'choose')}
+    <button class="btn tabbtn${off ? ' on' : ''}" id="skipday">${skip}</button>${howto || ''}</div>
     ${panel}`;
 }
 
@@ -2436,7 +2437,6 @@ function stopTimer(){ if (timer.running) timer.used = timer.base + Math.round((D
 function tick(){
   timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000);
   const c = document.getElementById('clock'); if (c) c.textContent = clockText(timer.used);
-  const tc = document.getElementById('tgoclock'); if (tc) tc.textContent = clockText(timer.used);
   const b = document.getElementById('barfill'); if (b) b.style.width = Math.min(100, 100*timer.used/timer.total)+'%';
   // planned time reached: one beep, the bar turns green, and the clock keeps going for anyone who carries on
   if (timer.used >= timer.total && !timer.rang){ timer.rang = true; beep();
@@ -2942,7 +2942,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-27 16:12';
+const APP_VER = '2026-11-27 16:18';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
