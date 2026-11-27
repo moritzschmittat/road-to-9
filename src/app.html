@@ -575,7 +575,6 @@ h1 .itile{width:46px;height:46px;margin-right:0}
   .cardlist{columns:2;column-gap:40px}
   .cardlist .cardrow{break-inside:avoid}
   .cardlist .secthead{break-after:avoid}
-  .wk{grid-template-columns:repeat(7,minmax(0,1fr))}
   .wk-day{grid-template-columns:1fr;gap:6px;align-content:start}
   .wk-day ul{grid-template-columns:1fr}
   .plangrid{display:block}
@@ -847,6 +846,14 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .acctgrid{gap:0 24px}
 .ggrid{gap:0 24px;margin-bottom:0}
 .wk{gap:10px}
+@media (min-width:700px){.wk{grid-template-columns:repeat(var(--wkn,4),minmax(0,1fr))}.wk-day{grid-template-columns:1fr;gap:6px;align-content:start}.wk-day ul{grid-template-columns:1fr}}
+.wkctl{gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.wkzoom{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:3px 3px 3px 12px}
+.wkzoom .muted{margin-right:6px}
+.wkzoom button{all:unset;cursor:pointer;min-width:28px;height:26px;display:grid;place-items:center;border-radius:999px;font-weight:800;font-size:13px;color:var(--muted)}
+.wkzoom button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink,#050c14)}
+:root[data-theme="dark"] .wkzoom button[aria-pressed="true"]{background:var(--lime);color:#050c14}
+.wkzoom button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .top .brand span{white-space:nowrap}
 @media (max-width:420px){.top .hdrright{gap:6px}.hdrmode{padding:2px}.hdrmode button{width:25px;height:22px}.hdrmode svg{width:14px;height:14px}.netpill .np2{display:none}}
 .netpill{white-space:nowrap}
@@ -2325,8 +2332,11 @@ function bindNext(){
   document.querySelectorAll('#view [data-wkov]').forEach(b => b.onclick = () => setOverride(b.dataset.wkov, b.dataset.n==='' ? null : +b.dataset.n));
   const wk = (f) => () => { f(); const y = window.scrollY; render(); window.scrollTo(0, y); };
   const wp = $('#wkprev'); if (wp) wp.onclick = wk(() => weekOffset--);
-  const wn = $('#wknext'); if (wn) wn.onclick = wk(() => { const lastEx = CURRICULUM.map(x => examLast(x.id)).sort().pop(); if (weekOffset < Math.max(8, Math.ceil(diff(mondayOf(todayStr()), lastEx)/7))) weekOffset++; });
+  const wn = $('#wknext'); if (wn) wn.onclick = wk(() => { const lastEx = CURRICULUM.map(x => examLast(x.id)).sort().pop(); if (weekOffset < Math.max(Math.ceil(56/wkDays()), Math.ceil((diff(todayStr(), lastEx)+1)/wkDays()))) weekOffset++; });
   const w0 = $('#wknow'); if (w0) w0.onclick = wk(() => weekOffset = 0);
+  // zoom: how many days sit side by side; the first day shown stays the same
+  document.querySelectorAll('#view [data-wkdays]').forEach(b => b.onclick = () => { const first = weekOffset*wkDays(), y = window.scrollY;
+    S.settings.wkDays = +b.dataset.wkdays; weekOffset = Math.floor(first / wkDays()); save(true); render(); window.scrollTo(0, y); });
   document.querySelectorAll('#view [data-choose]').forEach(b => b.onclick = () => { if (current) return setTab('choose'); choosing = !choosing; const y = window.scrollY; render(); window.scrollTo(0, y); const el = $('#chooser'); if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'}); });
   // tabs under the topic
   const setTab = k => { const y = window.scrollY; current.tab = current.tab===k ? null : k; render(); window.scrollTo(0, y); };
@@ -2622,7 +2632,8 @@ function forecast(untilDay){
   } finally { FORCE_DAY = null; S = keepS; skipped = keepSkip; skipDay = keepSkipDay; }
   return out;
 }
-let weekOffset = 0;
+let weekOffset = 0;   // pages of wkDays() days, counted from today
+const wkDays = () => [3,4,5,6,7].includes(S.settings.wkDays) ? S.settings.wkDays : 4;   // days shown side by side (default 4)
 function mondayOf(d){ const wd = (parse(d).getUTCDay()+6)%7; return addDays(d, -wd); }
 function sessLabel(n){
   if (n.type==='paper') return {k:'Past paper · 45 min', s:SUBJ[n.sid].name, t:'Exam practice'};
@@ -2641,11 +2652,11 @@ function papersOn(d){ const out = []; CURRICULUM.forEach(sb => (S.settings.paper
 let wkPlans = [];   // the planned boxes in the week calendar, for "Do this now"
 function weekHTML(){
   wkPlans = [];
-  const today = todayStr(); const mon = addDays(mondayOf(today), weekOffset*7); const sun = addDays(mon,6);
-  const key = [S.updated, weekOffset, today, current ? current.cards.join(',') : ''].join('|');
+  const N = wkDays(), today = todayStr(); const mon = addDays(today, weekOffset*N); const sun = addDays(mon, N-1);
+  const key = [S.updated, weekOffset, N, today, current ? current.cards.join(',') : ''].join('|');
   if (!window.__fcCache || window.__fcCache.key !== key) window.__fcCache = {key, fc: sun >= today ? forecast(sun) : {}};
   const fc = window.__fcCache.fc;
-  const days = Array.from({length:7}, (_,i) => addDays(mon,i));
+  const days = Array.from({length:N}, (_,i) => addDays(mon,i));
   let total = 0;
   const cols = days.map(d => {
     const info = dayInfo(d);
@@ -2673,10 +2684,11 @@ function weekHTML(){
       <ul>${done.flatMap(x => split(x.n, x.r)).map(x => item(x.n, x.r, false)).join('')}${plan.flatMap(n => split(n, null)).map(x => item(x.n, null, true, x.now)).join('')}${missed}${!done.length && !plan.length && !missed ? `<li class="wk-free">${info.target===0 ? 'Free' : d < today ? '' : 'Nothing due'}</li>` : ''}</ul></div>`;
   }).join('');
   return `<section class="panel"><div class="row" style="justify-content:space-between">
-      <h2>Week of ${esc(fmtShort(mon))}</h2>
-      <div class="row"><button class="btn small ghost" id="wkprev" aria-label="Previous week">←</button><button class="btn small ghost" id="wknow">This week</button><button class="btn small ghost" id="wknext" aria-label="Next week">→</button></div></div>
-    <p class="small muted" style="margin:0">Solid boxes are done, dashed boxes are planned and shift after every rating. The colour on the left is how confident you are. ${fmtMin(total)} of study this week.</p>
-    <div class="wk">${cols}</div></section>`;
+      <h2>${weekOffset===0 ? `Next ${N} days` : `${esc(fmtShort(mon))} to ${esc(fmtShort(sun))}`}</h2>
+      <div class="row wkctl"><span class="seg wkzoom" role="group" aria-label="Days side by side"><span class="small muted">Days</span>${[3,4,5,6,7].map(k => `<button type="button" data-wkdays="${k}" aria-pressed="${k===N}">${k}</button>`).join('')}</span>
+        <span class="row"><button class="btn small ghost" id="wkprev" aria-label="Earlier days">←</button><button class="btn small ghost" id="wknow">Today</button><button class="btn small ghost" id="wknext" aria-label="Later days">→</button></span></div></div>
+    <p class="small muted" style="margin:0">Solid boxes are done, dashed boxes are planned and shift after every rating. The colour on the left is how confident you are. ${fmtMin(total)} of study in these ${N} days.</p>
+    <div class="wk" style="--wkn:${N}">${cols}</div></section>`;
 }
 
 const paperRow = q => `<div class="paprow"><input class="pn" value="${esc(q.n)}" aria-label="Paper name"><label class="pd"><span>Mock</span><input class="pm" type="date" value="${q.mock||''}" aria-label="Mock date"></label><label class="pd"><span>Exam</span><input class="pe" type="date" value="${q.exam||''}" aria-label="Exam date"></label><button class="x" data-rmpaper="1" aria-label="Remove paper" title="Remove paper">×</button></div>`;
