@@ -284,6 +284,18 @@ def subjects_index():
   <h1>GCSE subjects and exam boards</h1>
   <p class="lead muted" style="max-width:680px;font-size:19px">Every subject in Road to 9 follows one exam board's specification. Open a subject to see all of its topics, with links to the official specification and past papers.</p>
   {subjects_grid()}
+  <section class="split" style="padding:96px 0 0">
+    <div>
+      <p class="eyebrow">Your subjects</p>
+      <h2>Tick the ones you take</h2>
+      <ul class="ticks">
+        <li>Only the subjects you tick are planned.</li>
+        <li>Change them any time; your ratings for a subject stay if you switch it back on.</li>
+        <li>Topics your school doesn't teach can be switched off one by one.</li>
+      </ul>
+    </div>
+    {shot('pick', 2160, 1420, "Choosing subjects in Road to 9's settings: a ticked list of all subjects with their exam boards")}
+  </section>
   <div class="cta"><h2>Your subject isn't here?</h2><p>We add boards that students ask for. Email <a href="mailto:hello@roadto9.com">hello@roadto9.com</a> with the board and course code.</p></div>
 </div>
 <div style="height:72px"></div>'''
@@ -333,6 +345,11 @@ def subject_page(sid):
     </ol>
     <p class="muted">Not studying some of these topics? Schools choose different options in some subjects. In Road to 9 you switch those topics off and they leave your plan.</p>
   </div>
+  <div class="sec"><h2>{e(s["name"])} in Road to 9</h2>
+    <p class="muted">The same topics, with every spec point coloured by how well you know it, and each topic showing what's next: revise it, or a short refresher on a set day.</p>
+    {shot('subjects/' + sid, 1600, 1139, f'{s["name"]} in Road to 9: its topics in columns, each spec point coloured from very weak to very strong, with buttons to revise or refresh')}
+    <p class="small muted">Shown with made-up ratings from the test drive.</p>
+  </div>
   <div class="cta"><h2>Let Road to 9 plan it for you</h2><p>Rate the spec points once, and every day you get a short list of sessions for {e(s["name"])} and your other subjects, weakest first, with refreshers before you forget.</p>
     <div class="btns"><a class="btn primary" href="/demo/">Take a test drive</a><a class="btn" href="/how.html">How it works</a></div></div>
 </div>
@@ -355,6 +372,7 @@ def parents():
     <li>Each day it suggests a short list of revision sessions, weakest topics first, within the time the student says they have.</li>
     <li>Topics come back as short refreshers at growing gaps, the way memory research recommends, and past papers join in the spring.</li>
   </ul>
+  ''' + shot('week', 1840, 1360, "The next four days in Road to 9: each day lists its revise sessions and short refreshers, with how long the student has that day") + '''
 
   <h2>What it doesn't do</h2>
   <ul class="ticks no">
@@ -367,11 +385,15 @@ def parents():
   <h2>What we keep</h2>
   <p>An email address for sign-in links, an optional first name, and the planner itself: subjects, ratings, sessions, notes and exam dates. Nobody else can read a student's planner. We can see account details, like when someone last signed in, but never what is in their planner. Students can download or delete everything in Settings at any time, and accounts unused for 12 months are deleted after a warning email. The <a href="/privacy.html">privacy note</a> has the details, including <a href="/privacy.html#safety">how we checked the risks</a>.</p>
 
+  ''' + shot('data', 2160, 448, "Road to 9's Settings: a button to download a copy of everything Road to 9 keeps") + '''
+
   <h2>Age and consent</h2>
   <p>Road to 9 is for students aged 13 and over. When they join, students under 18 confirm that a parent or carer knows they are using it. There is no parent view: the plan belongs to the student, which helps them be honest about what they don't know yet.</p>
 
   <h2>Study groups</h2>
   <p>Students can make a small study group with friends using a code they share in person. Inside a group they can choose to show which topics they could help with, or that they are studying right now. All of this is off until they switch it on, and there is still no messaging.</p>
+
+  ''' + shot('privacy', 2160, 798, "What study groups see in Road to 9: only the first name, with showing when you're studying and offering help both switched off") + '''
 
   <h2>See it for yourself</h2>
   <p>Take a <a href="/demo/">test drive</a>: it opens the planner of Sam, a made-up student, right in your browser. Nothing to sign up for, and nothing you do is saved.</p>
