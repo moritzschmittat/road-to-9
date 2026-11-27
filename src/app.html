@@ -67,12 +67,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .demobar .btn.primary,:root[data-theme] .demobar .btn.primary{background:#b6f738!important;color:#050c14!important;border-color:#b6f738!important}
 .demobar .btn{white-space:nowrap}
 .demobtns{display:inline-flex;gap:8px;align-items:center}
-.demomode{display:inline-flex;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:2px;gap:2px}
-.demomode button{all:unset;cursor:pointer;width:28px;height:24px;display:grid;place-items:center;border-radius:999px;color:#fff}
-.demomode svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-.demomode button[data-demomode="night"] svg{fill:currentColor;stroke:none}
-.demomode button[aria-pressed="true"]{background:#fff;color:#1f45d6}
-.demomode button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 body.demo #deldetails{display:none}
 .demobar a.btn{text-decoration:none}
 @media (max-width:640px){.demobar{position:static;font-size:13px;padding:8px 12px;gap:6px 10px}.demobtns{flex-wrap:wrap;justify-content:center;gap:6px}.demobar .btn.small{padding:6px 10px;font-size:13px}}
@@ -429,6 +423,7 @@ input[type=date]{min-height:2.6em}   /* an empty date box keeps its height on iP
 .session > .row:last-child{padding-right:46px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 details.howto{position:absolute;right:18px;bottom:20px;z-index:6}
+.sbtns details.howto{position:relative;right:auto;bottom:auto;margin-left:auto;align-self:center}
 details.howto summary{cursor:pointer;list-style:none}
 details.howto summary::-webkit-details-marker{display:none}
 details.howto .q{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);color:var(--muted);font-size:14px;font-weight:800}
@@ -773,12 +768,19 @@ html[data-theme="dark"] body{background:radial-gradient(1100px 560px at 50% -12%
 .top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px 16px}
 .top > .row{justify-self:start;grid-column:1;grid-row:1}
 .top nav{justify-self:center;grid-column:2;grid-row:1}
-.top .netpill{justify-self:end;grid-column:3;grid-row:1}
+.top .hdrright{justify-self:end;grid-column:3;grid-row:1;display:flex;align-items:center;gap:10px}
+.hdrmode{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.hdrmode button{all:unset;cursor:pointer;width:30px;height:26px;display:grid;place-items:center;border-radius:999px;color:var(--muted)}
+.hdrmode svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.hdrmode button[data-hdrmode="night"] svg{fill:currentColor;stroke:none}
+.hdrmode button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink,#050c14)}
+:root[data-theme="dark"] .hdrmode button[aria-pressed="true"]{background:var(--lime);color:#050c14}
+.hdrmode button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .top .hdrmeta{grid-column:1/-1;grid-row:2;justify-self:center;text-align:center}
 .top .hdrmeta:empty{display:none}
 @media (max-width:760px){
   .top{grid-template-columns:1fr auto}
-  .top .netpill{grid-column:2}
+  .top .hdrright{grid-column:2}
   .top nav{grid-column:1/-1;grid-row:2}
   .top .hdrmeta{grid-row:3}
 }
@@ -810,6 +812,12 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .ghelp{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 .ghelp .gswitch span{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
 .gmsg{border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:600}.gmsg.ok{background:var(--green-soft);color:var(--ink)}.gmsg.err{background:var(--red-soft);color:var(--ink)}
+.nextup{font-size:15px;font-weight:800;letter-spacing:.02em;margin:0 0 10px;color:var(--muted)}
+.sbtns{flex-wrap:wrap;gap:8px}
+.session .chooser{margin:0}
+.wk-go{all:unset;cursor:pointer;display:inline-block;margin-top:5px;font-size:11px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.wk-go:hover{background:var(--accent);color:#fff}.wk-go:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wk-now{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;color:var(--accent)}
 .helpbox{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:10px 14px;margin:12px 0}.helpbox p{margin:4px 0 0;font-size:14px}
 /* Day mode (Settings → Appearance): the original planner look. Night stays the default. */
 :root[data-theme="light"]{
@@ -824,6 +832,16 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 :root[data-theme="light"] .brand b,:root[data-theme="light"] .ob h1 span,:root[data-theme="light"] .wm b{color:var(--accent)}
 :root[data-theme="light"] input[type=checkbox]{accent-color:var(--accent)}
 .themeseg{display:inline-flex;margin-top:6px}
+/* more space between cards (Moritz, 27 Nov) */
+.panel,.cols,.tiles{margin-top:24px}
+.tiles{gap:18px}
+.homegrid2{column-gap:24px}
+.acctgrid{gap:0 24px}
+.ggrid{gap:0 24px;margin-bottom:0}
+.wk{gap:10px}
+.top .brand span{white-space:nowrap}
+@media (max-width:420px){.top .hdrright{gap:6px}.hdrmode{padding:2px}.hdrmode button{width:25px;height:22px}.hdrmode svg{width:14px;height:14px}.netpill .np2{display:none}}
+.netpill{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -838,7 +856,8 @@ body.signedout #view{min-height:calc(100vh - 90px)}
       <a href="#stats" id="nav-home">Stats</a>
       <a href="#settings" id="nav-plan">Settings</a>
     </nav>
-    <div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div>
+    <div class="hdrright"><span class="hdrmode" role="group" aria-label="Day or night"><button type="button" data-hdrmode="day" aria-label="Day" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button><button type="button" data-hdrmode="night" aria-label="Night" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></span>
+      <div class="netpill off" id="netpill" role="status"><i></i><b>Offline · this device only</b></div></div>
   </header>
   <main id="view"></main>
   <footer class="foot small muted" id="foot"><span>© Schmittat Ltd · company no. 09452378</span><a href="/how.html">How it works</a><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="mailto:hello@roadto9.com">hello@roadto9.com</a><span id="footacct"></span></footer>
@@ -939,7 +958,16 @@ function applyTheme(t){
   const day = t==='day';
   document.documentElement.setAttribute('data-theme', day ? 'light' : 'dark');
   if (!DEMO) try { localStorage.setItem('r9-theme', day ? 'day' : 'night'); } catch(e){}
+  document.querySelectorAll('[data-hdrmode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.hdrmode === (day ? 'day' : 'night')));
 }
+// Day/Night top right, like on the website (the same setting as in Settings)
+document.querySelectorAll('[data-hdrmode]').forEach(b => b.onclick = () => {
+  const t = b.dataset.hdrmode;
+  if (USER && S && S.settings){ S.settings.theme = t; save(true); }
+  applyTheme(t);
+  if (DEMO) try { localStorage.setItem('r9-theme', t); } catch(e){}   // the website follows the test drive's choice
+  document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x.dataset.themeSet === t)); });
+document.querySelectorAll('[data-hdrmode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.hdrmode === (document.documentElement.getAttribute('data-theme')==='light' ? 'day' : 'night')));
 function normalise(x){
   const f = fresh();
   if (!x || typeof x!=='object') return f;
@@ -1333,7 +1361,9 @@ function merge(a, b){
 }
 function setState(st){ syncState = st; const el = document.getElementById('netpill'); if (!el) return;
   const L = {ok:['Online · synced','ok'], saving:['Online · saving…','saving'], local:['Offline · this device only','off'], error:['Not synced · retrying','off'], demo:['Test drive','demo']}[st];
-  el.className = 'netpill ' + L[1]; el.querySelector('b').textContent = L[0]; }
+  el.className = 'netpill ' + L[1]; el.title = L[0];
+  // on small phones only the first part shows ("Online", "Offline"), so the header stays on one line
+  const [a1, a2] = L[0].split(' · '); el.querySelector('b').innerHTML = esc(a1) + (a2 ? `<span class="np2"> · ${esc(a2)}</span>` : ''); }
 function pushOnline(){
   if (!dbRef){ return; }
   clearTimeout(retryT); pendingSync = true; setState('saving');
@@ -1527,23 +1557,12 @@ function restOfToday(n){
   return out;
 }
 let todayPlanned = null;   // minutes of everything listed for today: done + now + still to do
-function todayListHTML(info){
-  const today = todayStr(); const done = S.log.filter(l => l.d===today);
+// Works out the rest of today (shown in the week calendar), so "Do this now" and the quick refresher know what's planned
+function planToday(info){
+  const today = todayStr();
   const left = Math.max(0, info.target - planDoneOn(today) - (current ? (current.mins || 45) : 0));
   todayRest = mixDay(restOfToday(left), startKind(today, current));
   todayPlanned = planDoneOn(today) + (current ? (current.mins || 45) : 0) + todayRest.reduce((a, n) => a + (n.mins || 45), 0);
-  if (!done.length && !current && !todayRest.length && info.target===0) return '';
-  const row = (n, cls, extra, drop) => { const L = sessLabel(n); const parts = L.k.split(' · '); const mins = parts.pop(); const kind = /^(Revise|Refresher|Quick refresher)/.test(parts[0]||'') ? '' : parts.join(' · ');
-    // one little box per spec point, coloured by how confident the student is now (a point never rated on its own takes the topic's level; grey = not rated); a gap between topics
-    const pts = n.type==='paper' ? '' : `<span class="tl-pts">${n.cards.map(id => { const c = CARD[id], x = cs(id); return `<span>${c.p.map((p,i) => { const v = ptLvl(c,i) ?? (x.st!=='unrated' && x.lvl!=null ? x.lvl : null); return `<i class="rag ${v==null ? 'lv-x' : lvClass(v)}" title="${esc(p.c)}: ${v==null ? 'not rated' : LVNAME[snap(v)]}"></i>`; }).join('')}</span>`; }).join('')}</span>`;
-    return `<li class="tl ${cls}"><details class="sx"><summary>${kind ? `<div class="wk-k">${esc(kind)}</div>` : ''}<div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div></summary>${sessDetail(n)}</details>${drop ? `<button class="tl-x" ${drop} aria-label="Remove from today" title="Remove from today">×</button>` : ''}<span class="tl-min">${esc(mins)}${pts}</span><div class="tl-act">${extra||''}</div></li>`; };
-  const items = done.map(l => row(l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, 'done', `<span class="tl-tag">✓ Done</span>`))
-    .concat(current ? [row(current, 'now', '<span class="tl-tag now">Now</span>', 'data-drop="now"')] : [])
-    .concat(todayRest.map((n, i) => row(n, '', `<button class="btn small" data-pick="${i}">Do this now</button>`, `data-drop="${i}"`)));
-  return `<section class="panel tlist"><div class="row" style="justify-content:space-between"><h2>Today's sessions</h2><span class="small muted">${fmtMin(doneOn(today))} of ${fmtMin(todayPlanned)}</span></div>
-    <ol class="tl-list">${items.join('')}</ol>
-    <div class="row" style="justify-content:flex-end">
-      <div class="row addrow"><span class="small muted">More time today?</span>${quickNext() ? '<button class="btn small" data-quick="1">+ 5 min</button>' : ''}${[20, 30, 45, 60].map(m => `<button class="btn small" data-addsess="${m}">+ ${fmtMin(m)}</button>`).join('')}</div></div></section>`;
 }
 
 
@@ -1878,14 +1897,22 @@ function studyingText(st){
 }
 // on a session: group mates who rated this topic very strong and offer help with it
 function helpHTML(cards){
-  if (!groupsReady()) return '';
-  if (!G.loaded){ loadGroups().then(() => { if (G.loaded && G.groups.length && current) render(); }); return ''; }
-  if (Date.now() - G.at > 300000 && !G.loading) loadGroups(true).then(() => { if (current && current.phase==='work') render(); });
-  const ids = new Set(cards.map(c => c.id));
-  const who = groupMates().filter(u => (G.shares[u] && G.shares[u].strong || []).some(id => ids.has(id)));
-  if (!who.length) return '';
   const subjNames = [...new Set(cards.map(c => SUBJ[c.sid].name))].join(' and ');
-  return `<div class="helpbox"><div class="eyebrow">Need help?</div><p>${who.map(u => `<b>${esc(shareName(u))}</b>`).join(', ')} ${who.length>1 ? 'have' : 'has'} marked ${cards.length>1 ? 'one of these topics' : 'this topic'} as very strong. Ask them about ${esc(subjNames)} however you normally talk to them. Road to 9 has no messaging.</p></div>`;
+  const codes = [...new Set(cards.flatMap(c => c.p.map(p => p.c)))].slice(0, 3).join(', ');
+  const ask = `<p>Your ${esc(subjNames)} teacher is always a good person to ask.${codes ? ` Take the spec point codes with you (${esc(codes)}) so they know exactly what you mean.` : ''}</p>`;
+  let mates = '';
+  if (!groupsReady()) mates = '';
+  else if (!G.loaded){ loadGroups().then(() => { if (G.loaded && current && helpOpen) render(); }); mates = '<p class="muted">Checking your groups…</p>'; }
+  else {
+    if (Date.now() - G.at > 300000 && !G.loading) loadGroups(true).then(() => { if (current && helpOpen) render(); });
+    const ids = new Set(cards.map(c => c.id));
+    const who = groupMates().filter(u => (G.shares[u] && G.shares[u].strong || []).some(id => ids.has(id)));
+    mates = who.length
+      ? `<p>${who.map(u => `<b>${esc(shareName(u))}</b>`).join(', ')} ${who.length>1 ? 'have' : 'has'} marked ${cards.length>1 ? 'one of these topics' : 'this topic'} as very strong. Ask them however you normally talk to them. Road to 9 has no messaging.</p>`
+      : G.groups.length ? '<p class="muted">Nobody in your groups has marked this topic as very strong yet.</p>'
+      : '<p class="muted">Join or start a group in Groups to see which friends are strong at a topic.</p>';
+  }
+  return `<div class="helpbox"><div class="eyebrow">Who can help</div>${mates}${ask}</div>`;
 }
 let gpoll = null;
 function renderGroups(){
@@ -1904,18 +1931,19 @@ function renderGroups(){
   };
   $('#view').innerHTML = `
     ${G.msg ? `<div class="gmsg ok">${esc(G.msg)}</div>` : ''}${G.err ? `<div class="gmsg err">${esc(G.err)}</div>` : ''}
-    ${G.groups.length ? `<div class="ggrid">${G.groups.map(groupCard).join('')}</div>` : `<section class="panel"><h2>Groups</h2><p class="muted" style="margin:0">Study alongside your friends: see who’s studying right now, and who can help with a topic. Make a group and give the code to your friends, or join one with a code you’ve been given.</p></section>`}
-    <div class="acctgrid">
-      <section class="panel"><h2>Make a group</h2><form id="gmake" class="row"><input id="gname" maxlength="40" placeholder="Group name, e.g. Year 11 science" aria-label="Group name" style="flex:1 1 200px"><button class="btn primary" type="submit">Make group</button></form></section>
-      <section class="panel"><h2>Join a group</h2><form id="gjoin" class="row"><input id="gcodein" maxlength="12" placeholder="ABCD-EFGH" aria-label="Group code" autocapitalize="characters" style="flex:1 1 160px;text-align:center;letter-spacing:.08em"><button class="btn primary" type="submit">Join</button></form></section>
-    </div>
-    <section class="panel"><h2>What your groups see</h2>
+    <section class="panel"><h2>Settings</h2>
+      <div class="eyebrow" style="margin:0 0 6px">What your groups see</div>
       <p class="small muted" style="margin:0 0 12px">Your first name${s.name ? ` (<b>${esc(s.name)}</b>)` : ', which you haven’t set yet: add it in Settings so friends know it’s you'}. Everything else is off until you switch it on. Road to 9 never shares your ratings, study time, journal, email or contact details, and has no messaging.</p>
       <label class="gswitch"><input type="checkbox" id="gshowstudy" ${s.shareStudying ? 'checked' : ''}><span><b>Show when I’m studying</b><br><span class="small muted">From Start until Finish and rate, your groups see the subject and topic.</span></span></label>
       <div class="eyebrow" style="margin:16px 0 6px">Offer help</div>
       <p class="small muted" style="margin:0 0 8px">For the subjects you tick, friends studying a topic you rated very strong are told you’re good at it.</p>
       <div class="ghelp">${CURRICULUM.map(x => `<label class="gswitch small"><input type="checkbox" data-ghelp="${x.id}" ${(s.helpSubj||{})[x.id] ? 'checked' : ''}><span>${icon(x.id,16)} ${esc(x.name)} <span class="muted">· ${strongBy[x.id]} very strong</span></span></label>`).join('')}</div>
-    </section>`;
+    </section>
+    <div class="acctgrid">
+      <section class="panel"><h2>Make a group</h2><form id="gmake" class="row"><input id="gname" maxlength="40" placeholder="Group name, e.g. Year 11 science" aria-label="Group name" style="flex:1 1 200px"><button class="btn primary" type="submit">Make group</button></form></section>
+      <section class="panel"><h2>Join a group</h2><form id="gjoin" class="row"><input id="gcodein" maxlength="12" placeholder="ABCD-EFGH" aria-label="Group code" autocapitalize="characters" style="flex:1 1 160px;text-align:center;letter-spacing:.08em"><button class="btn primary" type="submit">Join</button></form></section>
+    </div>
+    ${G.groups.length ? `<div class="ggrid">${G.groups.map(groupCard).join('')}</div>` : `<section class="panel"><h2>Groups</h2><p class="muted" style="margin:0">Study alongside your friends: see who’s studying right now, and who can help with a topic. Make a group and give the code to your friends, or join one with a code you’ve been given.</p></section>`}`;
   G.msg = ''; G.err = '';
   const after = async (p, ok) => { const { data, error } = await p; if (error){ G.err = (error.message||'').replace(/^.*?: /,'') || 'That didn’t work. Try again.'; render(); return; } G.msg = ok(data); await loadGroups(true); pushShare(true); render(); };
   $('#gmake').onsubmit = e => { e.preventDefault(); const n = $('#gname').value.trim(); if (!n){ $('#gname').focus(); return; }
@@ -1957,6 +1985,8 @@ function renderHome(){
     <section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Progress${tipHTML('What do these numbers mean?', `<p><b>${greenPts} of ${allPts}</b> spec points are strong or very strong.</p><p><b>Learning done</b> is the revision time already behind you compared with the time still to go, for the topics you’ve rated.</p><p><b>Confidence</b> averages your ratings over every spec point: very strong counts 100%, strong 50%, OK 25%, weak 12.5% and very weak 6.25%.</p>`)}</h2></div><div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}</div>`)(workOf(CURRICULUM.flatMap(x => x.cards), true))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(CURRICULUM.flatMap(x => x.cards)),'big')}</div></div></div>
       ${stackHTML(ptCounts(CURRICULUM.flatMap(x => x.cards)))}
       <div class="legend">${(pc => [[3,'l3'],[2.5,'l25'],[2,'l2'],[1.5,'l15'],[1,'l1']].map(([v,k]) => `<span><i class="rag ${lvClass(v)}"></i>${pc[k]} ${LVNAME[v].toLowerCase()}</span>`).join('') + `<span><i class="rag lv-x"></i>${pc.x} not rated</span>`)(ptCounts(CURRICULUM.flatMap(x => x.cards)))}${tot.later?`<span>${tot.later} later</span>`:''}</div>
+      ${(() => { const todo = CURRICULUM.map(s => ({s, n: s.cards.filter(c => cs(c.id).st==='unrated').length})).filter(x => x.n);
+        return todo.length ? `<p class="ratenote">Still to rate, so they can be planned: ${todo.map(x => `<a href="#study-${x.s.id}">${esc(x.s.name)} ${x.n}</a>`).join(', ')}</p>` : ''; })()}
       <div class="sprog">${CURRICULUM.map(sb => { const k = counts(sb); const wk = S.log.filter(l => l.d>=weekAgo && (l.s===sb.id || l.c.some(id => CARD[id] && CARD[id].sid===sb.id))).length;
         return `<a class="sp" href="#study-${sb.id}"><span class="nm">${icon(sb.id,17)}${esc(sb.name)}</span>${stackHTML(ptCounts(sb.cards))}<span class="pp"><span>${workHTML(workOf(sb.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(sb.cards))}<small class="ppl">confident</small></span>${(r => r && r.pct!=null ? `<span title="${progressOf(sb.cards) - r.pct >= 20 ? 'Your ratings look higher than your mock mark: rate a bit more strictly' : 'Your last mock mark'}">${pctHTML(r.pct, progressOf(sb.cards) - r.pct >= 20 ? 'warn' : '')}<small class="ppl">mock</small></span>` : '')((S.settings.mockRes||{})[sb.id])}</span></a>`; }).join('')}</div></section>
   </div>
@@ -1975,8 +2005,7 @@ const clockText = s => s >= 3600 ? `${Math.floor(s/3600)}:${pad(Math.floor(s%360
 function timerHTML(){
   const done = timer.used >= timer.total;
   return `<div class="timer ${done ? 'done' : ''}"><div class="tclock"><div class="clock" id="clock">${clockText(timer.used)}</div><div class="tlabel" id="tlabel">${done ? 'Planned time done ✓' : `of ${Math.round(timer.total/60)} min planned`}</div></div>
-    <div class="bar"><i id="barfill" style="width:${Math.min(100, 100*timer.used/timer.total)}%"></i></div>
-    <div class="row"><button class="btn ${timer.running?'':'primary'}" id="tgo">${timer.running ? 'Pause' : (timer.used > 0 ? 'Resume' : 'Start')}</button></div></div>`;
+    <div class="bar"><i id="barfill" style="width:${Math.min(100, 100*timer.used/timer.total)}%"></i></div></div>`;
 }
 // "Minutes you actually spent": filled in from the timer (or the plan if it wasn't used), changeable
 const planOf = () => current && current.mins ? current.mins : 45;
@@ -2012,13 +2041,13 @@ function render(){
   const hm = document.getElementById('hdrmeta'); if (hm) hm.innerHTML = headerMeta();
   const r = route();
   // Study = today's session + the subjects list; a subject's own page sits under Study too
-  const tab = r.startsWith('topics-') ? 'next' : r;
+  const tab = r.startsWith('topics') ? 'home' : r;
   ['home','next','groups','plan'].forEach(n => $('#nav-'+n).setAttribute('aria-current', tab===n ? 'page' : 'false'));
   syncStudying();
   if (r==='home') renderHome();
   else if (r==='groups') renderGroups();
   else if (r.startsWith('topics-') && SUBJ[r.split('-')[1]]) renderTopics(r.split('-')[1]);
-  else if (r.startsWith('topics')){ history.replaceState(null, '', location.pathname + location.search + '#study'); $('#nav-next').setAttribute('aria-current','page'); renderNext(); const el = document.getElementById('subjects'); if (el) el.scrollIntoView(); }
+  else if (r.startsWith('topics')){ history.replaceState(null, '', location.pathname + location.search + '#stats'); renderHome(); const el = document.querySelector('.sprog'); if (el) el.scrollIntoView(); }
   else if (r==='plan') renderPlan();
   else renderNext();
   setSync(syncMsg);
@@ -2044,7 +2073,6 @@ function renderNext(){
 
   html = setupPanel() + mockPanel() + parkedPanel() + html;
   html += '<div class="cols"><div class="main">';
-  if (choosing) html += chooserHTML();
   if (!current){
     const restDay = info.target===0;
     const reached = planDoneOn(today)>=info.target && info.target>0;
@@ -2060,16 +2088,18 @@ function renderNext(){
       const n = mixDay(plan, startKind(today))[0] || pickNext();
       if (!n){
         html += `<section class="session"><div class="head"><div class="eyebrow">Nothing scheduled</div><h2 class="topic">Rate your topics to get started.</h2>
-          <p class="muted" style="margin:0">Every rated topic you haven't mastered becomes a session. Pick a subject below and rate a few topics.</p></div>
-          <div class="row"><a class="btn primary" href="#subjects" style="text-decoration:none" onclick="event.preventDefault();document.getElementById('subjects').scrollIntoView({behavior:'smooth'})">Rate topics</a><button class="btn ghost" data-choose="1">Choose a different topic</button></div></section>`;
+          <p class="muted" style="margin:0">Every rated topic you haven't mastered becomes a session. Open a subject and rate a few topics.</p></div>
+          <div class="row"><a class="btn primary" href="#study-${(CURRICULUM.find(x => x.cards.some(c => cs(c.id).st==='unrated')) || CURRICULUM[0] || {}).id}" style="text-decoration:none">Rate topics</a><button class="btn ghost" data-choose="1">Choose a different topic</button></div></section>`;
       } else {
         current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}};
         resetTimer();
       }
     }
   }
-  if (current) html += sessionHTML();
-  html += '</div><div class="side">' + todayListHTML(info) + '</div></div>' + subjectsHTML() + weekHTML() + (S.settings.routine ? checkinHTML() : '');
+  if (!current && choosing) html += chooserHTML();
+  if (current) html += nextUpHTML() + sessionHTML();
+  planToday(info);
+  html += '</div></div>' + weekHTML() + (S.settings.routine ? checkinHTML() : '');
   $('#view').innerHTML = html;
   bindNext();
 }
@@ -2095,20 +2125,20 @@ const PAST_PAPERS = {
   grk:'https://www.ocr.org.uk/qualifications/past-paper-finder/',
 };
 const ppLink = sid => PAST_PAPERS[sid] ? `<a href="${PAST_PAPERS[sid]}" target="_blank" rel="noopener">Past papers</a>` : '';
+const PAPER_HOW = `<details class="howto"><summary title="How to do a past-paper session"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a past-paper session</span></summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
+      <li><div><b>Mark</b><span>Mark it with the mark scheme, honestly. Keep the papers in one folder so you can see your scores go up.</span></div></li>
+      <li><div><b>Feed it back</b><span>Tick the topics that cost you marks below. They move to weak and come back in your next sessions.</span></div></li></ol></details>`;
 function paperHTML(){
   const cur = current;
   const subj = SUBJ[current.sid];
   return `<section class="session"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
-    <details class="howto"><summary title="How to do a past-paper session"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a past-paper session</span></summary><ol class="steps"><li><div><b>Paper</b><span>Take the next past paper you haven't used. Do 45 minutes of it in exam conditions: closed book, phone away. Note where you got to.</span></div></li>
-      <li><div><b>Mark</b><span>Mark it with the mark scheme, honestly. Keep the papers in one folder so you can see your scores go up.</span></div></li>
-      <li><div><b>Feed it back</b><span>Tick the topics that cost you marks below. They move to weak and come back in your next sessions.</span></div></li></ol></details>
-    ${timerHTML()}
+        ${sessButtons([], true, PAPER_HOW)}
     ${PAST_PAPERS[subj.id] ? `<p class="small" style="margin:0">${ppLink(subj.id)} and mark schemes for ${esc(subj.board)} (opens the exam board’s site)</p>` : ''}
     <details class="mocksub"><summary>After marking: which topics cost you marks?</summary>${lostListHTML(subj, 'data-plost')}</details>
     <label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Paper 1 2023, 61/80, lost marks on enzymes and osmosis">${esc(cur.note||'')}</textarea></label>
     ${minsRowHTML()}
-    <div class="row"><button class="btn primary" id="paperdone">Done, save it</button><button class="btn ghost" data-choose="1">Choose a different topic</button>
+    <div class="row"><button class="btn primary" id="paperdone">Done, save it</button>
       <a class="btn ghost" style="text-decoration:none" href="#study-${subj.id}">Open ${esc(subj.name)} topics</a></div></section>`;
 }
 
@@ -2125,12 +2155,11 @@ function sessionHTML(){
     body = `${first.p.length ? '<div>' + pointsHTML(first) + '</div>' : ''}
       <details class="howto"><summary title="How to spend the ${cur.mins || 45} minutes"><span class="q" aria-hidden="true">?</span><span class="sr">How to spend the ${cur.mins || 45} minutes</span></summary><ol class="steps">${((cur.mins||45) <= SHORT_REV ? LEARN_SHORT : (cur.mins||45) < 45 ? LEARN_AGAIN : (LEARN[first.k]||LEARN.content)).map(([a,b]) => `<li><div><b>${esc(a)}</b><span>${esc(b)}</span></div></li>`).join('')}</ol></details>`;
   } else {
-    const totalMin = cards.reduce((a,c) => a + (cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)), 0);
     const one = cards.length === 1;
     // One topic: same layout as a revise session (title, subject top right, section), spec points hidden until tried.
     head = one
       ? `<div class="head"><div class="toprow"><h2 class="topic">${esc(first.n)}</h2><div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div></div><div class="sec">${esc(first.sec)}</div></div>`
-      : `<div class="head"><div class="kind"><span class="eyebrow">${cur.type==='quick' ? 'Quick refresher' : 'Refresher session'} · ${cards.length} topics · ${totalMin} min</span></div></div>`;
+      : '';
     const kinds = [...new Set(cards.map(c => c.k))];
     body = `<details class="howto"><summary title="How to do a review"><span class="q" aria-hidden="true">?</span><span class="sr">How to do a review</span></summary><ul class="howlist">${kinds.map(k => `<li>${esc(REVIEW[k]||REVIEW.content)}</li>`).join('')}<li>Try ${one ? 'the topic' : 'each topic'} from memory first, then check yourself against the spec points.</li></ul></details>
       ${one ? (first.p.length ? '<div>' + pointsHTML(first) + '</div>' : '') : `<div class="multi">${cards.map(c => `<div class="mcard"><div class="kind" style="justify-content:space-between"><span class="kind"><span class="rag ${lvClass(cs(c.id).lvl)}"></span><span class="subj">${icon(c.sid,16)}${esc(SUBJ[c.sid].name)}</span></span><span class="chip">${cur.cm && cur.cm[c.id] != null ? cur.cm[c.id] : refMin(c.id)} min</span></div>
@@ -2138,13 +2167,11 @@ function sessionHTML(){
       ${c.p.length ? pointsHTML(c) : ''}
       ${S.todo[c.id] ? `<div class="todoin"><div class="eyebrow">Your to-do from last time</div><p>${esc(S.todo[c.id])}</p></div>` : ''}</div>`).join('')}</div>`}`;
   }
-  const timerBlock = timerHTML();
   let foot;
-  if (cur.phase==='work'){
-    foot = `<div class="row"><button class="btn primary" id="finish">Finish and rate</button>
-      <button class="btn ghost" data-choose="1">Choose a different topic</button>
-      <button class="btn ghost" id="skipday">${doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today'}</button></div>`;
-  } else {
+  // the "?" (how to spend the time) sits at the end of the button row
+  const howto = (body.match(/<details class="howto">[\s\S]*?<\/details>/) || [''])[0]; body = body.replace(howto, '');
+  if (cur.phase==='work') foot = sessButtons(cards, false, howto);
+  else {
     const journalBox = `<label class="jbox"><span class="eyebrow">Journal · what did you do?</span><textarea id="note" rows="3" placeholder="e.g. Blurted cell structure, did 4 exam questions (11/14), kept mixing up mitosis and meiosis">${esc(cur.note||'')}</textarea></label>`;
     foot = `<div class="rate"><div class="eyebrow">How would you do on an exam question about this tomorrow?</div>
       <div class="small muted">Rate each spec point, from very weak (red) to very strong (dark green). Hover a colour to see its name.</div>
@@ -2158,7 +2185,29 @@ function sessionHTML(){
   }
   const todos = cards.filter(c => S.todo[c.id]);
   const todoBlock = cur.phase==='work' && todos.length && (cur.type==='learn' || cards.length === 1) ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
-  return `<section class="session">${head}${cur.phase==='work' ? body + todoBlock + helpHTML(cards) + timerBlock : ''}${foot}</section>`;
+  return `<section class="session">${head}${cur.phase==='work' ? body + todoBlock : ''}${foot}</section>`;
+}
+
+// "Next up: 30 min revision" above the session ("Now: …" once the timer has started)
+function nextUpHTML(){
+  const n = current; if (n.phase!=='work') return '';
+  const m = n.mins || (n.cm ? Object.values(n.cm).reduce((a,b) => a+b, 0) : 45);
+  const what = n.type==='paper' ? 'past paper' : n.type==='learn' ? 'revision' : n.type==='quick' ? 'quick refresher' : 'refresher';
+  const many = n.type!=='paper' && n.cards.length > 1 ? ` · ${n.cards.length} topics` : '';
+  return `<h2 class="nextup">${timerOpen() ? 'Now' : 'Next up'}: ${m} min ${what}${many}</h2>`;
+}
+const timerOpen = () => timer.running || timer.used > 0;
+let helpOpen = false;   // the Help panel under a session's buttons
+// one row of buttons under the topic; the timer, Help and Different topic open below it
+function sessButtons(cards, paper, howto){
+  const started = timerOpen();
+  const skip = doneOn(todayStr()) ? 'Can’t study any more today' : 'Can’t study today';
+  return `<div class="row sbtns"><button class="btn ${started ? '' : 'primary'}" id="tgo">${timer.running ? 'Pause' : started ? 'Resume' : 'Start'}</button>
+    ${paper ? '' : `<button class="btn ${started ? 'primary' : ''}" id="finish">Finish and rate</button>
+    <button class="btn ghost" id="helpbtn" aria-expanded="${helpOpen}">Help</button>`}
+    <button class="btn ghost" data-choose="1" aria-expanded="${choosing}">Different topic</button>
+    <button class="btn ghost" id="skipday">${skip}</button>${howto || ''}</div>
+    ${started ? timerHTML() : ''}${!paper && helpOpen ? helpHTML(cards) : ''}${choosing ? chooserHTML() : ''}`;
 }
 
 function allRated(cards){ return cards.every(c => c.p.every((_,i) => current.pr[pk(c.id,i)]!=null)); }
@@ -2194,7 +2243,7 @@ function chooserHTML(){
     <div class="chrow"><label class="small muted" for="chs">Subject<select id="chs">${CURRICULUM.map(x => `<option value="${x.id}" ${x.id===sid?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label>
       <label class="small muted" for="chc">Topic<select id="chc">${secs.map(g => `<optgroup label="${esc(g.name)}">${g.cards.map(c => `<option value="${c.id}">${esc(c.n)} (${esc(chooseStatus(c.id))})</option>`).join('')}</optgroup>`).join('')}</select></label>
       <button class="btn primary" id="chgo">Start</button></div>
-    <p class="small muted" style="margin:0">Starts a revise session on that topic: 20 minutes if you rated it strong, otherwise 45. Rate it at the end as usual and its refreshers start the next day. Whatever was planned stays in today's list.</p></section>`;
+    <p class="small muted" style="margin:0">Starts a revise session on that topic: 20 minutes if you rated it strong, otherwise 45. Rate it at the end as usual and its refreshers start the next day. Whatever was planned stays in your week.</p></section>`;
 }
 function parkedPanel(){
   const list = parked(); if (!list.length) return '';
@@ -2264,12 +2313,20 @@ function pacePanel(){
 
 function bindNext(){
   bindHabits();
+  const on = (id, f) => { const el=document.getElementById(id); if (el) el.onclick=f; };
   document.querySelectorAll('#view [data-wkov]').forEach(b => b.onclick = () => setOverride(b.dataset.wkov, b.dataset.n==='' ? null : +b.dataset.n));
   const wk = (f) => () => { f(); const y = window.scrollY; render(); window.scrollTo(0, y); };
   const wp = $('#wkprev'); if (wp) wp.onclick = wk(() => weekOffset--);
   const wn = $('#wknext'); if (wn) wn.onclick = wk(() => { const lastEx = CURRICULUM.map(x => examLast(x.id)).sort().pop(); if (weekOffset < Math.max(8, Math.ceil(diff(mondayOf(todayStr()), lastEx)/7))) weekOffset++; });
   const w0 = $('#wknow'); if (w0) w0.onclick = wk(() => weekOffset = 0);
-  document.querySelectorAll('#view [data-choose]').forEach(b => b.onclick = () => { choosing = true; render(); const el = $('#chooser'); if (el) el.scrollIntoView({behavior:'smooth', block:'start'}); });
+  document.querySelectorAll('#view [data-choose]').forEach(b => b.onclick = () => { choosing = !choosing; const y = window.scrollY; render(); window.scrollTo(0, y); const el = $('#chooser'); if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'}); });
+  on('helpbtn', () => { helpOpen = !helpOpen; const y = window.scrollY; render(); window.scrollTo(0, y); });
+  // "Do this now" on a planned box in the week calendar
+  document.querySelectorAll('#view [data-wkpick]').forEach(b => b.onclick = () => {
+    const n = wkPlans[+b.dataset.wkpick]; if (!n) return;
+    if (current && current.type!=='paper') current.cards.forEach(id => skipped.delete(id));
+    current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}}; choosing = false;
+    resetTimer(); render(); window.scrollTo({top:0, behavior:'smooth'}); });
   { const cc = $('#chclose'); if (cc) cc.onclick = () => { choosing = false; render(); };
     const chs = $('#chs'); if (chs) chs.onchange = () => { chooseSid = chs.value; render(); const c2 = $('#chc'); if (c2) c2.focus(); };
     const go = $('#chgo'); if (go) go.onclick = () => { const id = $('#chc').value; if (!CARD[id]) return;
@@ -2281,7 +2338,6 @@ function bindNext(){
     const n = todayRest[+b.dataset.pick]; if (!n) return;
     if (current && current.type!=='paper') current.cards.forEach(id => skipped.delete(id));
     current = {type:n.type, cards:n.cards, sid:n.sid, mins:n.mins, cm:n.cm, phase:'work', ratings:{}, pr:{}}; resetTimer(); render(); window.scrollTo({top:0, behavior:'smooth'}); });
-  const on = (id, f) => { const el=document.getElementById(id); if (el) el.onclick=f; };
   on('anyway', () => { window.__anyway = true; render(); });
   on('ovundo', () => setOverride(todayStr(), null));
   document.querySelectorAll('#view [data-extra]').forEach(b => b.onclick = () => {
@@ -2351,7 +2407,7 @@ function doSave(){
 }
 
 /* timer */
-function resetTimer(){ stopTimer(); const m = current && current.mins ? current.mins : 45; timer.total = m*60; timer.used = 0; timer.base = 0; timer.rang = false; }
+function resetTimer(){ helpOpen = false; stopTimer(); const m = current && current.mins ? current.mins : 45; timer.total = m*60; timer.used = 0; timer.base = 0; timer.rang = false; }
 function stopTimer(){ if (timer.running) timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000); if (timer.h) clearInterval(timer.h); timer.h=null; timer.running=false; }
 function tick(){
   timer.used = timer.base + Math.round((Date.now() - timer.t0)/1000);
@@ -2497,23 +2553,14 @@ function chunkHTML(c){
       <button class="histbtn" data-hist="${c.id}" aria-expanded="${openHist.has(c.id)}">History</button>
       <details class="more"><summary aria-label="More options for ${esc(c.n)}" title="More">⋯</summary><span class="ctrl moremenu" data-id="${c.id}">${todayStr() < laterCut() ? `<button data-v="later" aria-pressed="${x.st==='later'}">Not taught yet</button>` : ''}<button data-v="off" aria-pressed="${x.st==='off'}">Not on my course</button></span></details></div>${openHist.has(c.id) ? historyHTML(c.id) : ''}</div>`;
 }
-function subjectsHTML(){
-  if (!CURRICULUM.length) return '';
-  return `<section class="panel subjpanel" id="subjects"><div class="subjhead"><h2>Subjects</h2>
-      <div class="legend">${LV.map(v => `<span><i class="rag ${lvClass(v)}"></i>${LVNAME[v]}</span>`).join('')}<span><i class="rag lv-x"></i>Not rated</span></div></div>
-      ${(() => { const todo = CURRICULUM.map(s => ({s, n: s.cards.filter(c => cs(c.id).st==='unrated').length})).filter(x => x.n);
-        return todo.length ? `<p class="ratenote">Still to rate, so they can be planned: ${todo.map(x => `<a href="#study-${x.s.id}">${esc(x.s.name)} ${x.n}</a>`).join(', ')}</p>` : ''; })()}
-      <div class="subjlist">${CURRICULUM.map(s => { const k=counts(s); return `<a class="srow" href="#study-${s.id}"><span class="nm">${iconTile(s.id,22)}${esc(s.name)}</span>
-        <span class="meta"><span class="pp"><span>${workHTML(workOf(s.cards))}<small class="ppl">learned</small></span><span>${pctHTML(progressOf(s.cards))}<small class="ppl">confident</small></span></span><br>${s.cards.length} chunks${k.due?` · ${k.due} due`:''}${k.x?` · <b class="torate">${k.x} to rate</b>`:''}</span>${stackHTML(ptCounts(s.cards))}</a>`; }).join('')}</div></section>`;
-}
 function renderTopics(sid){
   let html='';
   const prevBoard = document.querySelector('.board'); const keepX = prevBoard && prevBoard.dataset.sid===sid ? prevBoard.scrollLeft : 0; const keepY = window.scrollY;
-  if (!sid || !SUBJ[sid]){ location.hash = '#subjects'; return; }
+  if (!sid || !SUBJ[sid]){ location.hash = '#stats'; return; }
   {
     const s = SUBJ[sid]; const k = counts(s);
     const secs = []; s.cards.forEach(c => { let g = secs[secs.length-1]; if (!g || g.name!==c.sec){ g = {name:c.sec, cards:[]}; secs.push(g); } g.cards.push(c); });
-    html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#subjects">← Back to Study</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
+    html += `<div class="bhead-top"><div><p style="margin:6px 0"><a href="#stats">← Back to Stats</a></p><h1 style="font-size:28px;display:flex;gap:12px;align-items:center">${iconTile(s.id,26)}${esc(s.name)}</h1>
       <p class="small muted" style="margin:4px 0 0">Exam board: ${esc(s.board)}${s.spec?` · <a href="${esc(s.spec)}" target="_blank" rel="noopener">Specification</a>`:''}${PAST_PAPERS[s.id] ? ' · ' + ppLink(s.id) : ''}</p></div>
       <div class="pctpair">${(w => `<div class="pctbox"><div class="eyebrow">Learning done</div>${workHTML(w,'big')}${w.pct==null ? '<div class="small muted">rate topics to see this</div>' : ''}</div>`)(workOf(s.cards))}<div class="pctbox"><div class="eyebrow">Confidence</div>${pctHTML(progressOf(s.cards),'big')}</div></div>
       <div class="key">${LV.map(l => `<span><i class="cellkey lv-${lvCls(l)}"></i>${LVNAME[l]}</span>`).join('')}<span><i class="cellkey lv-x"></i>Not rated</span></div></div>
@@ -2576,7 +2623,9 @@ function sessDetail(n){
   return `<div class="sd"><ul class="sd-pts">${n.cards.map(id => { const c = CARD[id]; return `<li><i class="rag ${lvClass(cs(id).lvl)}"></i><span class="code">${n.cm && n.cm[id] != null ? n.cm[id] : refMin(id)} min</span><span>${icon(c.sid,13)} ${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</span></li>`; }).join('')}</ul></div>`;
 }
 function papersOn(d){ const out = []; CURRICULUM.forEach(sb => (S.settings.papers[sb.id]||[]).forEach(q => { if (q.mock===d) out.push({k:'mock', sid:sb.id, n:q.n}); if (q.exam===d) out.push({k:'exam', sid:sb.id, n:q.n}); })); return out.sort((a,b) => a.k < b.k ? -1 : 1); }
+let wkPlans = [];   // the planned boxes in the week calendar, for "Do this now"
 function weekHTML(){
+  wkPlans = [];
   const today = todayStr(); const mon = addDays(mondayOf(today), weekOffset*7); const sun = addDays(mon,6);
   const key = [S.updated, weekOffset, today, current ? current.cards.join(',') : ''].join('|');
   if (!window.__fcCache || window.__fcCache.key !== key) window.__fcCache = {key, fc: sun >= today ? forecast(sun) : {}};
@@ -2588,15 +2637,16 @@ function weekHTML(){
     const done = S.log.filter(l => l.d===d).map(l => ({n: l.t==='paper' ? {type:'paper', sid:l.s, cards:[]} : {type:l.t, cards:l.c, mins:l.mins, cm:l.cm}, r:l.r}));
     const plan = d >= today ? (d===today ? (current ? [current] : []).concat(todayRest || []) : mixDay(fc[d]||[], startKind(d))) : [];
     total += planDoneOn(d) + plan.reduce((x,n) => x + (n.mins || 45), 0);
-    const item = (n, r, planned) => { const L = sessLabel(n);
+    const item = (n, r, planned, now) => { const L = sessLabel(n);
+      const go = !planned ? '' : now ? '<span class="wk-now">Now</span>' : `<button class="wk-go" data-wkpick="${wkPlans.push(n) - 1}">Do this now</button>`;
       // colour = confidence: the rating you gave if done, otherwise the topic's current level
       const v = r && r.length && r[0]!=null ? r[0] : (n.cards && n.cards.length ? cs(n.cards[0]).lvl : null);
       const lc = v==null ? 'var(--grey)' : 'var(--lv' + String(snap(v)).replace('.','') + ')';
-      return `<li class="wk-s ${planned?'planned':''} t-${n.type}" style="border-left-color:${lc}">${isRef(n) ? '' : '<details class="sx"><summary>'}<div class="wk-k">${planned ? '' : '<span class="wk-tick" title="Done" aria-label="Done">✓</span>'}${esc(L.k)}${r && r.length ? ' '+r.map(x => `<i class="rag ${lvClass(x)}"></i>`).join('') : ''}</div><div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div>${isRef(n) ? '' : `</summary>${sessDetail(n)}</details>`}</li>`; };
+      return `<li class="wk-s ${planned?'planned':''} t-${n.type}" style="border-left-color:${lc}">${isRef(n) ? '' : '<details class="sx"><summary>'}<div class="wk-k">${planned ? '' : '<span class="wk-tick" title="Done" aria-label="Done">✓</span>'}${esc(L.k)}${r && r.length ? ' '+r.map(x => `<i class="rag ${lvClass(x)}"></i>`).join('') : ''}</div><div class="wk-sub">${esc(L.s)}</div><div class="wk-t">${esc(L.t)}</div>${isRef(n) ? '' : `</summary>${sessDetail(n)}</details>`}${go}</li>`; };
     // refresher packs are listed card by card
-    const split = (n, r) => (n.type==='review' || n.type==='quick') && n.cards.length > 1
+    const split = (n, r) => ((n.type==='review' || n.type==='quick') && n.cards.length > 1
       ? n.cards.map((id, i) => { const m = n.cm && n.cm[id] != null ? n.cm[id] : refMin(id); return {n:{type:n.type, cards:[id], mins:m, cm:{[id]:m}}, r: r && r[i] != null ? [r[i]] : null}; })
-      : [{n, r}];
+      : [{n, r}]).map(x => ({...x, now: n === current}));
     const dm = doneOn(d);
     const missed = '';   // no 'not done' line: past days only show what was done
     return `<div class="wk-day ${d===today?'is-today':''} ${info.target===0?'is-off':''}">
@@ -2605,12 +2655,12 @@ function weekHTML(){
         ${d >= today ? (info.override
           ? `<button class="wk-ov" data-wkov="${d}" data-n="">Undo change</button>`
           : info.target===0 ? `<button class="wk-ov" data-wkov="${d}" data-n="90">Study instead</button>` : `<button class="wk-ov" data-wkov="${d}" data-n="0">Skip day</button>`) : ''}</div>
-      <ul>${done.flatMap(x => split(x.n, x.r)).map(x => item(x.n, x.r, false)).join('')}${plan.flatMap(n => split(n, null)).map(x => item(x.n, null, true)).join('')}${missed}${!done.length && !plan.length && !missed ? `<li class="wk-free">${info.target===0 ? 'Free' : d < today ? '' : 'Nothing due'}</li>` : ''}</ul></div>`;
+      <ul>${done.flatMap(x => split(x.n, x.r)).map(x => item(x.n, x.r, false)).join('')}${plan.flatMap(n => split(n, null)).map(x => item(x.n, null, true, x.now)).join('')}${missed}${!done.length && !plan.length && !missed ? `<li class="wk-free">${info.target===0 ? 'Free' : d < today ? '' : 'Nothing due'}</li>` : ''}</ul></div>`;
   }).join('');
   return `<section class="panel"><div class="row" style="justify-content:space-between">
       <h2>Week of ${esc(fmtShort(mon))}</h2>
       <div class="row"><button class="btn small ghost" id="wkprev" aria-label="Previous week">←</button><button class="btn small ghost" id="wknow">This week</button><button class="btn small ghost" id="wknext" aria-label="Next week">→</button></div></div>
-    <p class="small muted" style="margin:0">The colour on the left of each box is how confident you are in that topic (your rating, from dark green to red). Solid boxes are sessions you've done. Dashed boxes are the forecast: the schedule re-plans after every rating, so these will shift. ${fmtMin(total)} of study this week.</p>
+    <p class="small muted" style="margin:0">Solid boxes are done, dashed boxes are planned and shift after every rating. The colour on the left is how confident you are. ${fmtMin(total)} of study this week.</p>
     <div class="wk">${cols}</div></section>`;
 }
 
@@ -3131,17 +3181,8 @@ function demoState(){
 function demoBanner(){
   document.body.classList.add('demo');
   document.body.insertAdjacentHTML('afterbegin', `<div class="demobar" role="note"><span><b>Test drive.</b> This is Sam, a made-up student. Try anything: nothing you do is saved.</span>
-    <span class="demobtns"><span class="demomode" role="group" aria-label="Day or night">
-      <button type="button" data-demomode="day" aria-label="Day" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
-      <button type="button" data-demomode="night" aria-label="Night" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></span>
-      <button class="btn small ghost" id="demoreset">Start again</button><a class="btn small primary" href="/#join">Get an invite</a></span></div>`);
+    <span class="demobtns"><button class="btn small ghost" id="demoreset">Start again</button><a class="btn small primary" href="/#join">Get an invite</a></span></div>`);
   $('#demoreset').onclick = () => { location.hash = '#study'; location.reload(); };
-  // Day/Night: the same setting as the website's switch, so the site and the test drive match
-  const showMode = () => document.querySelectorAll('[data-demomode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demomode === (S.settings.theme==='day' ? 'day' : 'night')));
-  document.querySelectorAll('[data-demomode]').forEach(b => b.onclick = () => { S.settings.theme = b.dataset.demomode; applyTheme(S.settings.theme);
-    try { localStorage.setItem('r9-theme', S.settings.theme); } catch(e){}
-    document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x.dataset.themeSet===S.settings.theme)); showMode(); });
-  showMode();
 }
 window.addEventListener('hashchange', () => { if (USER) render(); });
 (async function boot(){
