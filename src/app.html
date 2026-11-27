@@ -3159,8 +3159,9 @@ function demoClient(){
 // Sam: five subjects rated honestly, then three and a half weeks of following the plan, worked out by the real planner day by day
 // (the same way the week forecast is), so every refresher, chart and number in the test drive is what the app really does.
 function demoState(){
-  const real = todayStr(), start = addDays(real, -24);
-  const h = k => hash(k) / 4294967296;                               // steady "random" 0..1, the same on every visit
+  const real = todayStr(), start = addDays(real, -42);   // six weeks of made-up history, up to yesterday
+  // steady "random" 0..1, the same on every visit; mixed, because similar keys (one date after the next) hash alike
+  const h = k => { let x = hash(k); x ^= x >>> 16; x = Math.imul(x, 0x85ebca6b); x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35); x ^= x >>> 16; return (x >>> 0) / 4294967296; };
   const lv = v => Math.min(3, Math.max(1, Math.round(v*2)/2));
   S = normalise(fresh());
   Object.assign(S.settings, {name:'Sam', subjects:['bio','chem','maths','fre','hist'], onboarded:true, ob:{step:'done', i:0}, startedOn:start,
@@ -3185,7 +3186,14 @@ function demoState(){
       if (h('off' + d) < .12){ S.hist[d] = progressSnapshot(); continue; }   // the odd day off, like anyone
       let left = dayInfo(d).target, k = 0;
       for (let guard = 0; left > 0 && guard < 12; guard++){
-        const n = pickNext(); if (!n || n.type==='paper') break;
+        const n = pickNext(); if (!n) break;
+        if (n.type==='paper'){   // past papers too: 45 minutes, with a mark in the journal
+          if (left < 40) break;
+          const at = d + 'T' + pad(16 + k) + ':' + pad(10 + (hash(d) % 40)) + ':00.000Z'; k++;
+          const score = 45 + (hash('pp' + n.sid + d) % 30);
+          S.notes[at] = `Past paper, ${score}% on my own marking. Lost marks on the longer questions.`;
+          S.log.push({d, at, t:'paper', s:n.sid, c:[], r:[], prev:{}, mins:45, plan:45});
+          skipped.add('paper:' + n.sid); left -= 45; continue; }
         if (n.type==='learn' && left < 20) break;
         const mins = n.type==='learn' ? Math.min(n.mins || 45, left) : (n.mins || 10);
         const wasRel = n.type==='learn' && cs(n.cards[0]).st==='learning';
