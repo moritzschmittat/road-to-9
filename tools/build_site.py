@@ -65,6 +65,12 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="
 NAV = [('/how.html', 'How it works'), ('/subjects/', 'Subjects'), ('/parents.html', 'Parents'), ('/demo/', 'Test drive')]
 
 
+def shot(name, w, h, alt, lazy=True):
+    """Screenshot of the app in Night and in Day; the site shows the one matching its own mode."""
+    imgs = ''.join(f'<img class="for-{m}" src="/img/{name}-{m}.webp" width="{w}" height="{h}"{"" if (m == "night" and not lazy) else " loading=\"lazy\""} alt="{alt}">' for m in ('night', 'day'))
+    return f'<div class="shot">{imgs}</div>'
+
+
 def page(path, title, desc, body, *, active=None, jsonld=None, forward=False, index=True):
     url = SITE + path
     nav = ''.join(f'<a href="{h}"{" aria-current=page" if h == active else ""}{" class=navtry" if h == "/demo/" else ""}>{t}</a>' for h, t in NAV)
@@ -179,7 +185,7 @@ def home():
     <div class="btns"><a class="btn primary" href="/demo/">Take a test drive</a><a class="btn" href="/how.html">How it works</a></div>
     <p class="note">Try it now with a made-up student, no sign-up · free for GCSE 2027 · works on phone and laptop</p>
   </div>
-  <div class="shot"><img src="/img/session.png" width="1200" height="676" alt="A Road to 9 revision session: the topic, its spec points, a 45 minute timer and the rest of today's sessions"></div>
+  {shot('session', 1640, 1110, "A Road to 9 revision session: the topic, its spec points, the timer, and buttons to finish and rate, get help, pick a different topic or skip the day", lazy=False)}
 </div></section>
 
 <section><div class="wrap">
@@ -194,13 +200,14 @@ def home():
 </div></section>
 
 <section><div class="wrap split">
-  <div class="shot"><img src="/img/week.png" width="1200" height="774" loading="lazy" alt="A week planned in Road to 9: each day lists its revise sessions and short refreshers, with how long the student has that day"></div>
+  {shot('week', 1840, 1360, "The next four days in Road to 9: each day lists its revise sessions and short refreshers, with how long the student has that day")}
   <div>
     <p class="eyebrow">Every day</p>
     <h2>Open it, and your week is already planned</h2>
     <ul class="ticks">
       <li>You set how long you can study each day, including holidays and days off.</li>
-      <li>Short on time or full of energy? Add or drop a session for today.</li>
+      <li>Can’t study today? One tap, and everything planned moves on.</li>
+      <li>Want to get ahead? Start any planned topic straight away.</li>
       <li>Mocks and exams pull refreshers forward, and the last four weeks before each exam put that subject first.</li>
       <li>Past papers join the plan in the spring, and the topics that cost you marks come back sooner.</li>
       <li>A journal and a to-do for each topic, waiting for you next time.</li>
