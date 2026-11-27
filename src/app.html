@@ -64,11 +64,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .netpill.demo{background:#1f45d6}
 .demobar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:center;padding:10px 16px;background:#1f45d6;color:#fff;font-size:14px;text-align:center}
 .demobar .btn.ghost{color:#fff;border-color:rgba(255,255,255,.5);background:transparent}
-.demobar .btn.primary{background:#b6f738;color:#050c14;border-color:#b6f738}
-.demobtns{display:inline-flex;gap:8px}
+.demobar .btn.primary,:root[data-theme] .demobar .btn.primary{background:#b6f738!important;color:#050c14!important;border-color:#b6f738!important}
+.demobar .btn{white-space:nowrap}
+.demobtns{display:inline-flex;gap:8px;align-items:center}
+.demomode{display:inline-flex;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:2px;gap:2px}
+.demomode button{all:unset;cursor:pointer;width:28px;height:24px;display:grid;place-items:center;border-radius:999px;color:#fff}
+.demomode svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.demomode button[data-demomode="night"] svg{fill:currentColor;stroke:none}
+.demomode button[aria-pressed="true"]{background:#fff;color:#1f45d6}
+.demomode button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 body.demo #deldetails{display:none}
 .demobar a.btn{text-decoration:none}
-@media (max-width:640px){.demobar{position:static;font-size:13px;padding:8px 12px;gap:6px 10px}}
+@media (max-width:640px){.demobar{position:static;font-size:13px;padding:8px 12px;gap:6px 10px}.demobtns{flex-wrap:wrap;justify-content:center;gap:6px}.demobar .btn.small{padding:6px 10px;font-size:13px}}
 .netpill.saving i{background:#13202b;box-shadow:none;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.netpill.saving i{animation:none}}
@@ -3079,7 +3086,8 @@ function demoState(){
     week:{0:120,1:90,2:90,3:90,4:90,5:60,6:120},
     terms:{v:TERMS_V, at: start + 'T17:00:00.000Z'}});
   applySubjects();
-  schoolMocks('sam@rgsg.co.uk');   // Sam gets a real school's January mock timetable, so the test drive shows mock lines
+  schoolMocks('sam@rgsg.co.uk');
+  try { S.settings.theme = localStorage.getItem('r9-theme')==='day' ? 'day' : 'night'; } catch(e){ S.settings.theme = 'night'; }   // Sam gets a real school's January mock timetable, so the test drive shows mock lines
   const base = {bio:2.1, chem:2.4, maths:1.8, fre:2.3, hist:2.7};
   FORCE_DAY = start;
   CURRICULUM.forEach(sub => sub.cards.forEach(c => {
@@ -3123,8 +3131,17 @@ function demoState(){
 function demoBanner(){
   document.body.classList.add('demo');
   document.body.insertAdjacentHTML('afterbegin', `<div class="demobar" role="note"><span><b>Test drive.</b> This is Sam, a made-up student. Try anything: nothing you do is saved.</span>
-    <span class="demobtns"><button class="btn small ghost" id="demoreset">Start again</button><a class="btn small primary" href="/#join">Get an invite</a></span></div>`);
+    <span class="demobtns"><span class="demomode" role="group" aria-label="Day or night">
+      <button type="button" data-demomode="day" aria-label="Day" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
+      <button type="button" data-demomode="night" aria-label="Night" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></span>
+      <button class="btn small ghost" id="demoreset">Start again</button><a class="btn small primary" href="/#join">Get an invite</a></span></div>`);
   $('#demoreset').onclick = () => { location.hash = '#study'; location.reload(); };
+  // Day/Night: the same setting as the website's switch, so the site and the test drive match
+  const showMode = () => document.querySelectorAll('[data-demomode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demomode === (S.settings.theme==='day' ? 'day' : 'night')));
+  document.querySelectorAll('[data-demomode]').forEach(b => b.onclick = () => { S.settings.theme = b.dataset.demomode; applyTheme(S.settings.theme);
+    try { localStorage.setItem('r9-theme', S.settings.theme); } catch(e){}
+    document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', x.dataset.themeSet===S.settings.theme)); showMode(); });
+  showMode();
 }
 window.addEventListener('hashchange', () => { if (USER) render(); });
 (async function boot(){
