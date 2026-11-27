@@ -813,11 +813,10 @@ body.signedout #view{min-height:calc(100vh - 90px)}
 .gmsg{border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:600}.gmsg.ok{background:var(--green-soft);color:var(--ink)}.gmsg.err{background:var(--red-soft);color:var(--ink)}
 .session.off > :not(.sbtns):not(.skipnote){opacity:.35;pointer-events:none;filter:grayscale(1)}
 .session.off .sbtns > :not(#skipday){opacity:.35;pointer-events:none;filter:grayscale(1)}
-.nextup.off{opacity:.35}
 .skipnote{margin:0}
 .session .rategrid{margin:0}
 .rateitem .minsrow{margin-top:4px}
-.nextup{font-size:15px;font-weight:800;letter-spacing:.02em;margin:0 0 10px;color:var(--muted)}
+.nextup{font-size:18px;margin:0}   /* inside the card, same as the other card titles */
 .sbtns{flex-wrap:wrap;gap:8px}
 .session .chooser{margin:0}
 .wk-go{all:unset;cursor:pointer;display:inline-block;margin-top:5px;font-size:11px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px;white-space:nowrap}
@@ -2114,7 +2113,7 @@ function renderNext(){
     }
   }
   if (!current && choosing) html += chooserHTML();
-  if (current) html += nextUpHTML() + sessionHTML();
+  if (current) html += sessionHTML();
   planToday(info);
   html += '</div></div>' + weekHTML() + (S.settings.routine ? checkinHTML() : '');
   $('#view').innerHTML = html;
@@ -2148,7 +2147,7 @@ const PAPER_HOW = `<details class="howto"><summary title="How to do a past-paper
 function paperHTML(){
   const cur = current;
   const subj = SUBJ[current.sid];
-  return `<section class="session ${TAB()==='skip' ? 'off' : ''}"><div class="head"><div class="kind"><span class="eyebrow">Past paper · 45 min</span></div>
+  return `<section class="session ${TAB()==='skip' ? 'off' : ''}">${nextUpHTML()}<div class="head">
     <div class="subj">${icon(subj.id,18)}${esc(subj.name)}</div><h2 class="topic">Exam practice</h2><div class="sec">${esc(subj.board)}</div></div>
         ${sessButtons([], true, PAPER_HOW)}
     ${PAST_PAPERS[subj.id] ? `<p class="small" style="margin:0">${ppLink(subj.id)} and mark schemes for ${esc(subj.board)} (opens the exam board’s site)</p>` : ''}
@@ -2198,7 +2197,7 @@ function sessionHTML(){
   foot = sessButtons(cards, false, howto, ratePanel);
   const todos = cards.filter(c => S.todo[c.id]);
   const todoBlock = todos.length && (cur.type==='learn' || cards.length === 1) ? `<div class="todoshow"><div class="eyebrow">Your to-do from last time</div>${todos.map(c => `<div class="todoitem">${cards.length > 1 ? `<b>${esc(SUBJ[c.sid].name)} · ${esc(c.n)}</b>` : ''}<p>${esc(S.todo[c.id])}</p></div>`).join('')}</div>` : '';
-  return `<section class="session ${TAB()==='skip' ? 'off' : ''}">${head}${body + todoBlock}${foot}</section>`;
+  return `<section class="session ${TAB()==='skip' ? 'off' : ''}">${nextUpHTML()}${head}${body + todoBlock}${foot}</section>`;
 }
 
 // "Next up: 30 min revision" above the session ("Now: …" once the timer has started)
@@ -2207,7 +2206,7 @@ function nextUpHTML(){
   const m = n.mins || (n.cm ? Object.values(n.cm).reduce((a,b) => a+b, 0) : 45);
   const what = n.type==='paper' ? 'past paper' : n.type==='learn' ? 'revision' : n.type==='quick' ? 'quick refresher' : 'refresher';
   const many = n.type!=='paper' && n.cards.length > 1 ? ` · ${n.cards.length} topics` : '';
-  return `<h2 class="nextup ${n.tab==='skip' ? 'off' : ''}">${timerOpen() ? 'Now' : 'Next up'}: ${m} min ${what}${many}</h2>`;
+  return `<h2 class="nextup">${timerOpen() ? 'Now' : 'Next up'}: ${m} min ${what}${many}</h2>`;
 }
 const timerOpen = () => timer.running || timer.used > 0;
 // The buttons under the topic work like tabs: each opens its own panel below, one at a time (current.tab).
@@ -2942,7 +2941,7 @@ async function signOut(){
 }
 /* Errors in the browser go to the admin page's error log: the message, where in the code, browser and version.
    Never the user, never anything they typed (emails and long numbers are blanked out). At most 5 per page load. */
-const APP_VER = '2026-11-27 16:18';
+const APP_VER = '2026-11-27 16:19';
 let errSent = 0; const errSeen = new Set();
 function reportError(msg, src, line){
   try {
